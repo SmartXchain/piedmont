@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Technical Sheets</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Technical Sheets</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Part Name</th>
+                <th>Specifications</th>
+                <th>Tools Required</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sheet in technical_sheets %}
+                <tr>
+                    <td>{{ sheet.part.name }}</td>
+                    <td>
+                        <ul>
+                            {% for spec in sheet.specifications.all %}
+                                <li>{{ spec.name }}: {{ spec.description }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>{{ sheet.tools_required }}</td>
+                    <td>{{ sheet.created_at }}</td>
+                    <td>
+                        <a href="{% url 'select_rework_steps' sheet.id %}">Select Rework Steps</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">No technical sheets available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button onclick="window.location.href='{% url 'create_technical_sheet' %}'">Create New Technical Sheet</button>
+    <button onclick="window.location.href='{% url 'landing_page' %}'">Back to Home</button>
+</body>
+</html>

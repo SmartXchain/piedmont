@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Technical Sheet</title>
+</head>
+<body>
+    <h1>Create Technical Sheet</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Technical Sheet</button>
+    </form>
+    <button onclick="window.location.href='{% url 'list_technical_sheets' %}'">Back to Technical Sheets</button>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select Rework Steps</title>
+</head>
+<body>
+    <h1>Select Rework Steps for {{ technical_sheet.part.name }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div>{{ form.as_p }}</div>
+        {% endfor %}
+        <button type="submit">Save Selected Steps</button>
+    </form>
+    <button onclick="window.location.href='{% url 'list_technical_sheets' %}'">Back to Technical Sheets</button>
+</body>
+</html>

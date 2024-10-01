@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Parts List</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Parts List</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Part Name</th>
+                <th>Part Number</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for part in parts %}
+                <tr>
+                    <td>{{ part.name }}</td>
+                    <td>{{ part.part_number }}</td>
+                    <td>{{ part.description }}</td>
+                    <td>
+                        <a href="{% url 'edit_part' part.id %}">Edit</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">No parts available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button onclick="window.location.href='{% url 'add_part' %}'">Add New Part</button>
+    <button onclick="window.location.href='{% url 'landing_page' %}'">Back to Home</button>
+</body>
+</html>

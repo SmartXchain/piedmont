@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Specifications</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Specifications</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Specification Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for specification in specifications %}
+                <tr>
+                    <td>{{ specification.name }}</td>
+                    <td>{{ specification.description }}</td>
+                    <td>
+                        <a href="{% url 'edit_specification' specification.id %}">Edit</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">No specifications available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button onclick="window.location.href='{% url 'add_specification' %}'">Add New Specification</button>
+    <button onclick="window.location.href='{% url 'landing_page' %}'">Back to Home</button>
+</body>
+</html>

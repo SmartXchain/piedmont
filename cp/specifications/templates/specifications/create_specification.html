@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Specification</title>
+</head>
+<body>
+    <h1>Create Specification</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <h2>Steps</h2>
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div>{{ form.as_p }}</div>
+        {% endfor %}
+        <button type="submit">Save Specification</button>
+    </form>
+    <button onclick="window.location.href='{% url 'list_specifications' %}'">Back to Specifications</button>
+</body>
+</html>

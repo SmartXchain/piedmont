@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Specification</title>
+</head>
+<body>
+    <h1>Add New Specification</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Specification</button>
+    </form>
+    <button onclick="window.location.href='{% url 'list_specifications' %}'">Back to Specifications</button>
+</body>
+</html>
