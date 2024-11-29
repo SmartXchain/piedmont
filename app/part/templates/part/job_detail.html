@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Job Details for {{ job.job_number }}</h1>
+    <p><strong>Part Number:</strong> {{ job.part.part_number }}</p>
+    <p><strong>Surface Repaired:</strong> {{ job.surface_repaired }}</p>
+    <p><strong>PO with Revision:</strong> {{ job.purchase_order_with_revision|default:"N/A" }}</p>
+    <p><strong>Quantity:</strong> {{ job.part_quantity|default:"N/A" }}</p>
+    <p><strong>Serial or Lot Numbers:</strong> {{ job.serial_or_lot_numbers|default:"N/A" }}</p>
+    <p><strong>Date:</strong> {{ job.date|date:"Y-m-d" }}</p>
+    <a href="{% url 'job_list' %}" class="btn btn-secondary">Back to Jobs</a>
+</div>
+{% endblock %}
+

@@ -24,6 +24,9 @@ class Standard(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.name
+
 class InspectionRequirement(models.Model):
     standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='inspections')
     name = models.CharField(max_length=255)

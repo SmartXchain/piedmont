@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if job %}Edit Job{% else %}Add Job{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if job %}Edit Job {% else %}Add Job{% endif %}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">{% if job %}Update{% else %}Save{% endif %}</button>
+        <a href="{% url 'job_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Part Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Part Details</h1>
+    <p><strong>Part Number:</strong> {{ part.part_number }}</p>
+    <p><strong>Description:</strong> {{ part.part_description }}</p>
+    <p><strong>Revision:</strong> {{ part.part_revision }}</p>
+
+    <h2>Additional Details</h2>
+    <a href="{% url 'partdetails_add' part.id %}" class="btn btn-success mb-3">Add Details</a>
+    
+    {% if part_details.exists %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Job Identity</th>
+                    <th>Processing Standard</th>
+                    <th>Alloy with Heat Treat</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in part_details %}
+                <tr>
+                    <td>{{ detail.get_job_identity_display|default:"N/A" }}</td>
+                    <td>{{ detail.processing_standard.name|default:"N/A" }}</td>
+                    <td>{{ detail.alloy_with_heat_treat_condition|default:"N/A" }}</td>
+                    <td>
+                        <a href="{% url 'partdetails_view' detail.id %}" class="btn btn-primary btn-sm">View</a>
+                        <a href="{% url 'partdetails_edit' detail.id %}" class="btn btn-warning btn-sm">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No additional details available for this part.</p>
+    {% endif %}
+
+    <h2>Job Details</h2>
+    <a href="{% url 'job_create' %}?part_id={{ part.id }}" class="btn btn-success mb-3">Add Job</a>
+    {% if job_details %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Job Number</th>
+                <th>Serial or Lot Numbers</th>
+                <th>Quantity</th>
+                <th>Surface Repaired</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in job_details %}
+            <tr>
+                <td>{{ job.job_number|default:"N/A" }}</td>
+                <td>{{ job.serial_or_lot_numbers|default:"N/A" }}</td>
+                <td>{{ job.part_quantity|default:"N/A" }}</td>
+                <td>{{ job.surface_repaired|default:"N/A" }}</td>
+                <td>{{ job.date|date:"Y-m-d" }}</td>
+                <td>
+                    <a href="{% url 'job_detail' job.id %}" class="btn btn-primary btn-sm">View</a>
+                    <a href="{% url 'job_edit' job.id %}" class="btn btn-warning btn-sm">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No job details available for this part.</p>
+        <a href="{% url 'job_details_create' part.id %}" class="btn btn-success">Add Job Details</a>
+    {% endif %}
+</div>
+{% endblock %}

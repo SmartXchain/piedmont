@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if detail %}Edit Details{% else %}Add Details{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if detail %}Edit Details{% else %}Add Details{% endif %}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">{% if detail %}Update{% else %}Save{% endif %}</button>
+        <a href="{% url 'part_detail' part.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Add/Edit Part{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if edit %}Edit Part{% else %}Add Part{% endif %}</h1>
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <fieldset>
+            <legend>Part Information</legend>
+            {{ part_form.as_p }}
+        </fieldset>
+        <fieldset>
+            <legend>Part Details</legend>
+            {{ details_form.as_p }}
+        </fieldset>
+        <button type="submit" class="btn btn-primary">{% if edit %}Update{% else %}Save{% endif %}</button>
+        <a href="{% url 'part_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Part List{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Part List</h1>
+    <a href="{% url 'part_create' %}" class="btn btn-success mb-3">Add Part</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Part Number</th>
+                <th>Part Description</th>
+                <th>Part Revision</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for part in parts %}
+            <tr>
+                <td>{{ part.part_number }}</td>
+                <td>{{ part.part_description }}</td>
+                <td>{{ part.part_revision|default:"N/A" }}</td>
+                <td>
+                    <a href="{% url 'part_detail' part.id %}" class="btn btn-primary btn-sm">View</a>
+                    <a href="{% url 'part_edit' part.id %}" class="btn btn-warning btn-sm">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
