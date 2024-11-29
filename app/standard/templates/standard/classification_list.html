@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Classifications for {{ standard.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Manage Classifications for {{ standard.name }}</h1>
+
+    <a href="{% url 'classification_create' standard.id %}" class="btn btn-success mb-3">Add Classification</a>
+
+    {% if classifications %}
+        <ul class="list-group">
+            {% for classification in classifications %}
+                <li class="list-group-item">
+                    <strong>Method:</strong> {{ classification.method|default:"N/A" }} - {{ classification.method_description|default:"No description" }}<br>
+                    <strong>Class:</strong> {{ classification.class_name|default:"N/A" }} - {{ classification.class_description|default:"No description" }}<br>
+                    <strong>Type:</strong> {{ classification.type|default:"N/A" }} - {{ classification.type_description|default:"No description" }}
+                    <a href="{% url 'classification_edit' classification.id %}" class="btn btn-sm btn-warning float-end">Edit</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No classifications added for this standard.</p>
+    {% endif %}
+    
+    <a href="{% url 'standard_detail' standard.id %}" class="btn btn-secondary mt-3">Back to Standard</a>
+</div>
+{% endblock %}

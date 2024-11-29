@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Inspections for {{ standard.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Manage Inspections for {{ standard.name }}</h1>
+
+    <a href="{% url 'inspection_create' standard.id %}" class="btn btn-success mb-3">Add Inspection</a>
+
+    {% if inspections %}
+        <ul class="list-group">
+            {% for inspection in inspections %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ inspection.name }}</strong>: {{ inspection.description }}
+                    </div>
+                    <a href="{% url 'inspection_edit' inspection.id %}" class="btn btn-sm btn-warning">Edit</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No inspections added for this standard.</p>
+    {% endif %}
+    
+    <a href="{% url 'standard_detail' standard.id %}" class="btn btn-secondary mt-3">Back to Standard</a>
+</div>
+{% endblock %}

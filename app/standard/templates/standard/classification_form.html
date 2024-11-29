@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ standard.name }} - Add/Edit Classification{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ standard.name }} - Add/Edit Classification</h1>
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'classification_list' standard.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

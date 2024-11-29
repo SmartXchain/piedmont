@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
-from .models import Standard, InspectionRequirement
+from .models import Standard, InspectionRequirement, PeriodicTest, Classification
 
 def get_standard_form(data=None, files=None, instance=None):
     """Creates a form for Standard, with optional instance support for editing."""
@@ -46,6 +46,55 @@ InspectionRequirementFormSet = inlineformset_factory(
     extra=1,
     widgets={
         'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter inspection name'}),
-        'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Enter description'}),
+        'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Enter description'}),
     }
 )
+
+class InspectionRequirementForm(forms.ModelForm):
+    class Meta:
+        model = InspectionRequirement
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter inspection name'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Enter description'}),
+        }
+
+class PeriodicTestForm(forms.ModelForm):
+    class Meta:
+        model = PeriodicTest
+        fields = [
+            'name',
+            'time_period',
+            'specification',
+            'number_of_specimens',
+            'material',
+            'dimensions',
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter test name'}),
+            'time_period': forms.Select(attrs={'class': 'form-control'}),
+            'specification': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter specification'}),
+            'number_of_specimens': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter number of specimens'}),
+            'material': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter material'}),
+            'dimensions': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter dimensions'}),
+        }
+
+class ClassificationForm(forms.ModelForm):
+    class Meta:
+        model = Classification
+        fields = [
+            'method',
+            'method_description',
+            'class_name',
+            'class_description',
+            'type',
+            'type_description',
+        ]
+        widgets = {
+            'method': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter method'}),
+            'method_description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Enter method description'}),
+            'class_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter class'}),
+            'class_description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Enter class description'}),
+            'type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter type'}),
+            'type_description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Enter type description'}),
+        }

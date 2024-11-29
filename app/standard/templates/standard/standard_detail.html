@@ -3,33 +3,69 @@
 {% block title %}{{ standard.name }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="container d-flex flex-column min-vh-100">
+    <div class="container align-items-center flex-grow-1">
         <h1>{{ standard.name }}</h1>
-        <a href="{% url 'standard_edit' standard.id %}" class="btn btn-warning">Edit</a>
-    </div>
-    <p><strong>Description:</strong> {{ standard.description }}</p>
-    <p><strong>Revision:</strong> {{ standard.revision }}</p>
-    <p><strong>Author:</strong> {{ standard.author }}</p>
-    <p><strong>Uploaded File:</strong> 
-        {% if standard.upload_file %}
-            <a href="{{ standard.upload_file.url }}">Download File</a>
+        <p><strong>Description:</strong> {{ standard.description }}</p>
+        <p><strong>Revision:</strong> {{ standard.revision }}</p>
+        <p><strong>Author:</strong> {{ standard.author }}</p>
+        <p><strong>Uploaded File:</strong> 
+            {% if standard.upload_file %}
+                <a href="{{ standard.upload_file.url }}">Download File</a>
+            {% else %}
+                No file uploaded.
+            {% endif %}
+        </p>
+        <!-- Classifications Section -->
+        <h2 class="mt-4">Classifications</h2>
+        {% if classifications %}
+            <ul class="list-group">
+                {% for classification in classifications %}
+                    <li class="list-group-item">
+                        <strong>Method:</strong> {{ classification.method|default:"N/A" }} - {{ classification.method_description|default:"No description" }}<br>
+                        <strong>Class:</strong> {{ classification.class_name|default:"N/A" }} - {{ classification.class_description|default:"No description" }}<br>
+                        <strong>Type:</strong> {{ classification.type|default:"N/A" }} - {{ classification.type_description|default:"No description" }}
+                    </li>
+                {% endfor %}
+            </ul>
         {% else %}
-            No file uploaded.
+            <p>No classifications for this standard.</p>
         {% endif %}
-    </p>
-    <h2>Inspection Requirements</h2>
-    {% if inspections %}
-        <ul>
-            {% for inspection in inspections %}
-                <li>
-                    <strong>{{ inspection.name }}</strong>: {{ inspection.description }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No inspection requirements for this standard.</p>
-    {% endif %}
-    <a href="{% url 'standard_list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'classification_list' standard.id %}" class="btn btn-primary">Manage Classifications</a>
+        <h2 class="mt-5">Inspection Requirements</h2>
+        {% if inspections %}
+            <ul class="list-group">
+                {% for inspection in inspections %}
+                    <li class="list-group-item">
+                        <strong>{{ inspection.name }}</strong>: {{ inspection.description }}
+                        <br>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No inspection requirements for this standard.</p>
+        {% endif %}
+        <a href="{% url 'inspection_list' standard.id %}" class="btn btn-primary mt-3">Manage Inspections</a>
+        <h2 class="mt-5">Periodic Tests</h2>
+        {% if standard.periodic_tests.all %}
+            <ul class="list-group">
+                {% for test in standard.periodic_tests.all %}
+                    <li class="list-group-item">
+                        <strong>{{ test.name }}</strong> - {{ test.get_time_period_display }}
+                        <br>
+                        Spec: {{ test.specification }} | Specimens: {{ test.number_of_specimens }} 
+                        | Material: {{ test.material }} | Dimensions: {{ test.dimensions }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No periodic tests for this standard.</p>
+        {% endif %}
+        <a href="{% url 'periodic_test_list' standard.id %}" class="btn btn-primary">Manage Periodic Tests</a>
+    <!-- Action Buttons -->
+    <div class="container text-center py-3">
+        <a href="{% url 'standard_edit' standard.id %}" class="btn btn-warning me-2">Edit Standard</a>
+        <a href="{% url 'standard_list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
 </div>
 {% endblock %}
