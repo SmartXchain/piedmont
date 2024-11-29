@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if edit %}Edit Standard{% else %}Add Standard{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4 mb-4">
+        {% if edit %}Edit Standard{% else %}Add New Standard{% endif %}
+    </h1>
+
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+
+        <!-- Standard Details -->
+        <h2>Standard Details</h2>
+        <div class="mb-3">
+            <label for="id_name" class="form-label">Name</label>
+            <input type="text" name="name" id="id_name" class="form-control" value="{{ form.name.value }}" placeholder="Enter standard name" required>
+            {% if form.name.errors %}
+                <div class="text-danger">
+                    {{ form.name.errors|join:", " }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_description" class="form-label">Description</label>
+            <textarea name="description" id="id_description" class="form-control" rows="4" placeholder="Enter description" required>{{ form.description.value }}</textarea>
+            {% if form.description.errors %}
+                <div class="text-danger">
+                    {{ form.description.errors|join:", " }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_revision" class="form-label">Revision</label>
+            <input type="text" name="revision" id="id_revision" class="form-control" value="{{ form.revision.value }}" placeholder="Enter revision" required>
+            {% if form.revision.errors %}
+                <div class="text-danger">
+                    {{ form.revision.errors|join:", " }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_author" class="form-label">Author</label>
+            <input type="text" name="author" id="id_author" class="form-control" value="{{ form.author.value }}" placeholder="Enter author name" required>
+            {% if form.author.errors %}
+                <div class="text-danger">
+                    {{ form.author.errors|join:", " }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_upload_file" class="form-label">Upload File</label>
+            <input type="file" name="upload_file" id="id_upload_file" class="form-control">
+            {% if form.upload_file.errors %}
+                <div class="text-danger">
+                    {{ form.upload_file.errors|join:", " }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Inspection Requirements -->
+        <h2>Inspection Requirements</h2>
+        {{ formset.management_form }}
+        <div id="inspection-requirements">
+            {% for form in formset %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">Inspection Name</label>
+                            <input type="text" name="{{ form.name.html_name }}" id="{{ form.name.id_for_label }}" 
+                                   value="{{ form.name.value }}" class="form-control" placeholder="Enter inspection name">
+                            {% if form.name.errors %}
+                                <div class="text-danger">
+                                    {{ form.name.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            <textarea name="{{ form.description.html_name }}" id="{{ form.description.id_for_label }}" 
+                                      class="form-control" rows="2" placeholder="Enter description">{{ form.description.value }}</textarea>
+                            {% if form.description.errors %}
+                                <div class="text-danger">
+                                    {{ form.description.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                {% if edit %}Update{% else %}Save{% endif %}
+            </button>
+            <a href="{% url 'standard_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
