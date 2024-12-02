@@ -4,11 +4,31 @@
 
 {% block content %}
 <div class="container">
-    <h1>{% if detail %}Edit Details{% else %}Add Details{% endif %}</h1>
+    <h1>{% if detail %}Edit Details{% else %}Add Details{% endif %} for Part {{ part.part_number }}</h1>
+
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">{% if detail %}Update{% else %}Save{% endif %}</button>
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th>Job Identity</th>
+                    <td>{{ form.job_identity }}</td>
+                </tr>
+                <tr>
+                    <th>Processing Standard</th>
+                    <td>{{ form.processing_standard }}</td>
+                </tr>
+                <tr>
+                    <th>Alloy with Heat Treat</th>
+                    <td>{{ form.alloy_with_heat_treat_condition }}</td>
+                </tr>
+                <tr>
+                    <th>Rework</th>
+                    <td>{{ form.rework }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary">{% if detail %}Save Changes{% else %}Add Details{% endif %}</button>
         <a href="{% url 'part_detail' part.id %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>

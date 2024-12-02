@@ -1,7 +1,14 @@
 from django.contrib import admin
-from .models import PartDetails
+from .models import Part, PartDetails, JobDetails
 
-# Register your models here.
+@admin.register(Part)
+class PartAdmin(admin.ModelAdmin):
+    list_display = ('part_number', 'part_description', 'part_revision')
+
 @admin.register(PartDetails)
 class PartDetailsAdmin(admin.ModelAdmin):
-    list_display = ('part', 'get_job_identity_display', 'processing_standard')
+    list_display = ('part', 'job_identity', 'processing_standard', 'alloy_with_heat_treat_condition')
+
+@admin.register(JobDetails)
+class JobDetailsAdmin(admin.ModelAdmin):
+    list_display = ('job_number', 'part_detail', 'part_quantity', 'date')

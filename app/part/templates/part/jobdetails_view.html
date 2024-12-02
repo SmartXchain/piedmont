@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Job Details</h1>
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th>Job Number</th>
+                <td>{{ job.job_number }}</td>
+            </tr>
+            <tr>
+                <th>Part Quantity</th>
+                <td>{{ job.part_quantity|default:"N/A" }}</td>
+            </tr>
+            <tr>
+                <th>Serial or Lot Numbers</th>
+                <td>{{ job.serial_or_lot_numbers|default:"N/A" }}</td>
+            </tr>
+            <tr>
+                <th>Surface Repaired</th>
+                <td>{{ job.surface_repaired|default:"N/A" }}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{ job.date|date:"Y-m-d" }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <a href="{% url 'part_detail' part.id %}" class="btn btn-secondary">Back to Part</a>
+</div>
+{% endblock %}
+

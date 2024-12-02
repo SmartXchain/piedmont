@@ -7,6 +7,7 @@
     <h1>Details for Job Identity {{ detail.get_job_identity_display }}</h1>
     <p><strong>Processing Standard:</strong> {{ detail.processing_standard|default:"N/A" }}</p>
     <p><strong>Alloy with Heat Treat:</strong> {{ detail.alloy_with_heat_treat_condition|default:"N/A" }}</p>
+    <p><strong>Rework:</strong> {{ detail.rework|default:"N/A" }}</p>
     <a href="{% url 'part_detail' detail.part.id %}" class="btn btn-secondary">Back to Part</a>
 </div>
 {% endblock %}
