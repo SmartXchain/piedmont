@@ -14,10 +14,11 @@ class PartForm(forms.ModelForm):
 class PartDetailsForm(forms.ModelForm):
     class Meta:
         model = PartDetails
-        fields = ['job_identity', 'processing_standard', 'alloy_with_heat_treat_condition', 'rework']
+        fields = ['job_identity', 'processing_standard', 'classification', 'alloy_with_heat_treat_condition', 'rework']
         widgets = {
             'job_identity': forms.Select(attrs={'class': 'form-control'}),
             'processing_standard': forms.Select(attrs={'class': 'form-control'}),
+            'classification': forms.Select(attrs={'class': 'form-control'}),
             'alloy_with_heat_treat_condition': forms.TextInput(attrs={'class': 'form-control'}),
             'rework': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
@@ -33,6 +34,8 @@ class JobDetailsForm(forms.ModelForm):
             'surface_repaired',
             'date',
             'job_identity',
+            'processing_standard',
+            'classification',
         ]
         widgets = {
             'job_number': forms.TextInput(attrs={'class': 'form-control'}),
@@ -42,4 +45,6 @@ class JobDetailsForm(forms.ModelForm):
             'surface_repaired': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'job_identity': forms.Select(attrs={'class': 'form-control'}),
+            'processing_standard': forms.Select(attrs={'class': 'form-control'}),
+            'classification': forms.Select(attrs={'class': 'form-control'}),
         }

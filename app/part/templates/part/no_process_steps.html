@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}No Process Found{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ message }}</h1>
+    <p>Please verify the processing standard and classification for this part.</p>
+    <a href="{% url 'part_detail' part_detail.part.id %}" class="btn btn-secondary mt-3">Back to Part</a>
+</div>
+{% endblock %}

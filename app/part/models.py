@@ -1,5 +1,5 @@
 from django.db import models
-from standard.models import Standard
+from standard.models import Standard, Classification
 from process.models import Process
 
 
@@ -36,17 +36,19 @@ class PartDetails(models.Model):
     rework = models.BooleanField(default=False)
    
     def get_process_steps(self):
-        # Attempt to retrieve the classification from the part or handle if it's missing
-        classification = getattr(self.part, 'classification', None)
-
         # Fetch the process using the processing standard and classification
         process = Process.objects.filter(
             standard=self.processing_standard,
-            classification=classification
+            classification=self.classification
         ).first()
 
+        if process:
+            print(f"Process Found: {process}")
+        else:
+            print("No matching process found.")
         # Return the steps if the process exists, otherwise return an empty queryset
-        return process.steps.all() if process else []
+        
+        return process.steps.all() if process else None
 
     class Meta:
         unique_together = ('part', 'job_identity', 'processing_standard')  # Ensure uniqueness per part and job identity
@@ -76,11 +78,15 @@ class JobDetails(models.Model):
         ]
     )
 
+    processing_standard = models.ForeignKey(Standard, on_delete=models.SET_NULL, blank=True, null=True)
+    classification = models.ForeignKey(Classification, on_delete=models.SET_NULL, blank=True, null=True)
+
+
     def get_process_steps(self):
-        # Retrieve process steps based on the job's identity and related part details
+        # Retrieve the process for the selected standard and classification
         process = Process.objects.filter(
-            standard=self.part_detail.processing_standard,
-            classification=self.part_detail.part.classification
+            standard=self.processing_standard,
+            classification=self.classification
         ).first()
         return process.steps.all() if process else []
     

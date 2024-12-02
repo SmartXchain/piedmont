@@ -49,7 +49,6 @@ def process_step_add_view(request, process_id):
     return render(request, 'process/process_step_form.html', {'form': form, 'process': process})
 
 
-
 def process_step_edit_view(request, step_id):
     step = get_object_or_404(ProcessStep, id=step_id)
     process = step.process
@@ -78,3 +77,8 @@ def process_step_delete_view(request, step_id):
             step.save()
 
     return redirect('process_step_list', process_id=process.id)
+
+def process_steps_view(request, process_id):
+    process = get_object_or_404(Process, id=process_id)
+    steps = process.steps.all()  # Fetch all steps linked to this process
+    return render(request, 'process/process_steps.html', {'process': process, 'steps': steps})

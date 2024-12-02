@@ -13,7 +13,7 @@ class Process(models.Model):
         unique_together = ('standard', 'classification')  # Ensure unique processes per standard/classification
 
     def __str__(self):
-        classification_name = self.classification or "None"
+        classification_name = self.classification
         return f"{self.standard.name} - {classification_name}"
 
 class ProcessStep(models.Model):
