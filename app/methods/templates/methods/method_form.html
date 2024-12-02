@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if method %}Edit Method{% else %}Add Method{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if method %}Edit Method{% else %}Add Method{% endif %}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">{% if method %}Save Changes{% else %}Add Method{% endif %}</button>
+        <a href="{% url 'method_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if process %}Edit Process{% else %}Add Process{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if process %}Edit Process{% else %}Add Process{% endif %}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">{% if process %}Save Changes{% else %}Add Process{% endif %}</button>
+        <a href="{% url 'process_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

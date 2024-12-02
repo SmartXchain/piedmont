@@ -23,6 +23,8 @@ urlpatterns = [
     path('', include('landing_page.urls')),
     path('standard/', include('standard.urls')),
     path('part/', include('part.urls')),
+    path('process/', include('process.urls')),
+    path('methods/', include('methods.urls')),
     path('admin/', admin.site.urls),
 ]
 if bool(settings.DEBUG):

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Processes{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Processes</h1>
+    <a href="{% url 'process_add' %}" class="btn btn-primary mb-3">Add Process</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Standard</th>
+                <th>Classification</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for process in processes %}
+            <tr>
+                <td>{{ process.standard.name }}</td>
+                <td>{{ process.classification.name|default:"None" }}</td>
+                <td>{{ process.description }}</td>
+                <td>
+                    <a href="{% url 'process_edit' process.id %}" class="btn btn-warning btn-sm">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

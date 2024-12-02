@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'landing_page',
     'standard',
     'part',
+    'process',
+    'methods',
 ]
 
 MIDDLEWARE = [
