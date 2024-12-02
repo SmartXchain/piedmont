@@ -17,4 +17,6 @@ urlpatterns = [
     path('<int:part_id>/add-job/', views.jobdetails_add_view, name='jobdetails_add'),  # Add JobDetails
     
     path('jobs/', views.job_list_view, name='job_list'),
+    path('<int:job_id>/process-steps/', views.job_process_steps_view, name='job_process_steps'),
+    path('<int:detail_id>/process-steps/', views.part_process_steps_view, name='part_process_steps'),
 ]

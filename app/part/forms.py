@@ -25,7 +25,15 @@ class PartDetailsForm(forms.ModelForm):
 class JobDetailsForm(forms.ModelForm):
     class Meta:
         model = JobDetails
-        fields = ['job_number', 'purchase_order_with_revision', 'part_quantity', 'serial_or_lot_numbers', 'surface_repaired', 'date']
+        fields = [
+            'job_number',
+            'purchase_order_with_revision',
+            'part_quantity',
+            'serial_or_lot_numbers',
+            'surface_repaired',
+            'date',
+            'job_identity',
+        ]
         widgets = {
             'job_number': forms.TextInput(attrs={'class': 'form-control'}),
             'purchase_order_with_revision': forms.TextInput(attrs={'class': 'form-control'}),
@@ -33,4 +41,5 @@ class JobDetailsForm(forms.ModelForm):
             'serial_or_lot_numbers': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'surface_repaired': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'job_identity': forms.Select(attrs={'class': 'form-control'}),
         }

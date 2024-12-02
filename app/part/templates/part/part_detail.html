@@ -33,6 +33,7 @@
                     <td>
                         <a href="{% url 'partdetails_view' detail.id %}" class="btn btn-primary btn-sm">View</a>
                         <a href="{% url 'partdetails_edit' detail.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'part_process_steps' detail.id %}" class="btn btn-info btn-sm">View Steps</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -49,6 +50,7 @@
         <thead>
             <tr>
                 <th>Job Number</th>
+                <th>Job Identity</th>
                 <th>Serial or Lot Numbers</th>
                 <th>Quantity</th>
                 <th>Surface Repaired</th>
@@ -60,6 +62,7 @@
             {% for job in job_details %}
             <tr>
                 <td>{{ job.job_number|default:"N/A" }}</td>
+                <td>{{ job.job_identity|default:"N/A" }}</td>
                 <td>{{ job.serial_or_lot_numbers|default:"N/A" }}</td>
                 <td>{{ job.part_quantity|default:"N/A" }}</td>
                 <td>{{ job.surface_repaired|default:"N/A" }}</td>

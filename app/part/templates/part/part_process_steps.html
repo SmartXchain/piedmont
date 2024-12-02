@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Process Steps{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Process Steps for {{ part_detail.part.part_number }} - {{ part_detail.job_identity }}</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Step Number</th>
+                <th>Title</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for step in process_steps %}
+            <tr>
+                <td>{{ step.step_number }}</td>
+                <td>{{ step.method.title }}</td>
+                <td>{{ step.method.description }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'part_detail' part_detail.part.id %}" class="btn btn-secondary mt-3">Back to Part</a>
+</div>
+{% endblock %}

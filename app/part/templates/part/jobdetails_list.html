@@ -1,0 +1,29 @@
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Job Number</th>
+            <th>Part Quantity</th>
+            <th>Serial or Lot Numbers</th>
+            <th>Surface Repaired</th>
+            <th>Date</th>
+            <th>Job Identity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in jobs %}
+        <tr>
+            <td>{{ job.job_number }}</td>
+            <td>{{ job.part_quantity|default:"N/A" }}</td>
+            <td>{{ job.serial_or_lot_numbers|default:"N/A" }}</td>
+            <td>{{ job.surface_repaired|default:"N/A" }}</td>
+            <td>{{ job.date|date:"Y-m-d" }}</td>
+            <td>{{ job.get_job_identity_display }}</td>
+            <td>
+                <a href="{% url 'jobdetails_edit' job.id %}" class="btn btn-warning btn-sm">Edit</a>
+                <a href="{% url 'job_process_steps' job.id %}" class="btn btn-info btn-sm">View Steps</a> <!-- View Steps Button -->
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
