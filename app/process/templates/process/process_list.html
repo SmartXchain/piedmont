@@ -23,6 +23,7 @@
                 <td>{{ process.description }}</td>
                 <td>
                     <a href="{% url 'process_edit' process.id %}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{% url 'process_step_list' process.id %}" class="btn btn-info btn-sm">Add Steps</a> <!-- Add Steps Button -->
                 </td>
             </tr>
             {% endfor %}

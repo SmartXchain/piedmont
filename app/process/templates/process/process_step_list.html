@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Process Steps{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Steps for Process: {{ process }}</h1>
+    <a href="{% url 'process_step_add' process.id %}" class="btn btn-primary mb-3">Add Step</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Step Number</th>
+                <th>Method</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for step in steps %}
+            <tr>
+                <td>{{ step.step_number }}</td>
+                <td>{{ step.method.title }}</td>
+                <td>{{ step.method.description }}</td>
+                <td>
+                    <a href="{% url 'process_step_edit' step.id %}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{% url 'process_step_delete' step.id %}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'process_list' %}" class="btn btn-secondary mt-3">Back to Process List</a> <!-- Return Button -->
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if step %}Edit Process Step{% else %}Add Process Step{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if step %}Edit Process Step{% else %}Add Process Step{% endif %} for Process: {{ process }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">{% if step %}Save Changes{% else %}Add Step{% endif %}</button>
+        <a href="{% url 'process_step_list' process.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
