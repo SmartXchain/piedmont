@@ -6,6 +6,8 @@ from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from weasyprint import HTML
+from django.utils import timezone
+import tempfile
 
 def part_list_view(request):
     parts = Part.objects.all()
@@ -144,21 +146,28 @@ def job_process_steps_view(request, job_id):
 def job_print_steps_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)
     process_steps = job.get_process_steps()
+    inspections = job.processing_standard.inspections.all() if job.processing_standard else None
+    current_date = timezone.now().strftime("%m-%d-%Y")
 
-    if not process_steps:
+    # Ensure there are process steps available
+    if process_steps is None:
         return HttpResponse("No process steps found for this job.", content_type="text/plain")
 
-    # Render the template to a string
-    html_string = render_to_string('part/job_steps_pdf.html', {
+    # Render the template with context
+    html_content = render_to_string('part/job_steps_pdf.html', {
         'job': job,
-        'process_steps': process_steps
+        'process_steps': process_steps,
+        'inspections': inspections,
+        'current_date': current_date,
+        'footer_text': f"Printed on: {current_date}",
     })
 
-    # Convert HTML to PDF
-    pdf_file = HTML(string=html_string).write_pdf()
+    # Generate PDF and create HTTP response
+    with tempfile.NamedTemporaryFile(delete=True) as temp_file:
+        HTML(string=html_content).write_pdf(temp_file.name)
+        temp_file.seek(0)
+        pdf_file = temp_file.read()
 
-    # Create response with the PDF file
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="Job_{job.job_number}_Steps.pdf"'
-
     return response

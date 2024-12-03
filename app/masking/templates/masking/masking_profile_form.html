@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Masking Profile Form{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if form.instance.pk %}Edit Masking Profile{% else %}Add Masking Profile{% endif %}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_part" class="form-label">Part Number</label>
+            <select id="id_part" name="part" class="form-control">
+                {% for part in form.fields.part.queryset %}
+                <option value="{{ part.id }}" {% if part.id == form.initial.part.id %}selected{% endif %}>
+                    {{ part.part_number }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="id_part_revision" class="form-label">Part Revision</label>
+            <input type="text" id="id_part_revision" name="part_revision" value="{{ form.part_revision.value }}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="id_masking_area" class="form-label">Masking Area</label>
+            <textarea id="id_masking_area" name="masking_area" class="form-control">{{ form.masking_area.value }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="id_masking_family" class="form-label">Masking Family</label>
+            <select id="id_masking_family" name="masking_family" class="form-control">
+                {% for value, display in form.fields.masking_family.choices %}
+                <option value="{{ value }}" {% if value == form.masking_family.value %}selected{% endif %}>
+                    {{ display }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Save Changes{% else %}Create Profile{% endif %}</button>
+        <a href="{% url 'masking_profile_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
+

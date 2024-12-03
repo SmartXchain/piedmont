@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Masking Profiles{% endblock %}
+
+{% block content %}
+
+<h1>Masking Profile</h1>
+<p><strong>Part Number:</strong> {{ profile.part.part_number }}</p>
+<p><strong>Revision:</strong> {{ profile.part_revision }}</p>
+<p><strong>Masking Area:</strong> {{ profile.masking_area }}</p>
+<p><strong>Masking Family:</strong> {{ profile.get_masking_family_display }}</p>
+
+<h2>Photos</h2>
+<a href="{% url 'masking_photo_create' %}?masking_profile={{ profile.id }}" class="btn btn-success">Add Photo</a>
+<div class="row">
+    {% for photo in photos %}
+    <div class="col-md-4">
+        <img src="{{ photo.image.url }}" alt="{{ photo.description }}" class="img-thumbnail">
+        <p>{{ photo.photo_type }} - {{ photo.description }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

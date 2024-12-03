@@ -80,6 +80,7 @@ class PartDetails(models.Model):
 class JobDetails(models.Model):
     part_detail = models.ForeignKey(PartDetails, on_delete=models.CASCADE, related_name='jobs')
     purchase_order_with_revision = models.CharField(max_length=255, blank=True, null=True)
+    customer = models.CharField(max_length=50, blank=True, null=True)
     part_quantity = models.PositiveIntegerField(blank=True, null=True)
     serial_or_lot_numbers = models.TextField(blank=True, null=True)
     job_number = models.CharField(max_length=255, unique=True)

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Masking Profiles{% endblock %}
+
+{% block content %}
+<h1>Masking Profiles</h1>
+<a href="{% url 'masking_profile_create' %}" class="btn btn-success">Add Masking Profile</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Part Number</th>
+            <th>Revision</th>
+            <th>Masking Area</th>
+            <th>Masking Family</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for profile in profiles %}
+        <tr>
+            <td>{{ profile.part.part_number }}</td>
+            <td>{{ profile.part_revision }}</td>
+            <td>{{ profile.masking_area }}</td>
+            <td>{{ profile.get_masking_family_display }}</td>
+            <td>
+                <a href="{% url 'masking_profile_detail' profile.id %}" class="btn btn-info btn-sm">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -6,7 +6,7 @@
 <div class="container">
     <h1>Process Steps for Part Number {{ part_detail.part.part_number }}</h1> 
     <h2>per Standard {{ part_detail.processing_standard.name|default:"None" }}</h2> 
-    <h2>per Classification {{ part_detail.classification.name|default:"None" }}</h2>
+    <h2>per Classification {{ part_detail.classification|default:"None" }}</h2>
 
     {% if process_steps %}
     <table class="table table-striped">

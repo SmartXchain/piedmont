@@ -1,0 +1,150 @@
+<!-- parts/templates/parts/part_pdf_template.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Part PDF</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Ensure layout and margins */
+        @page {
+            size: letter landscape;
+            margin: 3rem;
+
+            @top-left {
+                content: "Piedmont Aviation";
+                font-size: 0.5rem;
+            }
+
+            @top-center {
+                content: "Part Processing Instructions";
+                font-size: 1rem;
+                font-weight: bold;
+            }
+
+            @bottom-left {
+                content: "Company Confidential";
+                font-size: 0.5rem;
+            }
+
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 0.5rem;
+            }
+
+            @bottom-right {
+                content: "{{ footer_text }}";
+                font-size: 0.5rem;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 0.6rem;
+            margin: 0;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top:0.6rem;
+        }
+        table, th, td {
+            border: 0.0625rem solid black;
+            padding: 0.3125rem;
+            text-align: left;
+        }
+        .part-info-table td {
+            width: auto;
+        }
+        .instructions-column {
+            width: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Part Information Section -->
+    <br/>
+    <h2>Part Information</h2>
+    <table class="part-info-table">
+        <tr>
+            <td><strong>Part Number:</strong> {{ part.part_number }}</td>
+            <td><strong>Revision:</strong> {{ part.part_revision }}</td>
+            <td><strong>Assembly Level:</strong> {{ part.assembly_level }}</td>
+        </tr>
+        <tr>
+            <td><strong>Classification:</strong> {{ part.classification }}</td>
+            <td><strong>Specification:</strong> {{ part.standard }}</td>
+            <td><strong>Planned By:</strong> {{ part.planned_by }}</td>
+            <td><strong>Approved By:</strong> {{ part.approved_by }}</td>
+        </tr>
+        <tr>
+            <td><strong>Part Quantity :</strong></td>
+            <td><strong>Alloy:</strong></td>
+            <td><strong>Job Number:</strong></td>
+            <td><strong>Serial Number:</strong></td>
+        </tr>
+    </table>
+
+    <!-- Process Steps Section -->
+    <br/>
+    <h2>Process Steps</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Step Number</th>
+                <th class="instructions-column">Instructions</th>
+                <th>Operator</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for step in process_steps %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ step.instructions }}</td>
+                    <td>{{ step.operator }}</td>
+                    <td>{{ step.date }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No process steps available for this part.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Lot Inspections Section with Page Break -->
+    <div style="page-break-before: always;">
+        <h2>Lot Inspections</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Inspection Name</th>
+                    <th class="instructions-column">Acceptance Criteria</th>
+                    <th>Paragraph Section</th>
+                    <th>Sampling Plan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inspection in lot_inspections %}
+                    <tr>
+                        <td>{{ inspection.name }}</td>
+                        <td>{{ inspection.acceptance_criteria }}</td>
+                        <td>{{ inspection.paragraph_section }}</td>
+                        <td>{{ inspection.sampling_plan }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No lot inspections available for this part.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

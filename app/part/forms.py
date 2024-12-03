@@ -28,6 +28,7 @@ class JobDetailsForm(forms.ModelForm):
         model = JobDetails
         fields = [
             'job_number',
+            'customer',
             'purchase_order_with_revision',
             'part_quantity',
             'serial_or_lot_numbers',
@@ -39,6 +40,7 @@ class JobDetailsForm(forms.ModelForm):
         ]
         widgets = {
             'job_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'customer': forms.TextInput(attrs={'class': 'form-control'}),
             'purchase_order_with_revision': forms.TextInput(attrs={'class': 'form-control'}),
             'part_quantity': forms.NumberInput(attrs={'class': 'form-control'}),
             'serial_or_lot_numbers': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
