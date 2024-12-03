@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Part, PartDetails, JobDetails
 from .forms import PartForm, PartDetailsForm, JobDetailsForm
+from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 
 def part_list_view(request):
     parts = Part.objects.all()
@@ -40,16 +42,18 @@ def part_edit_view(request, part_id):
         form = PartForm(instance=part)  # Prepopulate form with Part data
     return render(request, 'part/part_form.html', {'form': form, 'part': part})
 
-
 def partdetails_add_view(request, part_id):
     part = get_object_or_404(Part, id=part_id)
     if request.method == "POST":
         form = PartDetailsForm(request.POST)
         if form.is_valid():
-            detail = form.save(commit=False)
-            detail.part = part
-            detail.save()
-            return redirect('part_detail', part_id=part.id)
+            part_detail = form.save(commit=False)
+            part_detail.part = part  # Assign the part here
+            try:
+                part_detail.save()
+                return redirect('part_detail', part_id=part.id)
+            except ValidationError as e:
+                form.add_error(None, e.message)  # Add the validation error to the form
     else:
         form = PartDetailsForm()
     return render(request, 'part/partdetails_form.html', {'form': form, 'part': part})

@@ -1,7 +1,7 @@
 from django.db import models
 from standard.models import Standard, Classification
 from process.models import Process
-
+from django.core.exceptions import ValidationError
 
 
 class Part(models.Model):
@@ -51,11 +51,29 @@ class PartDetails(models.Model):
         return process.steps.all() if process else None
 
     class Meta:
-        unique_together = ('part', 'job_identity', 'processing_standard')  # Ensure uniqueness per part and job identity
+        unique_together = ('part', 'job_identity', 'processing_standard', 'classification')  # Ensure uniqueness per part and job identity
         ordering = ['job_identity']
 
+    def clean(self):
+        # Ensure `part` is assigned before validation
+        if not self.part_id:
+            return  # Skip validation if `part` is not yet set
+
+        # Validate uniqueness for the combination of fields
+        if PartDetails.objects.filter(
+            part=self.part,
+            job_identity=self.job_identity,
+            processing_standard=self.processing_standard,
+            classification=self.classification
+        ).exclude(id=self.id).exists():
+            raise ValidationError("A part detail with the same job identity, processing standard, and classification already exists.")
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Call the clean method for validation
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.part.part_number} - {self.job_identity}"
+        return f"{self.part.part_number} - {self.job_identity} - {self.processing_standard.name} - {self.classification.name}"
 
 
 

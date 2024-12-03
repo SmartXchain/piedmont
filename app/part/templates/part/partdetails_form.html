@@ -6,6 +6,11 @@
 <div class="container">
     <h1>{% if detail %}Edit Details{% else %}Add Details{% endif %} for Part {{ part.part_number }}</h1>
 
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
     <form method="post">
         {% csrf_token %}
         <table class="table table-bordered">
