@@ -3,11 +3,13 @@ from .models import Part, PartDetails, JobDetails
 from .forms import PartForm, PartDetailsForm, JobDetailsForm
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from weasyprint import HTML
 
 def part_list_view(request):
     parts = Part.objects.all()
     return render(request, 'part/part_list.html', {'parts': parts})
-
 
 def part_detail_view(request, part_id):
     part = get_object_or_404(Part, id=part_id)
@@ -19,7 +21,6 @@ def part_detail_view(request, part_id):
         'job_details': job_details,
     })
 
-
 def part_create_view(request):
     if request.method == "POST":
         form = PartForm(request.POST)
@@ -29,7 +30,6 @@ def part_create_view(request):
     else:
         form = PartForm()
     return render(request, 'part/part_form.html', {'form': form, 'part': None})  # Pass 'part': None for creation
-
 
 def part_edit_view(request, part_id):
     part = get_object_or_404(Part, id=part_id)  # Get the selected Part
@@ -84,32 +84,34 @@ def jobdetails_view(request, job_id):
     part = job.part_detail.part  # Get the associated Part
     return render(request, 'part/jobdetails_view.html', {'job': job, 'part': part})
 
+
 def jobdetails_edit_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)
-    part = job.part_detail.part  # Get the associated Part
+    part_detail = job.part_detail  # Retrieve the related part detail
+
     if request.method == "POST":
         form = JobDetailsForm(request.POST, instance=job)
         if form.is_valid():
             form.save()
-            return redirect('part_detail', part_id=part.id)
+            return redirect('part_detail', part_id=part_detail.part.id)  # Redirect to part detail
     else:
         form = JobDetailsForm(instance=job)
-    return render(request, 'part/jobdetails_form.html', {'form': form, 'part': part, 'job': job})
+
+    return render(request, 'part/jobdetails_form.html', {'form': form, 'part_detail': part_detail, 'detail': job})
 
 def jobdetails_add_view(request, part_id):
-    # Get the selected part
-    part_detail = get_object_or_404(PartDetails, id=part_id)
-
+    part_detail = get_object_or_404(PartDetails, part_id=part_id)
     if request.method == "POST":
         form = JobDetailsForm(request.POST)
         if form.is_valid():
             job = form.save(commit=False)
             job.part_detail = part_detail
             job.save()
-            return redirect('jobdetails_list', part_id=part_id)
+            return redirect('part_detail', part_id=part_detail.part.id)
     else:
         form = JobDetailsForm()
     return render(request, 'part/jobdetails_form.html', {'form': form, 'part_detail': part_detail})
+
 
 def job_list_view(request):
     jobs = JobDetails.objects.select_related('part').all()  # Prefetch part details
@@ -133,8 +135,30 @@ def job_process_steps_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)
     process_steps = job.get_process_steps()
 
-    if not process_steps:
-        message = "No process for the selected standard and classification. Contact Special Processing."
+    if process_steps is None:
+        message = "No process for the selected standard, job identity, and classification. Contact Special Processing."
         return render(request, 'part/no_process_steps.html', {'job': job, 'message': message})
 
     return render(request, 'part/job_process_steps.html', {'job': job, 'process_steps': process_steps})
+
+def job_print_steps_view(request, job_id):
+    job = get_object_or_404(JobDetails, id=job_id)
+    process_steps = job.get_process_steps()
+
+    if not process_steps:
+        return HttpResponse("No process steps found for this job.", content_type="text/plain")
+
+    # Render the template to a string
+    html_string = render_to_string('part/job_steps_pdf.html', {
+        'job': job,
+        'process_steps': process_steps
+    })
+
+    # Convert HTML to PDF
+    pdf_file = HTML(string=html_string).write_pdf()
+
+    # Create response with the PDF file
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Job_{job.job_number}_Steps.pdf"'
+
+    return response

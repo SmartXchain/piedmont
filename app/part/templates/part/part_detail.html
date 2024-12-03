@@ -72,6 +72,7 @@
                 <td>
                     <a href="{% url 'jobdetails_view' job.id %}" class="btn btn-primary btn-sm">View</a>
                     <a href="{% url 'jobdetails_edit' job.id %}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{% url 'job_process_steps' job.id %}" class="btn btn-info btn-sm">View Steps</a> <!-- New View Steps Button -->
                 </td>
             </tr>
             {% endfor %}

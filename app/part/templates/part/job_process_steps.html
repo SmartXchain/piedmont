@@ -25,10 +25,12 @@
             {% endfor %}
         </tbody>
     </table>
+    <a href="{% url 'job_print_steps' job.id %}" class="btn btn-secondary mt-3 float-end">Print Steps</a>
     {% else %}
     <p>No process steps found.</p>
     {% endif %}
 
-    <a href="{% url 'jobdetails_list' job.part_detail.part.id %}" class="btn btn-secondary mt-3">Back to Job List</a>
+    <a href="{% url 'part_detail' job.part_detail.part.id %}" class="btn btn-secondary mt-3">Back to Part</a>
 </div>
 {% endblock %}
+

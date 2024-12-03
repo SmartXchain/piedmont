@@ -4,3 +4,4 @@ psycopg2-binary==2.9.10
 gunicorn==23.0.0
 pytest==8.3.3
 pytest-django==4.9.0
+weasyprint==63.0
