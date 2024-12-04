@@ -2,9 +2,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Method
 from .forms import MethodForm
 
+
 def method_list_view(request):
     methods = Method.objects.all()
     return render(request, 'methods/method_list.html', {'methods': methods})
+
 
 def method_create_view(request):
     if request.method == "POST":
@@ -15,6 +17,7 @@ def method_create_view(request):
     else:
         form = MethodForm()
     return render(request, 'methods/method_form.html', {'form': form})
+
 
 def method_edit_view(request, method_id):
     method = get_object_or_404(Method, id=method_id)

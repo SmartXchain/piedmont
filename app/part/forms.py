@@ -1,6 +1,7 @@
 from django import forms
 from .models import Part, PartDetails, JobDetails
 
+
 class PartForm(forms.ModelForm):
     class Meta:
         model = Part
@@ -10,6 +11,7 @@ class PartForm(forms.ModelForm):
             'part_description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter part description'}),
             'part_revision': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter part revision'}),
         }
+
 
 class PartDetailsForm(forms.ModelForm):
     class Meta:
@@ -22,6 +24,7 @@ class PartDetailsForm(forms.ModelForm):
             'alloy_with_heat_treat_condition': forms.TextInput(attrs={'class': 'form-control'}),
             'rework': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
 
 class JobDetailsForm(forms.ModelForm):
     class Meta:

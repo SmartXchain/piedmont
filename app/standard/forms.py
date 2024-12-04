@@ -2,6 +2,7 @@ from django import forms
 from django.forms import inlineformset_factory
 from .models import Standard, InspectionRequirement, PeriodicTest, Classification
 
+
 def get_standard_form(data=None, files=None, instance=None):
     """Creates a form for Standard, with optional instance support for editing."""
 
@@ -39,6 +40,7 @@ def get_standard_form(data=None, files=None, instance=None):
 
     return StandardForm(data=data, files=files, initial=initial)
 
+
 InspectionRequirementFormSet = inlineformset_factory(
     Standard,
     InspectionRequirement,
@@ -50,6 +52,7 @@ InspectionRequirementFormSet = inlineformset_factory(
     }
 )
 
+
 class InspectionRequirementForm(forms.ModelForm):
     class Meta:
         model = InspectionRequirement
@@ -58,6 +61,7 @@ class InspectionRequirementForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter inspection name'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Enter description'}),
         }
+
 
 class PeriodicTestForm(forms.ModelForm):
     class Meta:
@@ -78,6 +82,7 @@ class PeriodicTestForm(forms.ModelForm):
             'material': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter material'}),
             'dimensions': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter dimensions'}),
         }
+
 
 class ClassificationForm(forms.ModelForm):
     class Meta:

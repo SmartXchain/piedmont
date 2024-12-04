@@ -3,9 +3,11 @@ from .models import Process, ProcessStep
 from .forms import ProcessForm, ProcessStepForm
 from django.db import transaction
 
+
 def process_list_view(request):
     processes = Process.objects.all()
     return render(request, 'process/process_list.html', {'processes': processes})
+
 
 def process_create_view(request):
     if request.method == "POST":
@@ -16,6 +18,7 @@ def process_create_view(request):
     else:
         form = ProcessForm()
     return render(request, 'process/process_form.html', {'form': form})
+
 
 def process_edit_view(request, process_id):
     process = get_object_or_404(Process, id=process_id)
@@ -28,10 +31,12 @@ def process_edit_view(request, process_id):
         form = ProcessForm(instance=process)
     return render(request, 'process/process_form.html', {'form': form, 'process': process})
 
+
 def process_step_list_view(request, process_id):
     process = get_object_or_404(Process, id=process_id)
     steps = process.steps.all()  # Fetch all steps for the process
     return render(request, 'process/process_step_list.html', {'process': process, 'steps': steps})
+
 
 def process_step_add_view(request, process_id):
     process = get_object_or_404(Process, id=process_id)
@@ -77,6 +82,7 @@ def process_step_delete_view(request, step_id):
             step.save()
 
     return redirect('process_step_list', process_id=process.id)
+
 
 def process_steps_view(request, process_id):
     process = get_object_or_404(Process, id=process_id)

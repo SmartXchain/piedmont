@@ -3,14 +3,17 @@ from .models import MaskingProfile, MaskingPhoto
 from .forms import MaskingProfileForm, MaskingPhotoForm
 from django.http import HttpResponse
 
+
 def masking_profile_list(request):
     profiles = MaskingProfile.objects.all()
     return render(request, 'masking/masking_profile_list.html', {'profiles': profiles})
+
 
 def masking_profile_detail(request, profile_id):
     profile = get_object_or_404(MaskingProfile, id=profile_id)
     photos = profile.photos.all()
     return render(request, 'masking/masking_profile_detail.html', {'profile': profile, 'photos': photos})
+
 
 def masking_profile_create(request):
     if request.method == "POST":
@@ -21,6 +24,7 @@ def masking_profile_create(request):
     else:
         form = MaskingProfileForm()
     return render(request, 'masking/masking_profile_form.html', {'form': form})
+
 
 def masking_photo_create(request):
     masking_profile_id = request.GET.get('masking_profile')  # Retrieve from query params

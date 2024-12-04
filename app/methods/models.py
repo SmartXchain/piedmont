@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Method(models.Model):
     METHOD_TYPE_CHOICES = [
         ('processing_tank', 'Processing Tank'),

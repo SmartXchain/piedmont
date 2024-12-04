@@ -1,6 +1,7 @@
 from django import forms
 from .models import Process, ProcessStep
 
+
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
@@ -10,6 +11,7 @@ class ProcessForm(forms.ModelForm):
             'classification': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
         }
+
 
 class ProcessStepForm(forms.ModelForm):
     class Meta:

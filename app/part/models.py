@@ -34,7 +34,7 @@ class PartDetails(models.Model):
     )
     alloy_with_heat_treat_condition = models.CharField(max_length=255, blank=True, null=True)
     rework = models.BooleanField(default=False)
-   
+
     def get_process_steps(self):
         # Fetch the process using the processing standard and classification
         process = Process.objects.filter(
@@ -47,7 +47,7 @@ class PartDetails(models.Model):
         else:
             print("No matching process found.")
         # Return the steps if the process exists, otherwise return an empty queryset
-        
+
         return process.steps.all() if process else None
 
     class Meta:
@@ -76,7 +76,6 @@ class PartDetails(models.Model):
         return f"{self.part.part_number} - {self.job_identity} - {self.processing_standard.name} - {self.classification.name}"
 
 
-
 class JobDetails(models.Model):
     part_detail = models.ForeignKey(PartDetails, on_delete=models.CASCADE, related_name='jobs')
     purchase_order_with_revision = models.CharField(max_length=255, blank=True, null=True)
@@ -100,7 +99,6 @@ class JobDetails(models.Model):
     processing_standard = models.ForeignKey(Standard, on_delete=models.SET_NULL, blank=True, null=True)
     classification = models.ForeignKey(Classification, on_delete=models.SET_NULL, blank=True, null=True)
 
-
     def get_process_steps(self):
         # Retrieve the process for the selected standard and classification
         process = Process.objects.filter(
@@ -108,7 +106,7 @@ class JobDetails(models.Model):
             classification=self.classification
         ).first()
         return process.steps.all() if process else []
-    
+
     class Meta:
         ordering = ['job_number']
 

@@ -2,6 +2,7 @@ from django.db import models
 from methods.models import Method
 from standard.models import Standard, Classification
 
+
 class Process(models.Model):
     standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='processes')
     classification = models.ForeignKey(Classification, on_delete=models.SET_NULL, blank=True, null=True)
@@ -15,6 +16,7 @@ class Process(models.Model):
     def __str__(self):
         classification_name = self.classification
         return f"{self.standard.name} - {classification_name}"
+
 
 class ProcessStep(models.Model):
     process = models.ForeignKey(Process, on_delete=models.CASCADE, related_name='steps')  # Link to Process
