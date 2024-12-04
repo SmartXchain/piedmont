@@ -59,7 +59,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'app.urls'
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:1337"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:1337", "http://10.22.1.31:1337"]
 
 TEMPLATES = [
     {
