@@ -37,6 +37,8 @@ def get_standard_form(data=None, files=None, instance=None):
             'revision': instance.revision,
             'author': instance.author,
         }
+        if instance.upload_file:
+            initial['upload_file'] = instance.upload_file
 
     return StandardForm(data=data, files=files, initial=initial)
 

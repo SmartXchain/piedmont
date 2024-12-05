@@ -38,15 +38,26 @@ def standard_create_view(request):
 
 def standard_edit_view(request, standard_id):
     standard = get_object_or_404(Standard, id=standard_id)
-    form = get_standard_form(data=request.POST or None, files=request.FILES or None, instance=standard)
-    formset = InspectionRequirementFormSet(instance=standard)
 
-    if request.method == "POST" and form.is_valid() and formset.is_valid():
-        form.save()
-        formset.save()
-        return redirect('standard_detail', standard_id=standard.id)
+    if request.method == "POST":
+        form = get_standard_form(data=request.POST, files=request.FILES, instance=standard)
+        if form.is_valid():
+            # Update the instance with form data
+            standard.name = form.cleaned_data['name']
+            standard.description = form.cleaned_data['description']
+            standard.revision = form.cleaned_data['revision']
+            standard.author = form.cleaned_data['author']
 
-    return render(request, 'standard/standard_form.html', {'form': form, 'formset': formset, 'edit': True})
+            # Handle file upload
+            if form.cleaned_data.get('upload_file'):
+                standard.upload_file = form.cleaned_data['upload_file']
+
+            standard.save()
+            return redirect('standard_detail', standard_id=standard.id)
+    else:
+        form = get_standard_form(instance=standard)
+
+    return render(request, 'standard/standard_form.html', {'form': form, 'standard': standard})
 
 
 def inspection_list_view(request, standard_id):

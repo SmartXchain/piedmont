@@ -1,77 +1,37 @@
 {% extends 'base.html' %}
 
-{% block title %}
-    {% if edit %}Edit Standard{% else %}Add Standard{% endif %}
-{% endblock %}
+{% block title %}Edit Standard{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1 class="mt-4 mb-4">
-        {% if edit %}Edit Standard{% else %}Add New Standard{% endif %}
-    </h1>
-
-    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <h1>{% if standard.id %}Edit Standard{% else %}Add Standard{% endif %}</h1>
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-
-        <!-- Standard Details -->
-        <h2>Standard Details</h2>
         <div class="mb-3">
             <label for="id_name" class="form-label">Name</label>
-            <input type="text" name="name" id="id_name" class="form-control" value="{{ form.name.value }}" placeholder="Enter standard name" required>
-            {% if form.name.errors %}
-                <div class="text-danger">
-                    {{ form.name.errors|join:", " }}
-                </div>
-            {% endif %}
+            {{ form.name }}
         </div>
-
         <div class="mb-3">
             <label for="id_description" class="form-label">Description</label>
-            <textarea name="description" id="id_description" class="form-control" rows="4" placeholder="Enter description" required>{{ form.description.value }}</textarea>
-            {% if form.description.errors %}
-                <div class="text-danger">
-                    {{ form.description.errors|join:", " }}
-                </div>
-            {% endif %}
+            {{ form.description }}
         </div>
-
         <div class="mb-3">
             <label for="id_revision" class="form-label">Revision</label>
-            <input type="text" name="revision" id="id_revision" class="form-control" value="{{ form.revision.value }}" placeholder="Enter revision" required>
-            {% if form.revision.errors %}
-                <div class="text-danger">
-                    {{ form.revision.errors|join:", " }}
-                </div>
-            {% endif %}
+            {{ form.revision }}
         </div>
-
         <div class="mb-3">
             <label for="id_author" class="form-label">Author</label>
-            <input type="text" name="author" id="id_author" class="form-control" value="{{ form.author.value }}" placeholder="Enter author name" required>
-            {% if form.author.errors %}
-                <div class="text-danger">
-                    {{ form.author.errors|join:", " }}
-                </div>
-            {% endif %}
+            {{ form.author }}
         </div>
-
         <div class="mb-3">
             <label for="id_upload_file" class="form-label">Upload File</label>
-            <input type="file" name="upload_file" id="id_upload_file" class="form-control">
-            {% if form.upload_file.errors %}
-                <div class="text-danger">
-                    {{ form.upload_file.errors|join:", " }}
-                </div>
+            {% if standard.upload_file %}
+                <p>Current File: <a href="{{ standard.upload_file.url }}">{{ standard.upload_file.name }}</a></p>
             {% endif %}
+            {{ form.upload_file }}
         </div>
-
-        <!-- Submit Button -->
-        <div class="mt-4">
-            <button type="submit" class="btn btn-primary">
-                {% if edit %}Update{% else %}Save{% endif %}
-            </button>
-            <a href="{% url 'standard_list' %}" class="btn btn-secondary">Cancel</a>
-        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'standard_list' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}
