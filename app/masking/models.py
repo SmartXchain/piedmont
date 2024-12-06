@@ -17,6 +17,22 @@ class MaskingProfile(models.Model):
     masking_family = models.CharField(
         max_length=50, choices=MASKING_FAMILY_CHOICES, verbose_name=_("Masking Family")
     )
+    job_identity = models.CharField(
+        max_length=50,
+        choices=[
+            ('chrome_plate', 'Chrome Plate'),
+            ('cadmium_plate', 'Cadmium Plate'),
+            ('nickel plate', 'Nickel Plate'),
+            ('etch', 'Etch'),
+            ('anodize', 'Anodize'),
+            ('paint', 'Paint'),
+            ('chrome strip', 'Chrome Strip'),
+            ('cad strip', 'Cad Strip'),
+            ('nickel strip', 'Nickel Strip'),
+        ],
+        verbose_name=_("Job Identity"),
+    )
+    surface_repaired = models.TextField(blank=True, null=True, verbose_name=_("Surface Repaired"))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
