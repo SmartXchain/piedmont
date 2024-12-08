@@ -1,29 +1,44 @@
 {% extends 'base.html' %}
 {% load widget_tweaks %}
 
-{% block title %}Create Masking Profile{% endblock %}
+{% block title %}Add Masking Profile{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Create Masking Profile</h1>
-    <form method="post">
+    <h1 class="my-4">Add Masking Profile</h1>
+
+    <!-- Display Non-Field Errors -->
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+        {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
+
+        <!-- Part Selection -->
         <div class="mb-3">
             <label for="id_part" class="form-label">Part</label>
-            {{ form.part|add_class:"form-control" }}
+            {% if form.part.errors %}
+                {{ form.part|add_class:"form-control is-invalid" }}
+                <div class="invalid-feedback">
+                    {{ form.part.errors|join:", " }}
+                </div>
+            {% else %}
+                {{ form.part|add_class:"form-control" }}
+            {% endif %}
         </div>
-        {% if form.cleaned_data.part %}
-        <div class="mb-3">
-            <label class="form-label">Part Revision</label>
-            <p>{{ form.cleaned_data.part.part_revision }}</p>
+
+        <!-- Buttons -->
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Save
+            </button>
+            <a href="{% url 'masking_profile_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancel
+            </a>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Part Description</label>
-            <p>{{ form.cleaned_data.part.part_description }}</p>
-        </div>
-        {% endif %}
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a href="{% url 'masking_profile_list' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}
