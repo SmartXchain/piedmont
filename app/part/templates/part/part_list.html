@@ -6,6 +6,14 @@
 <div class="container">
     <h1>Part List</h1>
     <a href="{% url 'part_create' %}" class="btn btn-success mb-3">Add Part</a>
+    <br><br>
+    <!-- Search Form -->
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search by Part Number" value="{{ query }}">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
     <table class="table table-striped">
         <thead>
             <tr>

@@ -4,39 +4,24 @@
 
 {% block content %}
 <div class="container">
-    <h1>{% if form.instance.pk %}Edit Masking Photo{% else %}Add Masking Photo{% endif %}</h1>
+    <h1>{% if form.instance.pk %}Edit Photo{% else %}Add Photo{% endif %}</h1>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
-            <label for="id_masking_profile" class="form-label">Masking Profile</label>
-            <select id="id_masking_profile" name="masking_profile" class="form-control">
-                {% for profile in form.fields.masking_profile.queryset %}
-                <option value="{{ profile.id }}" {% if profile.id == form.initial.masking_profile %}selected{% endif %}>
-                    {{ profile }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="mb-3">
             <label for="id_photo_type" class="form-label">Photo Type</label>
-            <select id="id_photo_type" name="photo_type" class="form-control">
-                {% for value, display in form.fields.photo_type.choices %}
-                <option value="{{ value }}" {% if value == form.photo_type.value %}selected{% endif %}>
-                    {{ display }}
-                </option>
-                {% endfor %}
-            </select>
+            {{ form.photo_type|add_class:"form-control" }}
         </div>
         <div class="mb-3">
             <label for="id_image" class="form-label">Photo</label>
-            <input type="file" id="id_image" name="image" class="form-control" accept="image/*">
+            {{ form.image|add_class:"form-control" }}
         </div>
         <div class="mb-3">
             <label for="id_description" class="form-label">Description</label>
-            <textarea id="id_description" name="description" class="form-control">{{ form.description.value }}</textarea>
+            {{ form.description|add_class:"form-control" }}
         </div>
         <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Save Changes{% else %}Add Photo{% endif %}</button>
         <a href="{% url 'masking_profile_detail' masking_profile.id %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}
+

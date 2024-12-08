@@ -2,35 +2,53 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import MaskingProfile, MaskingPhoto
 from .forms import MaskingProfileForm, MaskingPhotoForm
 from django.http import HttpResponse
+from django.db.models import F
 
 
 def masking_profile_list(request):
-    profiles = MaskingProfile.objects.all()
+    profiles = MaskingProfile.objects.values(
+        part_number=F('part__part_number'),
+        part_revision=F('part__part_revision'),
+        part_description=F('part__part_description'),
+    ).distinct()
     return render(request, 'masking/masking_profile_list.html', {'profiles': profiles})
 
 
-def masking_profile_detail(request, profile_id):
-    profile = get_object_or_404(MaskingProfile, id=profile_id)
-    related_profiles = MaskingProfile.objects.filter(part=profile.part).exclude(id=profile.id)
+def masking_profile_detail(request, part_number, part_revision):
+    profiles = MaskingProfile.objects.filter(
+        part__part_number=part_number, 
+        part__part_revision=part_revision
+    )
     return render(request, 'masking/masking_profile_detail.html', {
-        'profile': profile,
-        'related_profiles': related_profiles,
+        'part_number': part_number,
+        'part_revision': part_revision,
+        'profiles': profiles,
     })
+
+def masking_profile_edit(request, profile_id):
+    profile = get_object_or_404(MaskingProfile, id=profile_id)
+
+    if request.method == "POST":
+        form = MaskingProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('masking_profile_list')
+    else:
+        form = MaskingProfileForm(instance=profile)
+
+    return render(request, 'masking/masking_profile_form.html', {'form': form, 'profile': profile})
 
 def masking_profile_create(request):
     if request.method == "POST":
-        print("POST data received:", request.POST)  # Debugging
         form = MaskingProfileForm(request.POST)
         if form.is_valid():
-            print("Form is valid.")  # Debugging
             form.save()
             return redirect('masking_profile_list')
-        else:
-            print("Form errors:", form.errors)  # Debugging
     else:
         form = MaskingProfileForm()
 
     return render(request, 'masking/masking_profile_form.html', {'form': form})
+
 
 
 def masking_photo_create(request):

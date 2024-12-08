@@ -1,68 +1,29 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 
-{% block title %}Masking Profile Form{% endblock %}
+{% block title %}Create Masking Profile{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1 class="mb-4">{% if form.instance.pk %}Edit Masking Profile{% else %}Create Masking Profile{% endif %}</h1>
-
-    <!-- Display validation errors -->
-    {% if form.errors %}
-    <div class="alert alert-danger">
-        <ul>
-            {% for field, errors in form.errors.items %}
-            <li><strong>{{ field|capfirst }}:</strong> {{ errors|join:", " }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-
-    <!-- Form -->
-    <form method="post" enctype="multipart/form-data">
+    <h1>Create Masking Profile</h1>
+    <form method="post">
         {% csrf_token %}
-        
-        <!-- Part -->
         <div class="mb-3">
             <label for="id_part" class="form-label">Part</label>
-            {{ form.part }}
+            {{ form.part|add_class:"form-control" }}
         </div>
-
-        <!-- Part Revision -->
+        {% if form.cleaned_data.part %}
         <div class="mb-3">
-            <label for="id_part_revision" class="form-label">Part Revision</label>
-            {{ form.part_revision }}
+            <label class="form-label">Part Revision</label>
+            <p>{{ form.cleaned_data.part.part_revision }}</p>
         </div>
-
-        <!-- Masking Area -->
         <div class="mb-3">
-            <label for="id_masking_area" class="form-label">Masking Area</label>
-            {{ form.masking_area }}
+            <label class="form-label">Part Description</label>
+            <p>{{ form.cleaned_data.part.part_description }}</p>
         </div>
-
-        <!-- Masking Family -->
-        <div class="mb-3">
-            <label for="id_masking_family" class="form-label">Masking Family</label>
-            {{ form.masking_family }}
-        </div>
-
-        <!-- Job Identity -->
-        <div class="mb-3">
-            <label for="id_job_identity" class="form-label">Job Identity</label>
-            {{ form.job_identity }}
-        </div>
-
-        <!-- Surface Repaired -->
-        <div class="mb-3">
-            <label for="id_surface_repaired" class="form-label">Surface Repaired</label>
-            {{ form.surface_repaired }}
-        </div>
-
-        <!-- Buttons -->
-        <div class="d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary me-2">{% if form.instance.pk %}Save Changes{% else %}Create Profile{% endif %}</button>
-            <a href="{% url 'masking_profile_list' %}" class="btn btn-secondary">Cancel</a>
-        </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'masking_profile_list' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}
-

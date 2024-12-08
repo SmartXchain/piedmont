@@ -1,7 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Part, PartDetails, JobDetails
 from .forms import PartForm, PartDetailsForm, JobDetailsForm
-from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -11,8 +10,12 @@ import tempfile
 
 
 def part_list_view(request):
-    parts = Part.objects.all()
-    return render(request, 'part/part_list.html', {'parts': parts})
+    query = request.GET.get('q', '')  # Get the search query from the URL
+    if query:
+        parts = Part.objects.filter(part_number__icontains=query)
+    else:
+        parts = Part.objects.all()
+    return render(request, 'part/part_list.html', {'parts': parts, 'query': query})
 
 
 def part_detail_view(request, part_id):
@@ -34,18 +37,18 @@ def part_create_view(request):
             return redirect('part_list')
     else:
         form = PartForm()
-    return render(request, 'part/part_form.html', {'form': form, 'part': None})  # Pass 'part': None for creation
+    return render(request, 'part/part_form.html', {'form': form, 'part': None})
 
 
 def part_edit_view(request, part_id):
-    part = get_object_or_404(Part, id=part_id)  # Get the selected Part
+    part = get_object_or_404(Part, id=part_id)
     if request.method == "POST":
-        form = PartForm(request.POST, instance=part)  # Bind form to existing Part
+        form = PartForm(request.POST, instance=part)
         if form.is_valid():
             form.save()
-            return redirect('part_list')  # Redirect back to part list after saving
+            return redirect('part_list')
     else:
-        form = PartForm(instance=part)  # Prepopulate form with Part data
+        form = PartForm(instance=part)
     return render(request, 'part/part_form.html', {'form': form, 'part': part})
 
 
@@ -55,12 +58,12 @@ def partdetails_add_view(request, part_id):
         form = PartDetailsForm(request.POST)
         if form.is_valid():
             part_detail = form.save(commit=False)
-            part_detail.part = part  # Assign the part here
+            part_detail.part = part
             try:
                 part_detail.save()
                 return redirect('part_detail', part_id=part.id)
             except ValidationError as e:
-                form.add_error(None, e.message)  # Add the validation error to the form
+                form.add_error(None, e.message)
     else:
         form = PartDetailsForm()
     return render(request, 'part/partdetails_form.html', {'form': form, 'part': part})
@@ -73,12 +76,12 @@ def partdetails_view_view(request, detail_id):
 
 def partdetails_edit_view(request, detail_id):
     detail = get_object_or_404(PartDetails, id=detail_id)
-    part = detail.part  # Retrieve the associated part
+    part = detail.part
     if request.method == "POST":
         form = PartDetailsForm(request.POST, instance=detail)
         if form.is_valid():
             form.save()
-            return redirect('part_detail', part_id=part.id)  # Redirect to part detail
+            return redirect('part_detail', part_id=part.id)
     else:
         form = PartDetailsForm(instance=detail)
     return render(request, 'part/partdetails_form.html', {'form': form, 'part': part, 'detail': detail})
@@ -92,19 +95,19 @@ def jobdetails_list_view(request, part_id):
 
 def jobdetails_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)
-    part = job.part_detail.part  # Get the associated Part
+    part = job.part_detail.part
     return render(request, 'part/jobdetails_view.html', {'job': job, 'part': part})
 
 
 def jobdetails_edit_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)
-    part_detail = job.part_detail  # Retrieve the related part detail
+    part_detail = job.part_detail
 
     if request.method == "POST":
         form = JobDetailsForm(request.POST, instance=job)
         if form.is_valid():
             form.save()
-            return redirect('part_detail', part_id=part_detail.part.id)  # Redirect to part detail
+            return redirect('part_detail', part_id=part_detail.part.id)
     else:
         form = JobDetailsForm(instance=job)
 
@@ -126,13 +129,13 @@ def jobdetails_add_view(request, part_id):
 
 
 def job_list_view(request):
-    jobs = JobDetails.objects.select_related('part').all()  # Prefetch part details
+    jobs = JobDetails.objects.select_related('part').all()
     return render(request, 'part/job_list.html', {'jobs': jobs})
 
 
 def part_process_steps_view(request, detail_id):
     part_detail = get_object_or_404(PartDetails, id=detail_id)
-    process_steps = part_detail.get_process_steps()  # Retrieve process steps for the part detail
+    process_steps = part_detail.get_process_steps()
 
     if process_steps is None:
         message = "No process for the current standard and/or classification. Contact Special Processing."

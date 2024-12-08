@@ -1,15 +1,68 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 
 {% block title %}{% if part %}Edit Part{% else %}Create New Part{% endif %}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>{% if part %}Edit Part {{ part.part_number }}{% else %}Create New Part{% endif %}</h1>
-    <form method="post">
+    <h1 class="my-4">{% if part %}Edit Part {{ part.part_number }}{% else %}Create New Part{% endif %}</h1>
+
+    <form method="post" class="needs-validation" novalidate action="{% if part %}{% url 'part_edit' part.id %}{% else %}{% url 'part_create' %}{% endif %}">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">{% if part %}Save Changes{% else %}Create Part{% endif %}</button>
-        <a href="{% url 'part_list' %}" class="btn btn-secondary">Cancel</a>
+
+        <!-- Part Number -->
+        <div class="mb-3">
+            <label for="id_part_number" class="form-label">Part Number</label>
+            {% if form.part_number.errors %}
+                {{ form.part_number|add_class:"form-control is-invalid" }}
+                {% for error in form.part_number.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% else %}
+                {{ form.part_number|add_class:"form-control" }}
+            {% endif %}
+        </div>
+
+        <!-- Part Revision -->
+        <div class="mb-3">
+            <label for="id_part_revision" class="form-label">Revision</label>
+            {% if form.part_revision.errors %}
+                {{ form.part_revision|add_class:"form-control is-invalid" }}
+                {% for error in form.part_revision.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% else %}
+                {{ form.part_revision|add_class:"form-control" }}
+            {% endif %}
+        </div>
+
+        <!-- Part Description -->
+        <div class="mb-3">
+            <label for="id_part_description" class="form-label">Description</label>
+            {% if form.part_description.errors %}
+                {{ form.part_description|add_class:"form-control is-invalid" }}
+                {% for error in form.part_description.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            {% else %}
+                {{ form.part_description|add_class:"form-control" }}
+            {% endif %}
+        </div>
+        {% if form.non_field_errors %}
+<div class="alert alert-danger">
+    {{ form.non_field_errors }}
+</div>
+{% endif %}
+
+        <!-- Buttons -->
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> {% if part %}Save Changes{% else %}Create Part{% endif %}
+            </button>
+            <a href="{% url 'part_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+        </div>
     </form>
 </div>
 {% endblock %}

@@ -5,16 +5,20 @@ from django.core.exceptions import ValidationError
 
 
 class Part(models.Model):
-    part_number = models.CharField(max_length=255, unique=True)
+    part_number = models.CharField(max_length=255)
     part_description = models.CharField(max_length=255)
     part_revision = models.CharField(max_length=50, blank=True, null=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['part_number', 'part_revision'], name='unique_part_revision')
+        ]
     def __str__(self):
         return f"{self.part_number}"
 
 
 class PartDetails(models.Model):
-    part = models.ForeignKey(Part, on_delete=models.CASCADE, related_name='details')  # Allow multiple details per Part
+    part = models.ForeignKey(Part, on_delete=models.CASCADE, related_name='details')
     job_identity = models.CharField(
         max_length=50,
         choices=[
@@ -46,7 +50,6 @@ class PartDetails(models.Model):
             print(f"Process Found: {process}")
         else:
             print("No matching process found.")
-        # Return the steps if the process exists, otherwise return an empty queryset
 
         return process.steps.all() if process else None
 

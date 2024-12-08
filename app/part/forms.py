@@ -5,13 +5,23 @@ from .models import Part, PartDetails, JobDetails
 class PartForm(forms.ModelForm):
     class Meta:
         model = Part
-        fields = ['part_number', 'part_description', 'part_revision']
-        widgets = {
-            'part_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter part number'}),
-            'part_description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter part description'}),
-            'part_revision': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter part revision'}),
-        }
+        fields = ['part_number', 'part_revision', 'part_description']
 
+    def clean(self):
+        cleaned_data = super().clean()
+        part_number = cleaned_data.get('part_number')
+        part_revision = cleaned_data.get('part_revision')
+
+        # Exclude the current instance from the uniqueness check
+        query = Part.objects.filter(part_number=part_number, part_revision=part_revision)
+        if self.instance and self.instance.pk:
+            query = query.exclude(pk=self.instance.pk)
+
+        if query.exists():
+            raise forms.ValidationError(
+                f"A part with number {part_number} and revision {part_revision} already exists."
+            )
+        return cleaned_data
 
 class PartDetailsForm(forms.ModelForm):
     class Meta:
