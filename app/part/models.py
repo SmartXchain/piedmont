@@ -92,8 +92,8 @@ class PartDetails(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.part.part_number} - {self.job_identity} - {self.processing_standard.name} - {self.classification.name}"
-
+        classification_display = str(self.classification) if self.classification else "No Classification"
+        return f"{self.part.part_number} - {self.job_identity} - {self.processing_standard.name if self.processing_standard else 'No Standard'} - {classification_display}"
 
 class JobDetails(models.Model):
     part_detail = models.ForeignKey(PartDetails, on_delete=models.CASCADE, related_name='jobs')

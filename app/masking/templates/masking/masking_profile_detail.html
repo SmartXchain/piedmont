@@ -5,45 +5,31 @@
 {% block content %}
 <div class="container">
     <h1>Masking Profile Details</h1>
-
     <table class="table table-bordered">
         <tr>
             <th>Part Number</th>
-            <td>{{ part.part_number }}</td>
+            <td>{{ profile.part_detail.part.part_number }}</td>
         </tr>
         <tr>
             <th>Revision</th>
-            <td>{{ part.part_revision }}</td>
+            <td>{{ profile.part_detail.part.part_revision }}</td>
         </tr>
         <tr>
             <th>Description</th>
-            <td>{{ part.part_description }}</td>
+            <td>{{ profile.part_detail.part.part_description }}</td>
+        </tr>
+        <tr>
+            <th>Job Identity</th>
+            <td>{{ profile.part_detail.get_job_identity_display }}</td>
+        </tr>
+        <tr>
+            <th>Classification</th>
+            <td>{{ profile.part_detail.classification }}</td>
         </tr>
     </table>
 
+    <h2>Masking Details</h2>
+    <p><strong>Surface Repaired:</strong> {{ profile.surface_repaired }}</p>
     <a href="{% url 'masking_profile_list' %}" class="btn btn-secondary">Back to Masking Profiles</a>
 </div>
-
-<h2>Masking Details</h2>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Job Identity</th>
-            <th>Surface Repaired</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for detail in profile.details.all %}
-        <tr>
-            <td>{{ detail.get_job_identity_display }}</td>
-            <td>{{ detail.surface_repaired }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="2" class="text-center">No masking details available.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
 {% endblock %}

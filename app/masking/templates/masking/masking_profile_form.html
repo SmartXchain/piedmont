@@ -5,40 +5,22 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="my-4">Add Masking Profile</h1>
-
-    <!-- Display Non-Field Errors -->
-    {% if form.non_field_errors %}
-    <div class="alert alert-danger">
-        {{ form.non_field_errors }}
-    </div>
-    {% endif %}
-
-    <form method="post" class="needs-validation" novalidate>
+    <h1>Add Masking Profile</h1>
+    <form method="post">
         {% csrf_token %}
+        {{ form.non_field_errors }}
 
-        <!-- Part Selection -->
         <div class="mb-3">
-            <label for="id_part" class="form-label">Part</label>
-            {% if form.part.errors %}
-                {{ form.part|add_class:"form-control is-invalid" }}
-                <div class="invalid-feedback">
-                    {{ form.part.errors|join:", " }}
-                </div>
-            {% else %}
-                {{ form.part|add_class:"form-control" }}
-            {% endif %}
+            {{ form.part_detail.label_tag }}
+            {{ form.part_detail|add_class:"form-control" }}
+        </div>
+        <div class="mb-3">
+            {{ form.surface_repaired.label_tag }}
+            {{ form.surface_repaired|add_class:"form-control" }}
         </div>
 
-        <!-- Buttons -->
-        <div class="d-flex justify-content-between">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-save"></i> Save
-            </button>
-            <a href="{% url 'masking_profile_list' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Cancel
-            </a>
-        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'masking_profile_list' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}

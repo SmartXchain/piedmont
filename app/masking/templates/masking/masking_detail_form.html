@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Masking Detail Form{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Add/Edit Masking Detail</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="mb-3">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'masking_profile_detail' profile.part.part_number profile.part.part_revision %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
