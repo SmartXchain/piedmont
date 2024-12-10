@@ -22,7 +22,7 @@
                 <td>{{ profile.part_revision }}</td>
                 <td>{{ profile.part_description }}</td>
                 <td>
-                    <a href="{% url 'masking_profile_detail' profile.part_number profile.part_revision %}" class="btn btn-info btn-sm">View</a>
+                    <a href="{% url 'masking_profile_detail' profile.part.part_number profile.part.part_revision %}" class="btn btn-info btn-sm">View</a>
                 </td>
             </tr>
             {% endfor %}

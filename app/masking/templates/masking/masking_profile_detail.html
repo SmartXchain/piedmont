@@ -5,11 +5,45 @@
 {% block content %}
 <div class="container">
     <h1>Masking Profile Details</h1>
-    <p><strong>Part Number:</strong> {{ profile.part.part_number }}</p>
-    <p><strong>Revision:</strong> {{ profile.part.part_revision }}</p>
-    <p><strong>Description:</strong> {{ profile.part.part_description }}</p>
-    <h2>Details</h2>
-    <p>No details available yet.</p>
-</div>
-{% endblock %}
 
+    <table class="table table-bordered">
+        <tr>
+            <th>Part Number</th>
+            <td>{{ part.part_number }}</td>
+        </tr>
+        <tr>
+            <th>Revision</th>
+            <td>{{ part.part_revision }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ part.part_description }}</td>
+        </tr>
+    </table>
+
+    <a href="{% url 'masking_profile_list' %}" class="btn btn-secondary">Back to Masking Profiles</a>
+</div>
+
+<h2>Masking Details</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Job Identity</th>
+            <th>Surface Repaired</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for detail in profile.details.all %}
+        <tr>
+            <td>{{ detail.get_job_identity_display }}</td>
+            <td>{{ detail.surface_repaired }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="2" class="text-center">No masking details available.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

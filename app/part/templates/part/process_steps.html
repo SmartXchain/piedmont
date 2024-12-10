@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Process Steps{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Process Steps for {{ part.part_number }}</h1>
+    <p><strong>Description:</strong> {{ part.part_description }}</p>
+    <p><strong>Revision:</strong> {{ part.part_revision }}</p>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Step Number</th>
+                <th>Method Title</th>
+                <th>Method Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for step in process_steps %}
+            <tr>
+                <td>{{ step.step_number }}</td>
+                <td>{{ step.method.title }}</td>
+                <td>{{ step.method.description }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">No steps available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'part_detail' part.id %}" class="btn btn-secondary">Back to Part</a>
+</div>
+{% endblock %}
+

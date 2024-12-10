@@ -13,8 +13,24 @@ class Part(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['part_number', 'part_revision'], name='unique_part_revision')
         ]
+    
+    def get_process_steps(self, processing_standard, classification):
+        from process.models import Process, ProcessStep
+
+        # Fetch the process matching the standard and classification
+        process = Process.objects.filter(
+            standard=processing_standard,
+            classification=classification
+        ).first()
+
+        # Return the process steps if a process exists
+        if process:
+            return ProcessStep.objects.filter(process=process).order_by('step_number')
+        return []
+    
     def __str__(self):
         return f"{self.part_number}"
+    
 
 
 class PartDetails(models.Model):

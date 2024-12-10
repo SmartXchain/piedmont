@@ -134,18 +134,23 @@ def job_list_view(request):
 
 
 def part_process_steps_view(request, detail_id):
-    part_detail = get_object_or_404(PartDetails, id=detail_id)
-    process_steps = part_detail.get_process_steps()
+    detail = get_object_or_404(PartDetails, id=detail_id)
+    part = detail.part
 
-    if process_steps is None:
-        message = "No process for the current standard and/or classification. Contact Special Processing."
-        return render(request, 'part/no_process_steps.html', {'part_detail': part_detail, 'message': message})
+    # Fetch process steps using the method in the Part model
+    process_steps = part.get_process_steps(detail.processing_standard, detail.classification)
 
-    return render(request, 'part/part_process_steps.html', {
-        'part_detail': part_detail,
+    if not process_steps:
+        # Render no_process_steps.html with the part ID
+        return render(request, 'part/no_process_steps.html', {
+            'part': part,
+            'message': "No steps have been added for this part based on the current standard and classification. Please contact Special Processing."
+        })
+
+    return render(request, 'part/process_steps.html', {
+        'part': part,
         'process_steps': process_steps,
     })
-
 
 def job_process_steps_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)

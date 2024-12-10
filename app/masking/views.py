@@ -15,15 +15,9 @@ def masking_profile_list(request):
 
 
 def masking_profile_detail(request, part_number, part_revision):
-    profiles = MaskingProfile.objects.filter(
-        part__part_number=part_number, 
-        part__part_revision=part_revision
-    )
-    return render(request, 'masking/masking_profile_detail.html', {
-        'part_number': part_number,
-        'part_revision': part_revision,
-        'profiles': profiles,
-    })
+    profile = get_object_or_404(MaskingProfile, part__part_number=part_number, part__part_revision=part_revision)
+    return render(request, 'masking/masking_profile_detail.html', {'profile': profile})
+
 
 def masking_profile_edit(request, profile_id):
     profile = get_object_or_404(MaskingProfile, id=profile_id)

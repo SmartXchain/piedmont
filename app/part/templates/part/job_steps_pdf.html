@@ -98,6 +98,7 @@
         <thead>
             <tr>
                 <th>Step Number</th>
+                <th>Step Name</th>
                 <th class="instructions-column">Instructions</th>
                 <th>Operator</th>
                 <th>Date</th>
@@ -109,6 +110,7 @@
                 <tr>
                     <td>{{ forloop.counter }}</td>
                     <td>{{ step.method.title }}</td>
+                    <td>{{ step.method.description }}</td>
                     <td>{{ step.operator }}</td>
                     <td>{{ step.date }}</td>
                 </tr>
