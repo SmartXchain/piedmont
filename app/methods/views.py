@@ -29,3 +29,8 @@ def method_edit_view(request, method_id):
     else:
         form = MethodForm(instance=method)
     return render(request, 'methods/method_form.html', {'form': form, 'method': method})
+
+
+def method_detail(request, method_id):
+    method = get_object_or_404(Method, id=method_id)
+    return render(request, 'methods/method_detail.html', {'method': method})
