@@ -23,6 +23,7 @@ class PartForm(forms.ModelForm):
             )
         return cleaned_data
 
+
 class PartDetailsForm(forms.ModelForm):
     class Meta:
         model = PartDetails

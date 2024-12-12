@@ -152,6 +152,7 @@ def part_process_steps_view(request, detail_id):
         'process_steps': process_steps,
     })
 
+
 def job_process_steps_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)
     process_steps = job.get_process_steps()

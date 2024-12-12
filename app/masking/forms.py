@@ -2,6 +2,7 @@ from django import forms
 from masking.models import MaskingProfile
 from part.models import PartDetails
 
+
 class MaskingProfileForm(forms.ModelForm):
     part_detail = forms.ModelChoiceField(
         queryset=PartDetails.objects.select_related('classification', 'processing_standard'),

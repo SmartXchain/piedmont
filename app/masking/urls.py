@@ -7,6 +7,4 @@ urlpatterns = [
     path('<str:part_number>/<str:part_revision>/', views.masking_profile_detail, name='masking_profile_detail'),
     path('create/', views.masking_profile_create, name='masking_profile_create'),
     path('<int:profile_id>/add_detail/', views.masking_detail_add, name='masking_detail_add'),
-    path('detail/<int:detail_id>/view/', views.masking_detail_view, name='masking_detail_view'),
-    path('detail/<int:detail_id>/edit/', views.masking_detail_edit, name='masking_detail_edit'),
 ]

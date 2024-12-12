@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Method
 
+
 @admin.register(Method)
 class MethodAdmin(admin.ModelAdmin):
     list_display = ('title', 'method_type', 'description')

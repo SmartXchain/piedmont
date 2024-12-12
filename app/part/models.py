@@ -13,7 +13,7 @@ class Part(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['part_number', 'part_revision'], name='unique_part_revision')
         ]
-    
+
     def get_process_steps(self, processing_standard, classification):
         from process.models import Process, ProcessStep
 
@@ -27,10 +27,9 @@ class Part(models.Model):
         if process:
             return ProcessStep.objects.filter(process=process).order_by('step_number')
         return []
-    
+
     def __str__(self):
         return f"{self.part_number}"
-    
 
 
 class PartDetails(models.Model):
@@ -94,6 +93,7 @@ class PartDetails(models.Model):
     def __str__(self):
         classification_display = str(self.classification) if self.classification else "No Classification"
         return f"{self.part.part_number} - {self.job_identity} - {self.processing_standard.name if self.processing_standard else 'No Standard'} - {classification_display}"
+
 
 class JobDetails(models.Model):
     part_detail = models.ForeignKey(PartDetails, on_delete=models.CASCADE, related_name='jobs')

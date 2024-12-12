@@ -1,6 +1,8 @@
 from django.db import models
 from part.models import PartDetails
 from django.db.models import F
+from django.shortcuts import render
+
 
 class MaskingProfile(models.Model):
     part_detail = models.ForeignKey(
