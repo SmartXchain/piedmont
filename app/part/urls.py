@@ -16,7 +16,6 @@ urlpatterns = [
     path('job/<int:job_id>/edit/', views.jobdetails_edit_view, name='jobdetails_edit'),  # Edit JobDetails
     path('<int:part_id>/add-job/', views.jobdetails_add_view, name='jobdetails_add'),  # Add JobDetails
     path('<int:part_id>/jobs/', views.jobdetails_list_view, name='jobdetails_list'),
-    path('jobs/', views.job_list_view, name='job_list'),
     path('<int:job_id>/job-process-steps/', views.job_process_steps_view, name='job_process_steps'),
     path('<int:detail_id>/part-process-steps/', views.part_process_steps_view, name='part_process_steps'),
     path('<int:job_id>/process-steps/print/', views.job_print_steps_view, name='job_print_steps'),

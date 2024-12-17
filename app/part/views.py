@@ -115,33 +115,57 @@ def jobdetails_edit_view(request, job_id):
 
 
 def jobdetails_add_view(request, part_id):
-    part_detail = get_object_or_404(PartDetails, part_id=part_id)
+    """
+    View to add a new JobDetails entry for a specific part.
+    """
+    # Fetch all PartDetails linked to the selected part
+    part_details_queryset = PartDetails.objects.filter(part_id=part_id)
+
+    if not part_details_queryset.exists():
+        return render(request, 'error.html', {'message': 'No Part Details found for this part.'})
+
     if request.method == "POST":
         form = JobDetailsForm(request.POST)
+        form.fields['part_detail'].queryset = part_details_queryset
         if form.is_valid():
-            job = form.save(commit=False)
-            job.part_detail = part_detail
-            job.save()
-            return redirect('part_detail', part_id=part_detail.part.id)
+            form.save()
+            return redirect('part_detail', part_id=part_id)
     else:
         form = JobDetailsForm()
-    return render(request, 'part/jobdetails_form.html', {'form': form, 'part_detail': part_detail})
+        form.fields['part_detail'].queryset = part_details_queryset  # Populate dropdown
 
+    return render(request, 'part/jobdetails_form.html', {'form': form, 'part_id': part_id})
 
-def job_list_view(request):
-    jobs = JobDetails.objects.select_related('part').all()
-    return render(request, 'part/job_list.html', {'jobs': jobs})
 
 
 def part_process_steps_view(request, detail_id):
+    """
+    View to display process steps for a part detail.
+    """
     detail = get_object_or_404(PartDetails, id=detail_id)
     part = detail.part
 
-    # Fetch process steps using the method in the Part model
-    process_steps = part.get_process_steps(detail.processing_standard, detail.classification)
+    # Debug: Print details for clarity
+    print(f"Processing Standard: {detail.processing_standard}")
+    print(f"Classification: {detail.classification}")
 
-    if not process_steps:
-        # Render no_process_steps.html with the part ID
+    # Fetch the process based on processing standard and classification
+    process = Process.objects.filter(
+        standard=detail.processing_standard,
+        classification=detail.classification
+    ).first()
+
+    # Debug: Check if process is found
+    if process:
+        print(f"Process Found: {process}")
+        process_steps = process.steps.all()
+        print(f"Number of Steps Found: {process_steps.count()}")
+    else:
+        print("No Process Found")
+        process_steps = None
+
+    # Handle case where no steps are found
+    if not process_steps or process_steps.count() == 0:
         return render(request, 'part/no_process_steps.html', {
             'part': part,
             'message': "No steps have been added for this part based on the current standard and classification. Please contact Special Processing."
@@ -150,6 +174,7 @@ def part_process_steps_view(request, detail_id):
     return render(request, 'part/process_steps.html', {
         'part': part,
         'process_steps': process_steps,
+        'detail': detail,
     })
 
 

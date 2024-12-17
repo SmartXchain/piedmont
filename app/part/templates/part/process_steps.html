@@ -1,13 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}Process Steps{% endblock %}
+{% block title %}Process Steps for {{ part.part_number }}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Process Steps for {{ part.part_number }}</h1>
-    <p><strong>Description:</strong> {{ part.part_description }}</p>
-    <p><strong>Revision:</strong> {{ part.part_revision }}</p>
+    <h1>Process Steps for Part {{ part.part_number }}</h1>
+    <p><strong>Job Identity:</strong> {{ detail.job_identity|default:"N/A" }}</p>
+    <p><strong>Processing Standard:</strong> {{ detail.processing_standard.name|default:"N/A" }}</p>
+    <p><strong>Classification:</strong> {{ detail.classification|default:"N/A" }}</p>
 
+    {% if process_steps %}
     <table class="table table-striped">
         <thead>
             <tr>
@@ -19,19 +21,21 @@
         <tbody>
             {% for step in process_steps %}
             <tr>
-                <td>{{ step.step_number }}</td>
-                <td>{{ step.method.title }}</td>
-                <td>{{ step.method.description }}</td>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ step.method.title|default:"No Title" }}</td>
+                <td>{{ step.method.description|default:"No Description" }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="3" class="text-center">No steps available.</td>
+                <td colspan="3" class="text-center">No steps available for this process.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <p class="text-danger">No process steps are available for the current standard and classification.</p>
+    {% endif %}
 
     <a href="{% url 'part_detail' part.id %}" class="btn btn-secondary">Back to Part</a>
 </div>
 {% endblock %}
-

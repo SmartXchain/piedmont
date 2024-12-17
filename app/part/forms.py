@@ -38,29 +38,24 @@ class PartDetailsForm(forms.ModelForm):
 
 
 class JobDetailsForm(forms.ModelForm):
+    part_detail = forms.ModelChoiceField(
+        queryset=PartDetails.objects.none(),  # Dynamically populated in the view
+        label="Part Details",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+
     class Meta:
         model = JobDetails
         fields = [
-            'job_number',
-            'customer',
-            'purchase_order_with_revision',
-            'part_quantity',
-            'serial_or_lot_numbers',
-            'surface_repaired',
-            'date',
-            'job_identity',
-            'processing_standard',
-            'classification',
+            'part_detail', 'job_number', 'job_identity', 'surface_repaired', 
+            'surface_area', 'date', 'processing_standard', 'classification'
         ]
         widgets = {
             'job_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'customer': forms.TextInput(attrs={'class': 'form-control'}),
-            'purchase_order_with_revision': forms.TextInput(attrs={'class': 'form-control'}),
-            'part_quantity': forms.NumberInput(attrs={'class': 'form-control'}),
-            'serial_or_lot_numbers': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'surface_repaired': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'job_identity': forms.Select(attrs={'class': 'form-select'}),
+            'surface_repaired': forms.TextInput(attrs={'class': 'form-control'}),
+            'surface_area': forms.NumberInput(attrs={'class': 'form-control'}),
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'job_identity': forms.Select(attrs={'class': 'form-control'}),
-            'processing_standard': forms.Select(attrs={'class': 'form-control'}),
-            'classification': forms.Select(attrs={'class': 'form-control'}),
+            'processing_standard': forms.Select(attrs={'class': 'form-select'}),
+            'classification': forms.Select(attrs={'class': 'form-select'}),
         }

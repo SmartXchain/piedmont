@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'part',
     'process',
     'methods',
-    'masking',
 ]
 
 MIDDLEWARE = [
