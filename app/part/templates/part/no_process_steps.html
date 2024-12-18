@@ -7,6 +7,6 @@
     <h1>No Process Steps</h1>
     <p>{{ message }}</p>
 
-    <a href="{% url 'part_detail' part.id %}" class="btn btn-secondary">Back to Part</a>
+    <a href="{% url 'part_detail' job.part_detail.part.id %}" class="btn btn-secondary">Back to Part</a>
 </div>
 {% endblock %}

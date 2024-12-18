@@ -12,11 +12,13 @@ urlpatterns = [
     path('details/<int:detail_id>/view/', views.partdetails_view_view, name='partdetails_view'),
     path('details/<int:detail_id>/edit/', views.partdetails_edit_view, name='partdetails_edit'),
 
-    path('job/<int:job_id>/view/', views.jobdetails_view, name='jobdetails_view'),  # View JobDetails
-    path('job/<int:job_id>/edit/', views.jobdetails_edit_view, name='jobdetails_edit'),  # Edit JobDetails
-    path('<int:part_id>/add-job/', views.jobdetails_add_view, name='jobdetails_add'),  # Add JobDetails
+    path('job/<int:job_id>/view/', views.jobdetails_view, name='jobdetails_view'),
+    path('job/<int:job_id>/edit/', views.jobdetails_edit_view, name='jobdetails_edit'),
+    path('part/<int:part_id>/add/job/', views.jobdetails_add_view, name='jobdetails_add'),
     path('<int:part_id>/jobs/', views.jobdetails_list_view, name='jobdetails_list'),
     path('<int:job_id>/job-process-steps/', views.job_process_steps_view, name='job_process_steps'),
+
     path('<int:detail_id>/part-process-steps/', views.part_process_steps_view, name='part_process_steps'),
+    
     path('<int:job_id>/process-steps/print/', views.job_print_steps_view, name='job_print_steps'),
 ]

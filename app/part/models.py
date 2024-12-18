@@ -2,7 +2,8 @@ from django.db import models
 from standard.models import Standard, Classification
 from process.models import Process
 from django.core.exceptions import ValidationError
-
+from methods.models import Method
+from process.models import Process
 
 class Part(models.Model):
     part_number = models.CharField(max_length=255)
@@ -95,16 +96,23 @@ class PartDetails(models.Model):
         return f"{self.part.part_number} - {self.job_identity} - {self.processing_standard.name if self.processing_standard else 'No Standard'} - {classification_display}"
 
 
+
+
+
 class JobDetails(models.Model):
     part_detail = models.ForeignKey(PartDetails, on_delete=models.CASCADE, related_name='jobs')
-    purchase_order_with_revision = models.CharField(max_length=255, blank=True, null=True)
+    job_number = models.CharField(max_length=255, unique=True)
     customer = models.CharField(max_length=50, blank=True, null=True)
+    purchase_order_with_revision = models.CharField(max_length=255, blank=True, null=True)
     part_quantity = models.PositiveIntegerField(blank=True, null=True)
     serial_or_lot_numbers = models.TextField(blank=True, null=True)
-    job_number = models.CharField(max_length=255, unique=True)
     surface_repaired = models.CharField(max_length=255, blank=True, null=True)
     surface_area = models.FloatField(blank=True, null=True, verbose_name="Surface Area (sq inches)")
     date = models.DateField(blank=True, null=True)
+
+    # Relationships to standards, classifications, and job identity
+    processing_standard = models.ForeignKey(Standard, on_delete=models.SET_NULL, blank=True, null=True)
+    classification = models.ForeignKey(Classification, on_delete=models.SET_NULL, blank=True, null=True)
     job_identity = models.CharField(
         max_length=50,
         choices=[
@@ -116,26 +124,17 @@ class JobDetails(models.Model):
         ]
     )
 
-    processing_standard = models.ForeignKey(Standard, on_delete=models.SET_NULL, blank=True, null=True)
-    classification = models.ForeignKey(Classification, on_delete=models.SET_NULL, blank=True, null=True)
-
     def clean(self):
-        from methods.models import Method
-
+        # Validate surface area for rectified tanks
         if self.part_detail:
             process_steps = self.part_detail.get_process_steps()
             for step in process_steps:
                 if (
                     step.method.method_type == 'processing_tank' and step.method.is_rectified
-                    ) and self.surface_area is None:
-                    raise ValidationError("Surface Area is required for rectified processing tanks")
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
+                ) and self.surface_area is None:
+                    raise ValidationError("Surface Area is required for rectified processing tanks.")
 
     def get_process_steps(self):
-        # Retrieve the process for the selected standard and classification
         process = Process.objects.filter(
             standard=self.processing_standard,
             classification=self.classification
@@ -144,7 +143,8 @@ class JobDetails(models.Model):
 
     class Meta:
         ordering = ['job_number']
-        unique_together = ('part_detail', 'job_identity', 'surface_repaired')  # Ensure uniqueness
+        unique_together = ('part_detail', 'job_identity', 'surface_repaired', 'processing_standard', 'classification')  # Enforce uniqueness
 
     def __str__(self):
         return f"Job {self.job_number} for {self.part_detail.part.part_number}"
+

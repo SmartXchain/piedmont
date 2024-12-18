@@ -1,40 +1,19 @@
 {% extends 'base.html' %}
-{% load widget_tweaks %}
-
-{% block title %}Add Job Details{% endblock %}
+{% block title %}Add/Edit Job Details{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Add Job Details</h1>
-    <form method="post" novalidate>
+    <h1>{% if job %}Edit Job{% else %}Add Job{% endif %}</h1>
+    <form method="post">
         {% csrf_token %}
         {{ form.non_field_errors }}
-
-        <div class="mb-3">
-            {{ form.part_detail.label_tag }}
-            {{ form.part_detail|add_class:"form-select" }}
-        </div>
-        <div class="mb-3">
-            {{ form.job_number.label_tag }}
-            {{ form.job_number|add_class:"form-control" }}
-        </div>
-        <div class="mb-3">
-            {{ form.job_identity.label_tag }}
-            {{ form.job_identity|add_class:"form-select" }}
-        </div>
-        <div class="mb-3">
-            {{ form.surface_repaired.label_tag }}
-            {{ form.surface_repaired|add_class:"form-control" }}
-        </div>
-        <div class="mb-3">
-            {{ form.surface_area.label_tag }}
-            {{ form.surface_area|add_class:"form-control" }}
-        </div>
-        <div class="mb-3">
-            {{ form.date.label_tag }}
-            {{ form.date|add_class:"form-control" }}
-        </div>
-
+        <div class="mb-3">{{ form.part_detail.label }}{{ form.part_detail }}</div>
+        <div class="mb-3">{{ form.job_number.label }}{{ form.job_number }}</div>
+        <div class="mb-3">{{ form.job_identity.label }}{{ form.job_identity }}</div>
+        <div class="mb-3">{{ form.processing_standard.label }}{{ form.processing_standard }}</div>
+        <div class="mb-3">{{ form.classification.label }}{{ form.classification }}</div>
+        <div class="mb-3">{{ form.surface_repaired.label }}{{ form.surface_repaired }}</div>
+        <div class="mb-3">{{ form.surface_area.label }}{{ form.surface_area }}</div>
         <button type="submit" class="btn btn-primary">Save</button>
         <a href="{% url 'part_detail' part_id %}" class="btn btn-secondary">Cancel</a>
     </form>

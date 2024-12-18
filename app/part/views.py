@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from weasyprint import HTML
 from django.utils import timezone
 import tempfile
-
+from process.models import Process
 
 def part_list_view(request):
     query = request.GET.get('q', '')  # Get the search query from the URL
@@ -102,54 +102,46 @@ def jobdetails_view(request, job_id):
 def jobdetails_edit_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)
     part_detail = job.part_detail
+    part = part_detail.part
 
     if request.method == "POST":
         form = JobDetailsForm(request.POST, instance=job)
         if form.is_valid():
-            form.save()
-            return redirect('part_detail', part_id=part_detail.part.id)
+            try:
+                form.save()
+                return redirect('part_detail', part_id=part.id)
+            except ValidationError as e:
+                form.add_error(None, str(e))
     else:
         form = JobDetailsForm(instance=job)
 
-    return render(request, 'part/jobdetails_form.html', {'form': form, 'part_detail': part_detail, 'detail': job})
+    return render(request, 'part/jobdetails_form.html', {'form': form, 'part_id': part.id if part else None, 'job': job})
 
 
 def jobdetails_add_view(request, part_id):
-    """
-    View to add a new JobDetails entry for a specific part.
-    """
-    # Fetch all PartDetails linked to the selected part
-    part_details_queryset = PartDetails.objects.filter(part_id=part_id)
-
-    if not part_details_queryset.exists():
-        return render(request, 'error.html', {'message': 'No Part Details found for this part.'})
+    part = get_object_or_404(PartDetails, id=part_id)
 
     if request.method == "POST":
         form = JobDetailsForm(request.POST)
-        form.fields['part_detail'].queryset = part_details_queryset
+        form.fields['part_detail'].queryset = PartDetails.objects.filter(part_id=part_id)
         if form.is_valid():
-            form.save()
-            return redirect('part_detail', part_id=part_id)
+            try:
+                form.save()
+                return redirect('part_detail', part_id=part.part.id)
+            except ValidationError as e:
+                form.add_error(None, str(e))
     else:
         form = JobDetailsForm()
-        form.fields['part_detail'].queryset = part_details_queryset  # Populate dropdown
+        form.fields['part_detail'].queryset = PartDetails.objects.filter(part_id=part_id)
 
     return render(request, 'part/jobdetails_form.html', {'form': form, 'part_id': part_id})
 
 
 
 def part_process_steps_view(request, detail_id):
-    """
-    View to display process steps for a part detail.
-    """
+
     detail = get_object_or_404(PartDetails, id=detail_id)
     part = detail.part
-
-    # Debug: Print details for clarity
-    print(f"Processing Standard: {detail.processing_standard}")
-    print(f"Classification: {detail.classification}")
-
-    # Fetch the process based on processing standard and classification
     process = Process.objects.filter(
         standard=detail.processing_standard,
         classification=detail.classification
@@ -179,14 +171,37 @@ def part_process_steps_view(request, detail_id):
 
 
 def job_process_steps_view(request, job_id):
+    # Fetch the job
     job = get_object_or_404(JobDetails, id=job_id)
-    process_steps = job.get_process_steps()
+    part_detail = job.part_detail
 
-    if process_steps is None:
-        message = "No process for the selected standard, job identity, and classification. Contact Special Processing."
-        return render(request, 'part/no_process_steps.html', {'job': job, 'message': message})
+    # Fetch the process linked to the job's processing standard and classification
+    process = Process.objects.filter(
+        standard=job.processing_standard,
+        classification=job.classification
+    ).first()
 
-    return render(request, 'part/job_process_steps.html', {'job': job, 'process_steps': process_steps})
+    # Debugging information
+    if process:
+        print(f"Process Found: {process}")
+        process_steps = process.steps.all()
+        print(f"Number of Steps Found: {process_steps.count()}")
+    else:
+        print("No Process Found")
+        process_steps = None
+
+    # If no steps are found, render the no_process_steps.html template
+    if not process_steps or process_steps.count() == 0:
+        return render(request, 'part/no_process_steps.html', {
+            'job': job,
+            'message': "No process steps found for this job's standard and classification. Contact Special Processing."
+        })
+
+    # Render process steps template if steps are found
+    return render(request, 'part/job_process_steps.html', {
+        'job': job,
+        'process_steps': process_steps,
+    })
 
 
 def job_print_steps_view(request, job_id):
