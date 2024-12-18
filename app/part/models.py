@@ -109,6 +109,7 @@ class JobDetails(models.Model):
     surface_repaired = models.CharField(max_length=255, blank=True, null=True)
     surface_area = models.FloatField(blank=True, null=True, verbose_name="Surface Area (sq inches)")
     date = models.DateField(blank=True, null=True)
+    amps = models.FloatField(blank=True, null=True, verbose_name="Amps Required")
 
     # Relationships to standards, classifications, and job identity
     processing_standard = models.ForeignKey(Standard, on_delete=models.SET_NULL, blank=True, null=True)
@@ -125,14 +126,17 @@ class JobDetails(models.Model):
     )
 
     def clean(self):
-        # Validate surface area for rectified tanks
         if self.part_detail:
             process_steps = self.part_detail.get_process_steps()
             for step in process_steps:
-                if (
-                    step.method.method_type == 'processing_tank' and step.method.is_rectified
-                ) and self.surface_area is None:
-                    raise ValidationError("Surface Area is required for rectified processing tanks.")
+                if step.method.method_type == 'processing_tank' and step.method.is_rectified:
+                    if self.surface_area is None:
+                        raise ValidationError("Surface Area is required for rectified processing tanks.")
+                    if self.job_identity == 'cad_plate':
+                        self.amps = self.surface_area/144 * 40
+                    if self.job_identity == 'chrome_plate':
+                        self.amps = self.surface_area * 2.5
+                
 
     def get_process_steps(self):
         process = Process.objects.filter(
@@ -140,10 +144,14 @@ class JobDetails(models.Model):
             classification=self.classification
         ).first()
         return process.steps.all() if process else []
+    
+    def save(self, *args, **kwargs):
+        self.clean()  # Validate before saving
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['job_number']
-        unique_together = ('part_detail', 'job_identity', 'surface_repaired', 'processing_standard', 'classification')  # Enforce uniqueness
+        unique_together = ('part_detail', 'job_number', 'job_identity', 'surface_repaired', 'processing_standard', 'classification')  # Enforce uniqueness
 
     def __str__(self):
         return f"Job {self.job_number} for {self.part_detail.part.part_number}"

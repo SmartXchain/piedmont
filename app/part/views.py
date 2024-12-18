@@ -108,7 +108,9 @@ def jobdetails_edit_view(request, job_id):
         form = JobDetailsForm(request.POST, instance=job)
         if form.is_valid():
             try:
-                form.save()
+                job = form.save()
+                job.clean()
+                job.save()
                 return redirect('part_detail', part_id=part.id)
             except ValidationError as e:
                 form.add_error(None, str(e))
@@ -126,7 +128,9 @@ def jobdetails_add_view(request, part_id):
         form.fields['part_detail'].queryset = PartDetails.objects.filter(part_id=part_id)
         if form.is_valid():
             try:
-                form.save()
+                job = form.save()
+                job.clean()
+                job.save()
                 return redirect('part_detail', part_id=part.part.id)
             except ValidationError as e:
                 form.add_error(None, str(e))

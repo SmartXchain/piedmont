@@ -110,7 +110,24 @@
                 <tr>
                     <td>{{ forloop.counter }}</td>
                     <td>{{ step.method.title }}</td>
-                    <td>{{ step.method.description }}</td>
+                    <td>
+                        {{ step.method.description }}
+                        {% if step.method.is_rectified %}
+                        {% if job.part_detail.job_identity == 'chrome_plate' %}
+                                <br>
+                                <strong>Surface Area = {{ job.surface_area|floatformat:2 }}</strong>
+                                <br>
+                                <strong>Current Denstiy (asi) = 2.5</strong>
+                                <br>
+                                <strong>Amps Required = {{ job.amps|floatformat:2 }} amps</strong>
+                                <strong>Amps Required:</strong> {{ job.surface_area|floatformat:2 }} × 2.5 = {{ job.surface_area|floatformat:2|add:":2.5"|floatformat:2 }} amps
+                            {% elif job.part_detail.job_identity == 'cadmium_plate' %}
+                                <br><strong>Instructions:</strong> This is cadmium plating; it requires nickel strike.
+                            {% else %}
+                                <br><strong>Instructions:</strong> See Process Engineer for further processing.
+                            {% endif %}
+                        {% endif %}
+                    </td>
                     <td>{{ step.operator }}</td>
                     <td>{{ step.date }}</td>
                 </tr>
