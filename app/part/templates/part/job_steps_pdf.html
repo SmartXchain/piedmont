@@ -111,23 +111,29 @@
                     <td>{{ forloop.counter }}</td>
                     <td>{{ step.method.title }}</td>
                     <td>
-                        {{ step.method.description }}
-                        {% if step.method.is_rectified %}
-                        {% if job.part_detail.job_identity == 'chrome_plate' %}
-                                <br>
-                                <strong>Surface Area = {{ job.surface_area|floatformat:2 }}</strong>
-                                <br>
-                                <strong>Current Denstiy (asi) = 2.5</strong>
-                                <br>
-                                <strong>Amps Required = {{ job.amps|floatformat:2 }} amps</strong>
-                                <strong>Amps Required:</strong> {{ job.surface_area|floatformat:2 }} × 2.5 = {{ job.surface_area|floatformat:2|add:":2.5"|floatformat:2 }} amps
-                            {% elif job.part_detail.job_identity == 'cadmium_plate' %}
-                                <br><strong>Instructions:</strong> This is cadmium plating; it requires nickel strike.
-                            {% else %}
-                                <br><strong>Instructions:</strong> See Process Engineer for further processing.
-                            {% endif %}
-                        {% endif %}
-                    </td>
+    {{ step.method.description }}
+    {% if step.method.is_rectified %}
+        {% if job_data.is_chrome_or_cadmium %}
+            <br>
+            <strong>Surface Area = {{ job_data.surface_area|floatformat:2 }} in<sup>2</sup></strong>
+            <br>
+            <strong>Current Density = {{ job_data.current_density|floatformat:2 }} asi</strong>
+            <br>
+            <strong>Amps Required = {{ job_data.amps|floatformat:2 }} amps</strong>
+            <br>
+            <strong>Process:</strong>
+            <ul>
+                {% for instruction in job_data.instructions %}
+                    <li>{{ instruction }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <br>
+            <strong>Instructions:</strong> {{ job_data.instructions.0 }}
+        {% endif %}
+    {% endif %}
+</td>
+
                     <td>{{ step.operator }}</td>
                     <td>{{ step.date }}</td>
                 </tr>

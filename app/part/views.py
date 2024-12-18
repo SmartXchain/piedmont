@@ -9,6 +9,7 @@ from django.utils import timezone
 import tempfile
 from process.models import Process
 
+
 def part_list_view(request):
     query = request.GET.get('q', '')  # Get the search query from the URL
     if query:
@@ -207,24 +208,53 @@ def job_process_steps_view(request, job_id):
         'process_steps': process_steps,
     })
 
-
 def job_print_steps_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)
     process_steps = job.get_process_steps()
     inspections = job.processing_standard.inspections.all() if job.processing_standard else None
     current_date = timezone.now().strftime("%m-%d-%Y")
 
+    # Pre-compute amps and instructions based on job identity
+    job_data = {
+        "surface_area": job.surface_area,
+        "amps": None,
+        "instructions": [],
+        "is_chrome_or_cadmium": job.part_detail.job_identity in ['chrome_plate', 'cadmium_plate']
+    }
+
+    if job.part_detail.job_identity == 'chrome_plate':
+        if job.surface_area:
+            amps = job.surface_area * 2.5
+            job_data["amps"] = amps
+            job_data["instructions"] = [
+                f"Reverse Etch at {amps:.2f} amps for the required duration.",
+                f"Strike Plate at {amps:.2f} amps for the specified time.",
+                f"Plate at {amps:.2f} amps for the required mils, using a plating rate of 1 mil per hour."
+            ]
+    elif job.part_detail.job_identity == 'cadmium_plate':
+        if job.surface_area:
+            amps = job.surface_area * 40
+            job_data["amps"] = amps
+            job_data["instructions"] = [
+                f"Strike at {amps:.2f} amps for 1 minute.",
+                f"Plate at {amps:.2f} amps for 10 minutes.",
+                f"Re-rack the part and continue plating at {amps:.2f} amps for an additional 10 minutes."
+            ]
+    else:
+        job_data["instructions"] = ["See Process Engineer for further processing."]
+
     # Ensure there are process steps available
-    if process_steps is None:
+    if not process_steps:
         return HttpResponse("No process steps found for this job.", content_type="text/plain")
 
-    # Render the template with context
+    # Render the template with precomputed context
     html_content = render_to_string('part/job_steps_pdf.html', {
         'job': job,
         'process_steps': process_steps,
         'inspections': inspections,
         'current_date': current_date,
         'footer_text': f"Printed on: {current_date}",
+        'job_data': job_data
     })
 
     # Generate PDF and create HTTP response

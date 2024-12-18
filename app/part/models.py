@@ -107,8 +107,9 @@ class JobDetails(models.Model):
     part_quantity = models.PositiveIntegerField(blank=True, null=True)
     serial_or_lot_numbers = models.TextField(blank=True, null=True)
     surface_repaired = models.CharField(max_length=255, blank=True, null=True)
-    surface_area = models.FloatField(blank=True, null=True, verbose_name="Surface Area (sq inches)")
+    surface_area = models.FloatField(blank=True, null=True, verbose_name="Surface Area (sq in)")
     date = models.DateField(blank=True, null=True)
+    current_density = models.FloatField(blank=True, null=True, verbose_name="Current density (amps/sq in)")
     amps = models.FloatField(blank=True, null=True, verbose_name="Amps Required")
 
     # Relationships to standards, classifications, and job identity
