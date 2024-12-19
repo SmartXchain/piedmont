@@ -111,29 +111,46 @@
                     <td>{{ forloop.counter }}</td>
                     <td>{{ step.method.title }}</td>
                     <td>
-    {{ step.method.description }}
-    {% if step.method.is_rectified %}
-        {% if job_data.is_chrome_or_cadmium %}
-            <br>
-            <strong>Surface Area = {{ job_data.surface_area|floatformat:2 }} in<sup>2</sup></strong>
-            <br>
-            <strong>Current Density = {{ job_data.current_density|floatformat:2 }} asi</strong>
-            <br>
-            <strong>Amps Required = {{ job_data.amps|floatformat:2 }} amps</strong>
-            <br>
-            <strong>Process:</strong>
-            <ul>
-                {% for instruction in job_data.instructions %}
-                    <li>{{ instruction }}</li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <br>
-            <strong>Instructions:</strong> {{ job_data.instructions.0 }}
-        {% endif %}
-    {% endif %}
-</td>
-
+                        {% if step.method.method_type == 'processing_tank' %}
+                            <!-- Processing Tank Details -->
+                            <strong>Processing Tank Details:</strong>
+                            <ul>
+                                <li><strong>Tank Name:</strong> {{ step.method.tank_name }}</li>
+                                <li><strong>Content:</strong> {{ step.method.chemical }}</li>
+                                <li><strong>Temperature Range:</strong> {{ step.method.temp_min }}°F - {{ step.method.temp_max }}°F</li>
+                                <li><strong>Time Range:</strong> {{ step.method.immersion_time_min }} min - {{ step.method.immersion_time_max }} min</li>
+                            </ul>
+                        {% endif %}
+                        <!-- Description -->
+                        <p>{{ step.method.description }}</p>
+                        <!-- Rectified Information -->
+                        {% if step.method.is_rectified %}
+                            {% if job_data.is_chrome_or_cadmium %}
+                                <strong>Surface Area:</strong> {{ job_data.surface_area|floatformat:2 }} in<sup>2</sup><br>
+                                <strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi<br>
+                                <strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps<br>
+                                <strong>Process:</strong>
+                                <ul>
+                                    {% for instruction in job_data.instructions %}
+                                        <li>{{ instruction }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <strong>Instructions:</strong> {{ job_data.instructions.0 }}
+                            {% endif %}
+                        {% endif %}
+                        <!-- Parameters -->
+                        {% if step.parameters %}
+                            <strong>Parameters to be Recorded:</strong>
+                            <ul>
+                                {% for parameter in step.parameters %}
+                                    <li><strong>{{ parameter.title }}:</strong> {{ parameter.description }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No parameters available for this method.</p>
+                        {% endif %}
+                    </td>
                     <td>{{ step.operator }}</td>
                     <td>{{ step.date }}</td>
                 </tr>

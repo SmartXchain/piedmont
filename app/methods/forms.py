@@ -1,5 +1,5 @@
 from django import forms
-from .models import Method
+from .models import Method, ParameterToBeRecorded
 
 
 class MethodForm(forms.ModelForm):
@@ -16,3 +16,9 @@ class MethodForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if field_name in ['tank_name', 'temp_min', 'temp_max', 'immersion_time_min', 'immersion_time_max', 'chemical']:
                 field.widget.attrs['class'] = 'form-control'
+
+
+class ParameterForm(forms.ModelForm):
+    class Meta:
+        model = ParameterToBeRecorded
+        fields = ['title']  # Exclude description as it is auto-filled

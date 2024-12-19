@@ -8,6 +8,7 @@ from weasyprint import HTML
 from django.utils import timezone
 import tempfile
 from process.models import Process
+from methods.models import ParameterToBeRecorded
 
 
 def part_list_view(request):
@@ -212,35 +213,42 @@ def job_print_steps_view(request, job_id):
     process_steps = job.get_process_steps()
     inspections = job.processing_standard.inspections.all() if job.processing_standard else None
     current_date = timezone.now().strftime("%m-%d-%Y")
+    # Fetch parameters for each method in process steps
+    for step in process_steps:
+        step.parameters = ParameterToBeRecorded.objects.filter(method=step.method)
 
     # Pre-compute amps and instructions based on job identity
     job_data = {
         "surface_area": job.surface_area,
-        "amps": None,
+        "amps": job.amps,
+        "current_density": job.current_density,
         "instructions": [],
         "is_chrome_or_cadmium": job.part_detail.job_identity in ['chrome_plate', 'cadmium_plate']
     }
 
+
     if job.part_detail.job_identity == 'chrome_plate':
         if job.surface_area:
-            amps = job.surface_area * 2.5
+            amps = job.surface_area * job.current_density
             job_data["amps"] = amps
             job_data["instructions"] = [
-                f"Reverse Etch at {amps:.2f} amps for the required duration.",
-                f"Strike Plate at {amps:.2f} amps for the specified time.",
+                f"Reverse Etch at {amps:.2f} amps for 60 - 90 seconds.",
+                f"Strike Plate at {amps * 2:.2f} amps for the 60 - 90 seconds.",
                 f"Plate at {amps:.2f} amps for the required mils, using a plating rate of 1 mil per hour."
             ]
     elif job.part_detail.job_identity == 'cadmium_plate':
         if job.surface_area:
-            amps = job.surface_area * 40
+            amps = job.surface_area / 144 * job.current_density
             job_data["amps"] = amps
             job_data["instructions"] = [
-                f"Strike at {amps:.2f} amps for 1 minute.",
+                f"Strike at {amps:.2f} amps for 60 to 90 seconds.",
                 f"Plate at {amps:.2f} amps for 10 minutes.",
                 f"Re-rack the part and continue plating at {amps:.2f} amps for an additional 10 minutes."
             ]
     else:
         job_data["instructions"] = ["See Process Engineer for further processing."]
+
+
 
     # Ensure there are process steps available
     if not process_steps:
