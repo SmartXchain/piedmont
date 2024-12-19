@@ -1,37 +1,76 @@
 {% extends 'base.html' %}
 
-{% block title %}Edit Standard{% endblock %}
+{% block title %}{% if standard.id %}Edit Standard{% else %}Add Standard{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>{% if standard.id %}Edit Standard{% else %}Add Standard{% endif %}</h1>
-    <form method="post" enctype="multipart/form-data">
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">{% if standard.id %}Edit Standard{% else %}Add Standard{% endif %}</h1>
+        <a href="{% url 'standard_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Standards
+        </a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="row g-3 needs-validation" novalidate>
         {% csrf_token %}
-        <div class="mb-3">
+        
+        <!-- Name Field -->
+        <div class="col-md-6">
             <label for="id_name" class="form-label">Name</label>
             {{ form.name }}
+            {% for error in form.name.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
         </div>
-        <div class="mb-3">
+
+        <!-- Description Field -->
+        <div class="col-md-6">
             <label for="id_description" class="form-label">Description</label>
             {{ form.description }}
+            {% for error in form.description.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
         </div>
-        <div class="mb-3">
+
+        <!-- Revision Field -->
+        <div class="col-md-6">
             <label for="id_revision" class="form-label">Revision</label>
             {{ form.revision }}
+            {% for error in form.revision.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
         </div>
-        <div class="mb-3">
+
+        <!-- Author Field -->
+        <div class="col-md-6">
             <label for="id_author" class="form-label">Author</label>
             {{ form.author }}
+            {% for error in form.author.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
         </div>
-        <div class="mb-3">
+
+        <!-- Upload File Field -->
+        <div class="col-12">
             <label for="id_upload_file" class="form-label">Upload File</label>
             {% if standard.upload_file %}
-                <p>Current File: <a href="{{ standard.upload_file.url }}">{{ standard.upload_file.name }}</a></p>
+                <p class="text-muted">Current File: <a href="{{ standard.upload_file.url }}" class="text-decoration-none">{{ standard.upload_file.name }}</a></p>
             {% endif %}
             {{ form.upload_file }}
+            {% for error in form.upload_file.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
         </div>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-        <a href="{% url 'standard_list' %}" class="btn btn-secondary">Cancel</a>
+
+        <!-- Action Buttons -->
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+            <a href="{% url 'standard_list' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+            </a>
+        </div>
     </form>
 </div>
 {% endblock %}

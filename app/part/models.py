@@ -2,8 +2,7 @@ from django.db import models
 from standard.models import Standard, Classification
 from process.models import Process
 from django.core.exceptions import ValidationError
-from methods.models import Method
-from process.models import Process
+
 
 class Part(models.Model):
     part_number = models.CharField(max_length=255)
@@ -96,9 +95,6 @@ class PartDetails(models.Model):
         return f"{self.part.part_number} - {self.job_identity} - {self.processing_standard.name if self.processing_standard else 'No Standard'} - {classification_display}"
 
 
-
-
-
 class JobDetails(models.Model):
     part_detail = models.ForeignKey(PartDetails, on_delete=models.CASCADE, related_name='jobs')
     job_number = models.CharField(max_length=255, unique=True)
@@ -134,10 +130,9 @@ class JobDetails(models.Model):
                     if self.surface_area is None:
                         raise ValidationError("Surface Area is required for rectified processing tanks.")
                     if self.job_identity == 'cad_plate':
-                        self.amps = self.surface_area/144 * 40
+                        self.amps = self.surface_area / 144 * self.current_density
                     if self.job_identity == 'chrome_plate':
-                        self.amps = self.surface_area * 2.5
-                
+                        self.amps = self.surface_area * self.current_density
 
     def get_process_steps(self):
         process = Process.objects.filter(
@@ -145,7 +140,7 @@ class JobDetails(models.Model):
             classification=self.classification
         ).first()
         return process.steps.all() if process else []
-    
+
     def save(self, *args, **kwargs):
         self.clean()  # Validate before saving
         super().save(*args, **kwargs)
@@ -156,4 +151,3 @@ class JobDetails(models.Model):
 
     def __str__(self):
         return f"Job {self.job_number} for {self.part_detail.part.part_number}"
-

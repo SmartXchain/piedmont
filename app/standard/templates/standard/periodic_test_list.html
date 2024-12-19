@@ -3,29 +3,44 @@
 {% block title %}Manage Periodic Tests for {{ standard.name }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Manage Periodic Tests for {{ standard.name }}</h1>
-
-    <a href="{% url 'periodic_test_create' standard.id %}" class="btn btn-success mb-3">Add Periodic Test</a>
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Manage Periodic Tests for {{ standard.name }}</h1>
+        <a href="{% url 'periodic_test_create' standard.id %}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Add Periodic Test
+        </a>
+    </div>
 
     {% if periodic_tests %}
-        <ul class="list-group">
+        <div class="list-group">
             {% for test in periodic_tests %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="list-group-item d-flex justify-content-between align-items-start">
                     <div>
                         <strong>{{ test.name }}</strong> - {{ test.get_time_period_display }}
                         <br>
-                        Spec: {{ test.specification }} | Specimens: {{ test.number_of_specimens }} 
-                        | Material: {{ test.material }} | Dimensions: {{ test.dimensions }}
+                        <span class="text-muted">
+                            Spec: {{ test.specification }} | Specimens: {{ test.number_of_specimens }} | 
+                            Material: {{ test.material }} | Dimensions: {{ test.dimensions }}
+                        </span>
                     </div>
-                    <a href="{% url 'periodic_test_edit' test.id %}" class="btn btn-sm btn-warning">Edit</a>
-                </li>
+                    <a href="{% url 'periodic_test_edit' test.id %}" 
+                       class="btn btn-sm btn-warning" 
+                       aria-label="Edit {{ test.name }}">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </a>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     {% else %}
-        <p>No periodic tests added for this standard.</p>
+        <div class="alert alert-info mt-3" role="alert">
+            No periodic tests added for this standard.
+        </div>
     {% endif %}
-    
-    <a href="{% url 'standard_detail' standard.id %}" class="btn btn-secondary mt-3">Back to Standard</a>
+
+    <div class="mt-4">
+        <a href="{% url 'standard_detail' standard.id %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Standard
+        </a>
+    </div>
 </div>
 {% endblock %}

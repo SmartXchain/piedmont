@@ -4,13 +4,31 @@
 {% block title %}Method Form{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">{{ form.instance.id|yesno:"Edit Method,Add Method" }}</h1>
-    <form method="post">
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'method_list' %}">Methods</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ form.instance.id|yesno:"Edit Method,Add Method" }}
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <h1 class="h3 mb-4">{{ form.instance.id|yesno:"Edit Method,Add Method" }}</h1>
+
+    <!-- Form -->
+    <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
-        <div class="mb-3">
-            {{ form.non_field_errors }}
-        </div>
+        
+        <!-- Non-Field Errors -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
 
         <!-- Method Type -->
         <div class="mb-3">
@@ -31,7 +49,7 @@
         </div>
 
         <!-- Processing Tank Fields -->
-        <div id="tank-fields" class="border p-3 rounded" style="display: none;">
+        <div id="tank-fields" class="border p-3 rounded bg-light" style="display: none;">
             <h5 class="mb-3">Processing Tank Details</h5>
             <div class="mb-3">
                 {{ form.tank_name.label_tag }}
@@ -67,11 +85,19 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a href="{% url 'method_list' %}" class="btn btn-secondary">Cancel</a>
+        <!-- Buttons -->
+        <div class="mt-4 d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Save
+            </button>
+            <a href="{% url 'method_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+        </div>
     </form>
 </div>
 
+<!-- Script to Show/Hide Tank Fields -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const methodTypeSelect = document.getElementById('id_method_type');

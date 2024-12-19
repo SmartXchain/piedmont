@@ -142,7 +142,6 @@ def jobdetails_add_view(request, part_id):
     return render(request, 'part/jobdetails_form.html', {'form': form, 'part_id': part_id})
 
 
-
 def part_process_steps_view(request, detail_id):
 
     detail = get_object_or_404(PartDetails, id=detail_id)
@@ -178,7 +177,6 @@ def part_process_steps_view(request, detail_id):
 def job_process_steps_view(request, job_id):
     # Fetch the job
     job = get_object_or_404(JobDetails, id=job_id)
-    part_detail = job.part_detail
 
     # Fetch the process linked to the job's processing standard and classification
     process = Process.objects.filter(
@@ -207,6 +205,7 @@ def job_process_steps_view(request, job_id):
         'job': job,
         'process_steps': process_steps,
     })
+
 
 def job_print_steps_view(request, job_id):
     job = get_object_or_404(JobDetails, id=job_id)

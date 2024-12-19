@@ -1,22 +1,57 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
+
 {% block title %}Add/Edit Job Details{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>{% if job %}Edit Job{% else %}Add Job{% endif %}</h1>
-    <form method="post">
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'part_detail' part_id %}">Part Details</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{% if job %}Edit Job{% else %}Add Job{% endif %}</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <h1 class="h3 mb-4">{% if job %}Edit Job{% else %}Add Job{% endif %}</h1>
+
+    <!-- Form -->
+    <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
-        {{ form.non_field_errors }}
-        <div class="mb-3">{{ form.part_detail.label }}{{ form.part_detail }}</div>
-        <div class="mb-3">{{ form.job_number.label }}{{ form.job_number }}</div>
-        <div class="mb-3">{{ form.job_identity.label }}{{ form.job_identity }}</div>
-        <div class="mb-3">{{ form.processing_standard.label }}{{ form.processing_standard }}</div>
-        <div class="mb-3">{{ form.classification.label }}{{ form.classification }}</div>
-        <div class="mb-3">{{ form.surface_repaired.label }}{{ form.surface_repaired }}</div>
-        <div class="mb-3">{{ form.surface_area.label }}{{ form.surface_area }}</div>
-        <div class="mb-3">{{ form.current_density.label }}{{ form.current_density }}</div>
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a href="{% url 'part_detail' part_id %}" class="btn btn-secondary">Cancel</a>
+
+        <!-- Non-Field Errors -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- Form Fields -->
+        <div class="row g-3">
+            {% for field in form %}
+                <div class="col-md-6">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field|add_class:"form-control" }}
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Buttons -->
+        <div class="mt-4 d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Save
+            </button>
+            <a href="{% url 'part_detail' part_id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+        </div>
     </form>
 </div>
 {% endblock %}

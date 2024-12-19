@@ -19,6 +19,6 @@ urlpatterns = [
     path('<int:job_id>/job-process-steps/', views.job_process_steps_view, name='job_process_steps'),
 
     path('<int:detail_id>/part-process-steps/', views.part_process_steps_view, name='part_process_steps'),
-    
+
     path('<int:job_id>/process-steps/print/', views.job_print_steps_view, name='job_print_steps'),
 ]

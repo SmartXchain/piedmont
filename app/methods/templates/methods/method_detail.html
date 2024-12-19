@@ -3,46 +3,66 @@
 {% block title %}Method Details{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1>Method Details</h1>
-    <table class="table table-bordered">
-        <tbody>
-            <tr>
-                <th>Title</th>
-                <td>{{ method.title }}</td>
-            </tr>
-            <tr>
-                <th>Type</th>
-                <td>{{ method.get_method_type_display }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ method.description|default:"N/A" }}</td>
-            </tr>
-            {% if method.method_type == "processing_tank" %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'method_list' %}">Methods</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Method Details</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <h1 class="h3 mb-4">Method Details</h1>
+
+    <!-- Method Details Table -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <tbody>
                 <tr>
-                    <th>Tank Name</th>
-                    <td>{{ method.tank_name|default:"N/A" }}</td>
+                    <th>Title</th>
+                    <td>{{ method.title }}</td>
                 </tr>
                 <tr>
-                    <th>Temperature Range</th>
-                    <td>{{ method.temp_min|default:"N/A" }} - {{ method.temp_max|default:"N/A" }} °C</td>
+                    <th>Type</th>
+                    <td>{{ method.get_method_type_display }}</td>
                 </tr>
                 <tr>
-                    <th>Immersion Time</th>
-                    <td>{{ method.immersion_time_min|default:"N/A" }} - {{ method.immersion_time_max|default:"N/A" }} minutes</td>
+                    <th>Description</th>
+                    <td>{{ method.description|default:"N/A" }}</td>
                 </tr>
-                <tr>
-                    <th>Chemical</th>
-                    <td>{{ method.chemical|default:"N/A" }}</td>
-                </tr>
-                <tr>
-                    <th>Is Rectified</th>
-                    <td>{{ method.is_rectified|yesno:"Yes,No" }}</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
-    <a href="{% url 'method_list' %}" class="btn btn-secondary">Back to List</a>
+                {% if method.method_type == "processing_tank" %}
+                    <tr>
+                        <th>Tank Name</th>
+                        <td>{{ method.tank_name|default:"N/A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Temperature Range</th>
+                        <td>{{ method.temp_min|default:"N/A" }} - {{ method.temp_max|default:"N/A" }} °C</td>
+                    </tr>
+                    <tr>
+                        <th>Immersion Time</th>
+                        <td>{{ method.immersion_time_min|default:"N/A" }} - {{ method.immersion_time_max|default:"N/A" }} minutes</td>
+                    </tr>
+                    <tr>
+                        <th>Chemical</th>
+                        <td>{{ method.chemical|default:"N/A" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Is Rectified</th>
+                        <td>{{ method.is_rectified|yesno:"Yes,No" }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{% url 'method_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
 </div>
 {% endblock %}

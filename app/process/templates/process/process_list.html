@@ -3,32 +3,61 @@
 {% block title %}Processes{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Processes</h1>
-    <a href="{% url 'process_add' %}" class="btn btn-primary mb-3">Add Process</a>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Standard</th>
-                <th>Classification</th>
-                <th>Description</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for process in processes %}
-            <tr>
-                <td>{{ process.standard }}</td>
-                <td>{{ process.classification }}</td>
-                <td>{{ process.description }}</td>
-                <td>
-                    <a href="{% url 'process_edit' process.id %}" class="btn btn-warning btn-sm">Edit</a>
-                    <a href="{% url 'process_steps' process.id %}" class="btn btn-info btn-sm">View Steps</a>
-                    <a href="{% url 'process_step_list' process.id %}" class="btn btn-danger btn-sm">Add Steps</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Processes</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <h1 class="h3 mb-4">Processes</h1>
+
+    <!-- Add Process Button -->
+    <div class="mb-4">
+        <a href="{% url 'process_add' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Process
+        </a>
+    </div>
+
+    <!-- Processes Table -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Standard</th>
+                    <th>Classification</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for process in processes %}
+                    <tr>
+                        <td>{{ process.standard }}</td>
+                        <td>{{ process.classification }}</td>
+                        <td>{{ process.description }}</td>
+                        <td>
+                            <a href="{% url 'process_edit' process.id %}" class="btn btn-warning btn-sm" aria-label="Edit Process">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                            <a href="{% url 'process_steps' process.id %}" class="btn btn-info btn-sm" aria-label="View Steps">
+                                <i class="bi bi-list-task"></i> View Steps
+                            </a>
+                            <a href="{% url 'process_step_list' process.id %}" class="btn btn-danger btn-sm" aria-label="Add Steps">
+                                <i class="bi bi-plus-circle"></i> Add Steps
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No processes available.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

@@ -22,4 +22,3 @@ class JobDetailsForm(forms.ModelForm):
             'part_quantity', 'serial_or_lot_numbers', 'surface_repaired', 'surface_area',
             'date', 'job_identity', 'processing_standard', 'classification', 'current_density',
         ]
-
