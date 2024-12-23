@@ -226,7 +226,6 @@ def job_print_steps_view(request, job_id):
         "is_chrome_or_cadmium": job.part_detail.job_identity in ['chrome_plate', 'cadmium_plate']
     }
 
-
     if job.part_detail.job_identity == 'chrome_plate':
         if job.surface_area:
             amps = job.surface_area * job.current_density
@@ -247,8 +246,6 @@ def job_print_steps_view(request, job_id):
             ]
     else:
         job_data["instructions"] = ["See Process Engineer for further processing."]
-
-
 
     # Ensure there are process steps available
     if not process_steps:

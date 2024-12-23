@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Method, ParameterToBeRecorded
 from .forms import MethodForm, ParameterForm
 
+
 def method_list_view(request):
     methods = Method.objects.all()
     return render(request, 'methods/method_list.html', {'methods': methods})
@@ -33,8 +34,6 @@ def method_edit_view(request, method_id):
 def method_detail(request, method_id):
     method = get_object_or_404(Method, id=method_id)
     return render(request, 'methods/method_detail.html', {'method': method})
-
-
 
 
 def parameter_list_view(request, method_id):
