@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'part',
     'process',
     'methods',
+    'fixtures',
 ]
 
 MIDDLEWARE = [
