@@ -1,0 +1,39 @@
+# templates/kanban/index.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chemical Inventory Kanban</title>
+</head>
+<body>
+    <h1>Chemical Inventory Kanban</h1>
+
+    <div>
+        <h2>Available</h2>
+        {% for chem in available %}
+            <p>{{ chem.name }} - Quantity: {{ chem.quantity }} - Expiry Date: {{ chem.expiry_date }}</p>
+        {% empty %}
+            <p>No chemicals in this category.</p>
+        {% endfor %}
+    </div>
+
+    <div>
+        <h2>Expiring Soon</h2>
+        {% for chem in expiring_soon %}
+            <p>{{ chem.name }} - Quantity: {{ chem.quantity }} - Expiry Date: {{ chem.expiry_date }}</p>
+        {% empty %}
+            <p>No chemicals in this category.</p>
+        {% endfor %}
+    </div>
+
+    <div>
+        <h2>Expired</h2>
+        {% for chem in expired %}
+            <p>{{ chem.name }} - Quantity: {{ chem.quantity }} - Expiry Date: {{ chem.expiry_date }}</p>
+        {% empty %}
+            <p>No chemicals in this category.</p>
+        {% endfor %}
+    </div>
+
+    <a href="/add">Add Chemical</a>
+</body>
+</html>

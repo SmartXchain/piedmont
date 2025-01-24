@@ -50,6 +50,12 @@
                       <i class="bi bi-wrench-adjustable-circle-fill"></i> Methods
                   </a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'method_list' %}active{% endif %}" 
+                   href="{% url 'kanban' %}">
+                    <i class="bi bi-wrench-adjustable-circle-fill"></i>Kanban
+                </a>
+            </li>
           </ul>
       </div>
   </div>

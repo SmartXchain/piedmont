@@ -25,6 +25,7 @@ urlpatterns = [
     path('part/', include('part.urls')),
     path('process/', include('process.urls')),
     path('methods/', include('methods.urls')),
+    path('kanban/', include('kanban.urls')),
     path('admin/', admin.site.urls),
 ]
 if bool(settings.DEBUG):
