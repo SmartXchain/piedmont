@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.utils.timezone import now
 from .models import Chemical
 
+
 def index(request):
     chemicals = Chemical.objects.all()
     available = [chem for chem in chemicals if chem.status == 'Available']
@@ -16,6 +17,7 @@ def index(request):
     }
 
     return render(request, 'kanban/index.html', context)
+
 
 def add_chemical(request):
     if request.method == 'POST':

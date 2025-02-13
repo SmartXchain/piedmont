@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+
 class Fixture(models. Model):
     class Status(models.TextChoices):
         DRAFT = 'DF', 'Draft'
@@ -25,9 +26,7 @@ class Fixture(models. Model):
 
     class Meta:
         ordering = ['-publish']
-        indexes = [
-            models.Index(fields=['-publish']),
-        ]
+        indexes = [models.Index(fields=['-publish'])]
 
-    def __str__ (self):
+    def __str__(self):
         return self.fixture_id

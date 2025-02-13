@@ -1,5 +1,8 @@
 # models.py
 from django.db import models
+import datetime
+import timedelta
+
 
 class Chemical(models.Model):
     name = models.CharField(max_length=100)
