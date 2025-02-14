@@ -60,6 +60,30 @@
         .instructions-column {
             width: 50%;
         }
+        .blank-line {
+            display: inline-block;
+            width: 100%;
+            border-bottom: 1px solid black;
+            height: 20px;
+        }
+        .notes {
+            height: 50px;
+        }
+        .report-container {
+            padding: 20px;
+            border: 2px solid black;
+            border-radius: 8px;
+        }
+        .inner-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .inner-table th, .inner-table td {
+            padding: 10px;
+            border-bottom: 1px solid black;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -110,7 +134,28 @@
                 <tr>
                     <td>{{ forloop.counter }}</td>
                     <td>{{ step.method.title }}</td>
+                    <!-- Description -->
                     <td>
+                        {% if step.method.title == 'Stress Relief' %}
+                            <!-- Stress Relief Details -->
+                            <strong>Stress Relief Details:</strong>
+                            <p>Date and time of start of baking.<span class="blank-line"></span></p>
+                            <p>Date and time of start of soak.<span class="blank-line"></span></p>
+                            <p>Date and time of completion of baking.<span class="blank-line"></span></p>
+                            <p>Furnace control instrument set temperature.<span class="blank-line"></span></p>
+                            <p>Furnace identification.<span class="blank-line"></span></p>
+                            <p>Graph Number:<span class="blank-line"></span></p>
+                        {% endif %}
+                        {% if step.method.title == 'Hydrogen Embrittlement Relief' %}
+                        <!-- Hydrogen Embrittlement Relief Details -->
+                            <strong>Hydrogen Embrittlement Relief Details:</strong>
+                            <p>Date and time of start of baking.<span class="blank-line"></span></p>
+                            <p>Date and time of start of soak.<span class="blank-line"></span></p>
+                            <p>Date and time of completion of baking.<span class="blank-line"></span></p>
+                            <p>Furnace control instrument set temperature.<span class="blank-line"></span></p>
+                            <p>Furnace identification.<span class="blank-line"></span></p>
+                            <p>Graph Number:<span class="blank-line"></span></p>
+                        {% endif %}            
                         {% if step.method.method_type == 'processing_tank' %}
                             <!-- Processing Tank Details -->
                             <strong>Processing Tank Details:</strong>
@@ -121,8 +166,7 @@
                                 <li><strong>Time Range:</strong> {{ step.method.immersion_time_min }} min - {{ step.method.immersion_time_max }} min</li>
                             </ul>
                         {% endif %}
-                        <!-- Description -->
-                        <p>{{ step.method.description }}</p>
+                        <p>{{ step.method.description|safe }}</p>
                         <!-- Rectified Information -->
                         {% if step.method.is_rectified %}
                             {% if job_data.is_chrome_or_cadmium %}
@@ -147,8 +191,6 @@
                                     <li><strong>{{ parameter.title }}:</strong> {{ parameter.description }}</li>
                                 {% endfor %}
                             </ul>
-                        {% else %}
-                            <p>No parameters available for this method.</p>
                         {% endif %}
                     </td>
                     <td>{{ step.operator }}</td>

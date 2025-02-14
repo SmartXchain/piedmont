@@ -8,8 +8,33 @@ class Method(models.Model):
         ('manual_method', 'Manual Method'),
     ]
 
+    TITLE_CHOICES = [
+        ('Pre-Cleaning', 'Pre-Cleaning'),
+        ('Masking', 'Masking'),
+        ('Abrasive Blasting', 'Abrasive Blasting'),
+        ('Cleaning', 'Cleaning'),
+        ('Rinsing', 'Rinsing'),
+        ('De-Oxidize/Pickle', 'De-Oxidize/Pickle'),
+        ('Electrolytic Clean', 'Electrolytic Clean'),
+        ('Acid Desmut', 'Acid Desmut'),
+        ('Etching', 'Etching'),
+        ('Chemical Milling', 'Chemical Milling'),
+        ('Conversion Coating', 'Conversion Coating'),
+        ('Electroless Plating', 'Electroless Plating'),
+        ('Anodize', 'Anodize'),
+        ('Sealing/Dying', 'Sealing/Dying'),
+        ('Barrel Plating', 'Barrel Plating'),
+        ('Brush Plating', 'Brush Plating'),
+        ('Electroplating', 'Electroplating'),
+        ('Painting/Dry Film Coating', 'Painting/Dry Film Coating'),
+        ('Thermal Treatment', 'Thermal Treatment'),
+        ('Vacuum Cadmium & Aluminum IVD', 'Vacuum Cadmium & Aluminum IVD'),
+        ('Stress Relief', 'Stress Relief'),
+        ('Hydrogen Embrittlement Relief', 'Hydrogen Embrittlement Relief')
+    ]
+
     method_type = models.CharField(max_length=50, choices=METHOD_TYPE_CHOICES)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, choices=TITLE_CHOICES, blank=True)
     description = models.TextField(blank=True, null=True)
 
     # Processing Tank Specific Fields

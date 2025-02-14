@@ -105,7 +105,7 @@
             {% for step in process_steps %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ step.instructions }}</td>
+                    <td>{{ step.instructions|safe }}</td>
                     <td>{{ step.operator }}</td>
                     <td>{{ step.date }}</td>
                 </tr>
