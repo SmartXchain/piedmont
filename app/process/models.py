@@ -21,7 +21,7 @@ class Process(models.Model):
 class ProcessStep(models.Model):
     process = models.ForeignKey(Process, on_delete=models.CASCADE, related_name='steps')  # Link to Process
     method = models.ForeignKey(Method, on_delete=models.CASCADE, related_name='process_steps')  # Link to Method
-    step_number = models.PositiveIntegerField(editable=False)  # Step order in the process
+    step_number = models.PositiveIntegerField(editable=True)  # Step order in the process
 
     class Meta:
         ordering = ['step_number']  # Default order by step number
