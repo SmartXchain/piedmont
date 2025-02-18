@@ -233,9 +233,9 @@ def job_print_steps_view(request, job_id):
             job_data["instructions"] = [
                 f"Reverse Etch at {amps:.2f} amps for 60 - 90 seconds.",
                 f"Strike Plate at {amps * 2:.2f} amps for the 60 - 90 seconds.",
-                f"Plate at {amps:.2f} amps for the required mils, using a plating rate of 1 mil per hour.",
-                "_",
-                "_",
+                f"Plate at {amps:.2f} amps for the required mils, using a estimated plating rate of 1 mil per hour.",
+                "",
+                "",
                 "Date and time of start of the plating: _____________________________________________",
                 "",
                 "Date and time of completion of the plating: ________________________________________"
