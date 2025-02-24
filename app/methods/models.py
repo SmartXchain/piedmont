@@ -1,6 +1,31 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
+TITLE_CHOICES = [
+    ('Pre-Cleaning', 'Pre-Cleaning'),
+    ('Masking', 'Masking'),
+    ('Abrasive Blasting', 'Abrasive Blasting'),
+    ('Cleaning', 'Cleaning'),
+    ('Rinsing', 'Rinsing'),
+    ('De-Oxidize/Pickle', 'De-Oxidize/Pickle'),
+    ('Electrolytic Clean', 'Electrolytic Clean'),
+    ('Acid Desmut', 'Acid Desmut'),
+    ('Etching', 'Etching'),
+    ('Chemical Milling', 'Chemical Milling'),
+    ('Conversion Coating', 'Conversion Coating'),
+    ('Electroless Plating', 'Electroless Plating'),
+    ('Anodize', 'Anodize'),
+    ('Sealing/Dying', 'Sealing/Dying'),
+    ('Barrel Plating', 'Barrel Plating'),
+    ('Brush Plating', 'Brush Plating'),
+    ('Electroplating', 'Electroplating'),
+    ('Painting/Dry Film Coating', 'Painting/Dry Film Coating'),
+    ('Thermal Treatment', 'Thermal Treatment'),
+    ('Vacuum Cadmium & Aluminum IVD', 'Vacuum Cadmium & Aluminum IVD'),
+    ('Stress Relief', 'Stress Relief'),
+    ('Hydrogen Embrittlement Relief', 'Hydrogen Embrittlement Relief')
+]
+
 
 class Method(models.Model):
     METHOD_TYPE_CHOICES = [
@@ -8,34 +33,9 @@ class Method(models.Model):
         ('manual_method', 'Manual Method'),
     ]
 
-    TITLE_CHOICES = [
-        ('Pre-Cleaning', 'Pre-Cleaning'),
-        ('Masking', 'Masking'),
-        ('Abrasive Blasting', 'Abrasive Blasting'),
-        ('Cleaning', 'Cleaning'),
-        ('Rinsing', 'Rinsing'),
-        ('De-Oxidize/Pickle', 'De-Oxidize/Pickle'),
-        ('Electrolytic Clean', 'Electrolytic Clean'),
-        ('Acid Desmut', 'Acid Desmut'),
-        ('Etching', 'Etching'),
-        ('Chemical Milling', 'Chemical Milling'),
-        ('Conversion Coating', 'Conversion Coating'),
-        ('Electroless Plating', 'Electroless Plating'),
-        ('Anodize', 'Anodize'),
-        ('Sealing/Dying', 'Sealing/Dying'),
-        ('Barrel Plating', 'Barrel Plating'),
-        ('Brush Plating', 'Brush Plating'),
-        ('Electroplating', 'Electroplating'),
-        ('Painting/Dry Film Coating', 'Painting/Dry Film Coating'),
-        ('Thermal Treatment', 'Thermal Treatment'),
-        ('Vacuum Cadmium & Aluminum IVD', 'Vacuum Cadmium & Aluminum IVD'),
-        ('Stress Relief', 'Stress Relief'),
-        ('Hydrogen Embrittlement Relief', 'Hydrogen Embrittlement Relief')
-    ]
-
     method_type = models.CharField(max_length=50, choices=METHOD_TYPE_CHOICES)
     title = models.CharField(max_length=255, choices=TITLE_CHOICES, blank=True)
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(null=True, blank=True)
 
     # Processing Tank Specific Fields
     tank_name = models.CharField(max_length=255, blank=True, null=True)
@@ -49,9 +49,12 @@ class Method(models.Model):
     def clean(self):
         if self.method_type == 'processing_tank':
             required_fields = ['tank_name', 'temp_min', 'temp_max', 'immersion_time_min', 'immersion_time_max', 'chemical']
+            errors = {}
             for field in required_fields:
-                if not getattr(self, field):
-                    raise ValidationError({field: f"{field.replace('_', ' ').capitalize()} is required for Processing Tank."})
+                if getattr(self, field) is None:  # Checking for None explicitly
+                    errors[field] = f"{field.replace('_', ' ').capitalize()} is required for Processing Tank."
+            if errors:
+                raise ValidationError(errors)
 
     def __str__(self):
         return self.title

@@ -51,7 +51,7 @@ class PeriodicTest(models.Model):
     standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='periodic_tests')
     name = models.CharField(max_length=255)
     time_period = models.CharField(max_length=50, choices=TIME_PERIOD_CHOICES)
-    specification = models.TextField()  # Section or specification the test complies with
+    specification = models.TextField(help_text="Section and Description the test complies with")  # Section or specification the test complies with
     number_of_specimens = models.PositiveIntegerField()
     material = models.CharField(max_length=255)
     dimensions = models.CharField(max_length=255)  # Dimensions of the specimen
