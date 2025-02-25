@@ -21,4 +21,3 @@ class MethodAdmin(admin.ModelAdmin):
         if obj and obj.method_type == 'processing_tank':
             fields += ['tank_name', 'temp_min', 'temp_max', 'immersion_time_min', 'immersion_time_max', 'chemical', 'is_rectified']
         return fields
-    
