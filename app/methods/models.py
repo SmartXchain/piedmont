@@ -4,10 +4,12 @@ from django.core.exceptions import ValidationError
 TITLE_CHOICES = [
     ('Pre-Cleaning', 'Pre-Cleaning'),
     ('Masking', 'Masking'),
+    ('Racking', 'Racking'),
     ('Abrasive Blasting', 'Abrasive Blasting'),
     ('Cleaning', 'Cleaning'),
     ('Rinsing', 'Rinsing'),
     ('De-Oxidize/Pickle', 'De-Oxidize/Pickle'),
+    ('Pre-Pen Etching', 'Pre-Pen Etching'),
     ('Electrolytic Clean', 'Electrolytic Clean'),
     ('Acid Desmut', 'Acid Desmut'),
     ('Etching', 'Etching'),
