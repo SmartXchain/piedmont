@@ -1,68 +1,95 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import MaskingProfile
-from .forms import MaskingProfileForm
-from django.db.models import F
+from django.urls import reverse
+from .models import MaskingProcess, MaskingStep
+from .forms import MaskingProcessForm, MaskingStepForm
 
-
-def masking_profile_list(request):
-    profiles = (
-        MaskingProfile.objects
-        .select_related('part_detail__part')  # Ensure related Part and PartDetail data is fetched
-        .values(
-            part_number=F('part_detail__part__part_number'),
-            part_revision=F('part_detail__part__part_revision'),
-            part_description=F('part_detail__part__part_description'),
+def masking_list(request):
+    """Displays a list of masking processes with search functionality."""
+    search_query = request.GET.get("search", "").strip()
+    masking_processes = MaskingProcess.objects.all()
+    
+    if search_query:
+        masking_processes = masking_processes.filter(
+            models.Q(part_number__icontains=search_query) |
+            models.Q(part_number_masking_description__icontains=search_query)
         )
-        .distinct()
-    )
-    return render(request, 'masking/masking_profile_list.html', {'profiles': profiles})
+    return render(request, "masking/masking_list.html", {"masking_processes": masking_processes})
 
+def masking_process_detail(request, process_id):
+    """Displays the details of a MaskingProcess including its steps."""
+    process = get_object_or_404(MaskingProcess, id=process_id)
+    steps = process.masking_steps.all()
+    return render(request, "masking_process_detail.html", {"process": process, "steps": steps})
 
-def masking_profile_detail(request, part_number, part_revision):
-    profile = get_object_or_404(
-        MaskingProfile,
-        part_detail__part__part_number=part_number,
-        part_detail__part__part_revision=part_revision
-    )
-    return render(request, 'masking/masking_profile_detail.html', {'profile': profile})
-
-
-def masking_profile_edit(request, profile_id):
-    profile = get_object_or_404(MaskingProfile, id=profile_id)
-
+def masking_process_create(request):
+    """Handles creation of a new MaskingProcess."""
     if request.method == "POST":
-        form = MaskingProfileForm(request.POST, instance=profile)
+        form = MaskingProcessForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('masking_profile_list')
+            return redirect("masking_process_list")
     else:
-        form = MaskingProfileForm(instance=profile)
+        form = MaskingProcessForm()
+    return render(request, "masking_process_form.html", {"form": form})
 
-    return render(request, 'masking/masking_profile_form.html', {'form': form, 'profile': profile})
-
-
-def masking_profile_create(request):
+def masking_process_edit(request, process_id):
+    """Handles editing of a MaskingProcess."""
+    process = get_object_or_404(MaskingProcess, id=process_id)
     if request.method == "POST":
-        form = MaskingProfileForm(request.POST)
+        form = MaskingProcessForm(request.POST, instance=process)
         if form.is_valid():
             form.save()
-            return redirect('masking_profile_list')
+            return redirect("masking_process_list")
     else:
-        form = MaskingProfileForm()
-    return render(request, 'masking/masking_profile_form.html', {'form': form})
+        form = MaskingProcessForm(instance=process)
+    return render(request, "masking_process_form.html", {"form": form})
 
-
-def masking_detail_add(request, profile_id):
-    profile = get_object_or_404(MaskingProfile, id=profile_id)
-
+def masking_process_delete(request, process_id):
+    """Handles deletion of a MaskingProcess."""
+    process = get_object_or_404(MaskingProcess, id=process_id)
     if request.method == "POST":
-        form = MaskingProfileForm(request.POST)  # Replace with actual form for masking detail
-        if form.is_valid():
-            detail = form.save(commit=False)
-            detail.profile = profile
-            detail.save()
-            return redirect('masking_profile_detail', part_number=profile.part.part_number, part_revision=profile.part.part_revision)
-    else:
-        form = MaskingProfileForm()  # Replace with actual form for masking detail
+        process.delete()
+        return redirect("masking_process_list")
+    return render(request, "masking_process_confirm_delete.html", {"process": process})
 
-    return render(request, 'masking/masking_detail_form.html', {'form': form, 'profile': profile})
+
+def masking_step_list(request, process_id):
+    """Displays a list of masking steps for a specific masking process."""
+    process = get_object_or_404(MaskingProcess, id=process_id)
+    steps = process.masking_steps.all()
+    return render(request, "masking_step_list.html", {"process": process, "steps": steps})
+
+def masking_step_create(request, process_id):
+    """Handles creation of a new masking step."""
+    process = get_object_or_404(MaskingProcess, id=process_id)
+    if request.method == "POST":
+        form = MaskingStepForm(request.POST, request.FILES)
+        if form.is_valid():
+            step = form.save(commit=False)
+            step.masking_process = process
+            step.save()
+            return redirect("masking_step_list", process_id=process.id)
+    else:
+        form = MaskingStepForm()
+    return render(request, "masking_step_form.html", {"form": form, "process": process})
+
+def masking_step_edit(request, step_id):
+    """Handles editing of a masking step."""
+    step = get_object_or_404(MaskingStep, id=step_id)
+    if request.method == "POST":
+        form = MaskingStepForm(request.POST, request.FILES, instance=step)
+        if form.is_valid():
+            form.save()
+            return redirect("masking_step_list", process_id=step.masking_process.id)
+    else:
+        form = MaskingStepForm(instance=step)
+    return render(request, "masking_step_form.html", {"form": form, "process": step.masking_process})
+
+def masking_step_delete(request, step_id):
+    """Handles deletion of a masking step."""
+    step = get_object_or_404(MaskingStep, id=step_id)
+    process_id = step.masking_process.id
+    if request.method == "POST":
+        step.delete()
+        return redirect("masking_step_list", process_id=process_id)
+    return render(request, "masking_step_confirm_delete.html", {"step": step})

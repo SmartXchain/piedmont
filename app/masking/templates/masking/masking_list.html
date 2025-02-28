@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Masking Processes{% endblock %}
+
+{% block content %}
+    <h2>Masking Processes</h2>
+    <form method="GET">
+        <input type="text" name="search" placeholder="Search by Part Number or Description" value="{{ request.GET.search }}">
+        <button type="submit">Search</button>
+    </form>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Part Number</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for process in masking_processes %}
+                <tr>
+                    <td>{{ process.part_number }}</td>
+                    <td>{{ process.part_number_masking_description }}</td>
+                    <td>
+                        <a href="{% url 'masking_process_detail' process.id %}">View Steps</a>
+                        <a href="{% url 'masking_process_edit' process.id %}">Edit</a>
+                        <a href="{% url 'masking_process_delete' process.id %}" onclick="return confirm('Are you sure?')">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'masking_process_create' %}">Add New Masking Process</a>
+{% endblock %}

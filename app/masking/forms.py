@@ -1,18 +1,14 @@
 from django import forms
-from masking.models import MaskingProfile
-from part.models import PartDetails
+from .models import MaskingProcess, MaskingStep
 
-
-class MaskingProfileForm(forms.ModelForm):
-    part_detail = forms.ModelChoiceField(
-        queryset=PartDetails.objects.select_related('classification', 'processing_standard'),
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        label="Select Part Details (Part Number, Revision, Classification)"
-    )
-
+class MaskingProcessForm(forms.ModelForm):
+    """Form for creating and editing MaskingProcess instances."""
     class Meta:
-        model = MaskingProfile
-        fields = ['part_detail', 'surface_repaired']
-        widgets = {
-            'surface_repaired': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-        }
+        model = MaskingProcess
+        fields = ["part_number", "part_number_masking_description"]
+
+class MaskingStepForm(forms.ModelForm):
+    """Form for creating and editing MaskingStep instances."""
+    class Meta:
+        model = MaskingStep
+        fields = ["masking_process", "masking_step_number", "masking_repair_title", "masking_description", "image"]

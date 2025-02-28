@@ -51,8 +51,8 @@
                   </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'method_list' %}active{% endif %}" 
-                   href="https://piedmontaviation.sharepoint.com/:x:/r/sites/PiedmontDashboards/Shared%20Documents/MPG%20Master/Plating%20Masking%20Tool.xlsx?d=w03ce7342d32e4267bf80b43e10d9d0be&csf=1&web=1&e=nBUI4b">
+                <a class="nav-link {% if request.resolver_match.url_name == 'masking_list' %}active{% endif %}" 
+                   href="{% url 'masking_list' %}">
                     <i class="bi bi-wrench-adjustable-circle-fill"></i> Masking
                 </a>
             </li>
