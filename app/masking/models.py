@@ -32,6 +32,3 @@ def masking_profile_list(request):
         .distinct()
     )
     return render(request, 'masking/masking_profile_list.html', {'profiles': profiles})
-
-
-
