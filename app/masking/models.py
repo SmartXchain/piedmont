@@ -1,7 +1,9 @@
 from django.db import models
-from part.models import PartDetails
+from part.models import PartDetails, Part
 from django.db.models import F
 from django.shortcuts import render
+from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
 
 
 class MaskingProfile(models.Model):
@@ -30,3 +32,6 @@ def masking_profile_list(request):
         .distinct()
     )
     return render(request, 'masking/masking_profile_list.html', {'profiles': profiles})
+
+
+

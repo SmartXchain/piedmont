@@ -26,7 +26,9 @@ TITLE_CHOICES = [
     ('Thermal Treatment', 'Thermal Treatment'),
     ('Vacuum Cadmium & Aluminum IVD', 'Vacuum Cadmium & Aluminum IVD'),
     ('Stress Relief', 'Stress Relief'),
-    ('Hydrogen Embrittlement Relief', 'Hydrogen Embrittlement Relief')
+    ('Hydrogen Embrittlement Relief', 'Hydrogen Embrittlement Relief'),
+    ('In-Process Inpsection', 'In-Process Inspection'),
+    ('Water-Break Test', 'Water-Break Test')
 ]
 
 
