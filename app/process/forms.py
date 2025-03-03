@@ -1,5 +1,6 @@
 from django import forms
 from .models import Process, ProcessStep
+from methods.models import Method
 
 
 class ProcessForm(forms.ModelForm):
@@ -14,6 +15,7 @@ class ProcessForm(forms.ModelForm):
 
 
 class ProcessStepForm(forms.ModelForm):
+
     class Meta:
         model = ProcessStep
         fields = ['method']

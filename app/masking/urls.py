@@ -11,7 +11,7 @@ urlpatterns = [
     path('create/', masking_process_create, name='masking_process_create'),
     path('<int:process_id>/edit/', masking_process_edit, name='masking_process_edit'),
     path('<int:process_id>/delete/', masking_process_delete, name='masking_process_delete'),
-    
+
     # MaskingStep URLs
     path('<int:process_id>/steps/', masking_step_list, name='masking_step_list'),
     path('<int:process_id>/steps/create/', masking_step_create, name='masking_step_create'),

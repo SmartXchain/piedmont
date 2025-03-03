@@ -43,6 +43,9 @@ class PartDetails(models.Model):
             ('anodize', 'Anodize'),
             ('paint', 'Paint'),
             ('passivation', 'Passivation'),
+            ('cleaning', 'cleaning'),
+            ('chemical conversion', 'chemical conversion'),
+            ('descale', 'descale')
         ]
     )
     processing_standard = models.ForeignKey(

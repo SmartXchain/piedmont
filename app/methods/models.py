@@ -28,7 +28,10 @@ TITLE_CHOICES = [
     ('Stress Relief', 'Stress Relief'),
     ('Hydrogen Embrittlement Relief', 'Hydrogen Embrittlement Relief'),
     ('In-Process Inpsection', 'In-Process Inspection'),
-    ('Water-Break Test', 'Water-Break Test')
+    ('Water-Break Test', 'Water-Break Test'),
+    ('Solvent Clean', 'Solvent Clean'),
+    ('Scrub Surface', 'Scrub Surface'),
+    ('Oven Dry', 'Oven Dry')
 ]
 
 
@@ -62,7 +65,10 @@ class Method(models.Model):
                 raise ValidationError(errors)
 
     def __str__(self):
-        return self.title
+        """ Returns a truncated Title and Description (50 chars max) """
+        title_trimmed = (self.title[:47] + "...") if len(self.title) > 50 else self.title
+        description_trimmed = (self.description[:47] + "...") if len(self.description) > 50 else self.description
+        return f"Step: {title_trimmed} -- Desc: {description_trimmed}"
 
 
 class ParameterToBeRecorded(models.Model):

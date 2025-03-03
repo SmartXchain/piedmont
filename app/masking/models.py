@@ -5,7 +5,7 @@ from django.db.models import F
 
 class MaskingProcess(models.Model):
     """Represents a masking process for a specific part."""
-    
+
     part_number = models.CharField(max_length=255, unique=True)
     part_number_masking_description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -16,10 +16,10 @@ class MaskingProcess(models.Model):
 
 class MaskingStep(models.Model):
     """Represents individual steps in a masking process."""
-    
+
     masking_process = models.ForeignKey(
-        MaskingProcess, 
-        on_delete=models.CASCADE, 
+        MaskingProcess,
+        on_delete=models.CASCADE,
         related_name="masking_steps",
     )
     masking_step_number = models.PositiveIntegerField()
