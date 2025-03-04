@@ -28,7 +28,7 @@ def masking_process_detail(request, process_id):
     process = get_object_or_404(MaskingProcess, id=process_id)
     steps = process.masking_steps.all()
     previous_versions = MaskingProcess.objects.filter(part_number=process.part_number).exclude(id=process_id).order_by("-version")
-    
+
     return render(request, "masking/masking_process_detail.html", {
         "process": process,
         "steps": steps,
@@ -114,10 +114,10 @@ def masking_process_pdf_view(request, process_id):
         HTML(string=html_content, base_url=request.build_absolute_uri()).write_pdf(temp_file.name)
         temp_file.seek(0)
         pdf_file = temp_file.read()
-    
+
     # Create response
     response = HttpResponse(pdf_file, content_type="application/pdf")
-    
+
     # Check if user wants to download or view
     if "download" in request.GET:
         response["Content-Disposition"] = f'attachment; filename="Masking_Process_{process.part_number}.pdf"'

@@ -4,7 +4,7 @@ from .models import MaskingProcess, MaskingStep
 
 class MaskingProcessForm(forms.ModelForm):
     """Form for creating and editing Masking Processes."""
-    
+
     class Meta:
         model = MaskingProcess
         fields = ["part_number", "masking_description"]
@@ -16,7 +16,7 @@ class MaskingProcessForm(forms.ModelForm):
 
 class MaskingStepForm(forms.ModelForm):
     """Form for creating and editing Masking Steps."""
-    
+
     class Meta:
         model = MaskingStep
         fields = ["title", "description", "image"]

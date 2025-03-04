@@ -3,9 +3,10 @@ from django.core.exceptions import PermissionDenied
 from django.utils.html import format_html
 from django.utils.timezone import now
 
+
 class MaskingProcess(models.Model):
     """Represents a masking process for a specific part with version control."""
-    
+
     part_number = models.CharField(max_length=255)
     masking_description = models.TextField(blank=True, null=True)
     version = models.PositiveIntegerField(default=1)  # Tracks process version
@@ -40,7 +41,7 @@ class MaskingProcess(models.Model):
 
 class MaskingStep(models.Model):
     """Represents individual steps in a masking process."""
-    
+
     masking_process = models.ForeignKey(
         MaskingProcess, on_delete=models.CASCADE, related_name="masking_steps"
     )
