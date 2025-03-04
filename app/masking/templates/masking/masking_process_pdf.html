@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Page Styling */
+        @page {
+            size: letter portrait;
+            margin: 0.5in;
+            @top-center { content: "Masking Procedure"; font-size: 14px; font-weight: bold; }
+            @bottom-left { content: "Generated on: {{ current_date }}"; font-size: 10px; }
+            @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 10px; }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            margin: 0;
+            width: 100%;
+        }
+        h1, h2 { color: #333; center;}
+        
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            table-layout: fixed;
+            max-width: 100%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+            font-size: 9x;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Prevent table from running off the page */
+        .table-container {
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* Column Widths */
+        th:nth-child(1), td:nth-child(1) { width: 8%; }  /* Step # */
+        th:nth-child(2), td:nth-child(2) { width: 20%; } /* Title */
+        th:nth-child(3), td:nth-child(3) { width: 50%; } /* Description */
+        th:nth-child(4), td:nth-child(4) { width: 22%; } /* Image */
+
+
+        /* Ensure Steps Stay on the Same Page */
+        tr { page-break-inside: avoid;}
+        td { vertical-align: top; font-size: 10px;}
+
+        /* Alternating Row Colors */
+        tbody tr:nth-child(odd) {background-color: #f9f9f9;}
+
+        /* Ensure Long Text Wraps Properly */
+        td, th { word-wrap: break-word; overflow-wrap: break-word;}
+
+        /* Ensure Image Stay with Their Descriptions */
+        .step-row { page-break-inside: avoid;}
+        .img-preview { width: 150px; height: auto; display: block; margin: 5px 0; }
+        .section-header { background-color: #007bff; color: white; padding: 5px; font-size: 14px; text-align: center; }
+
+        /* Align images properly */
+        .img-cell { text-align: center; vertical-align: middle;}
+
+    </style>
+</head>
+<body>
+
+    <!-- Company Logo -->
+    <div style="text-align: center;">
+        <img src="{{ company_logo }}" alt="Piedmont Aviation Special Processes" style="width: 150px;">
+    </div>
+
+    <!-- Masking Process Details -->
+    <h1>Masking Procedure</h1>
+    <div class="table-container">
+    <table>
+        <tr>
+            <th style="width: 20%;">Part Number</th>
+            <td style="width: 75%;">{{ process.part_number }}</td>
+        </tr>
+        <tr>
+            <th>Part Description</th>
+            <td>{{ process.masking_description }}</td>
+        </tr>
+        <tr>
+            <th>Created At</th>
+            <td>{{ process.created_at|date:"Y-m-d" }}</td>
+        </tr>
+    </table>
+    </div>
+
+    <!-- Masking Steps -->
+    <h2 class="section-header">Masking Steps</h2>
+    <div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 8%;">Step #</th>
+                <th style="width: 15%;">Title</th>
+                <th style="width: 45%">Description</th>
+                <th style="width: 22%;">Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for step in steps %}
+                <tr class="step-row">
+                    <td>{{ step.step_number }}</td>
+                    <td>{{ step.title }}</td>
+                    <td>{{ step.description }}</td>
+                    <td class="img-cell">
+                        {% if step.image_absolute_url %}
+                            <img src="{{ step.image_absolute_url }}" class="img-preview">
+                        {% else %}
+                            No Image
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No masking steps available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+
+</body>
+</html>

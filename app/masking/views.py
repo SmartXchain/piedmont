@@ -3,6 +3,11 @@ from django.urls import reverse_lazy
 from django.db.models import Q
 from .models import MaskingProcess, MaskingStep
 from .forms import MaskingProcessForm, MaskingStepForm
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+import tempfile
+from django.utils import timezone
 
 
 def masking_list(request):
@@ -22,7 +27,7 @@ def masking_process_detail(request, process_id):
     """Displays the details of a MaskingProcess, including its steps."""
     process = get_object_or_404(MaskingProcess, id=process_id)
     steps = process.masking_steps.all()
-    return render(request, "masking_process_detail.html", {"process": process, "steps": steps})
+    return render(request, "masking/masking_process_detail.html", {"process": process, "steps": steps})
 
 
 def masking_process_form(request, process_id=None):
@@ -33,29 +38,18 @@ def masking_process_form(request, process_id=None):
         form = MaskingProcessForm(request.POST, instance=process)
         if form.is_valid():
             form.save()
-            return redirect("masking_process_list")
+            return redirect("masking_list")
     else:
         form = MaskingProcessForm(instance=process)
 
-    return render(request, "masking_process_form.html", {"form": form})
-
-
-def masking_process_delete(request, process_id):
-    """Handles deletion of a MaskingProcess."""
-    process = get_object_or_404(MaskingProcess, id=process_id)
-
-    if request.method == "POST":
-        process.delete()
-        return redirect("masking_process_list")
-
-    return render(request, "masking_process_confirm_delete.html", {"process": process})
+    return render(request, "masking/masking_process_form.html", {"form": form})
 
 
 def masking_step_list(request, process_id):
     """Displays a list of masking steps for a specific masking process."""
     process = get_object_or_404(MaskingProcess, id=process_id)
     steps = process.masking_steps.select_related("masking_process").all()
-    return render(request, "masking_step_list.html", {"process": process, "steps": steps})
+    return render(request, "masking/masking_step_list.html", {"process": process, "steps": steps})
 
 
 def masking_step_form(request, process_id=None, step_id=None):
@@ -74,16 +68,54 @@ def masking_step_form(request, process_id=None, step_id=None):
     else:
         form = MaskingStepForm(instance=step)
 
-    return render(request, "masking_step_form.html", {"form": form, "process": process})
+    return render(request, "masking/masking_step_form.html", {"form": form, "process": process})
 
 
-def masking_step_delete(request, step_id):
-    """Handles deletion of a masking step."""
-    step = get_object_or_404(MaskingStep, id=step_id)
-    process_id = step.masking_process.id
+def masking_process_pdf_view(request, process_id):
+    """Generates a PDF of the Masking Process and its steps."""
+    process = get_object_or_404(MaskingProcess, id=process_id)
+    steps = MaskingStep.objects.filter(masking_process=process).order_by("step_number")
 
-    if request.method == "POST":
-        step.delete()
-        return redirect("masking_step_list", process_id=process_id)
+    # Debugging: Print process details
+    print(f"Process: {process.part_number}, Description: {process.masking_description}")
 
-    return render(request, "masking_step_confirm_delete.html", {"step": step})
+    # Debugging: Print step details
+    print(f"Total Steps: {steps.count()}")
+    for step in steps:
+        print(f"Step {step.step_number}: {step.title} - {step.description}")
+
+    # Ensure images have absolute URLs
+    for step in steps:
+        step.image_absolute_url = request.build_absolute_uri(step.image.url) if step.image else None
+
+    # Add Company Logo
+    company_logo = request.build_absolute_uri('/static/images/company_logo.png')
+
+    # Render the template
+    html_content = render_to_string(
+        "masking/masking_process_pdf.html",
+        {
+            "process": process,
+            "steps": steps,
+            "company_logo": company_logo,
+            "current_date": timezone.now().strftime("%Y-%m-%d"),
+        },
+        request=request
+    )
+
+    # Generate PDF
+    with tempfile.NamedTemporaryFile(delete=True) as temp_file:
+        HTML(string=html_content, base_url=request.build_absolute_uri()).write_pdf(temp_file.name)
+        temp_file.seek(0)
+        pdf_file = temp_file.read()
+    
+    # Create response
+    response = HttpResponse(pdf_file, content_type="application/pdf")
+    
+    # Check if user wants to download or view
+    if "download" in request.GET:
+        response["Content-Disposition"] = f'attachment; filename="Masking_Process_{process.part_number}.pdf"'
+    else:
+        response["Content-Disposition"] = f'inline; filename="Masking_Process_{process.part_number}.pdf"'
+
+    return response

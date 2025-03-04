@@ -3,65 +3,74 @@
 {% block title %}Masking Processes{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-4">
+    
     <!-- Breadcrumb Navigation -->
-    <nav aria-label="breadcrumb" class="mb-4">
+    <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Part List</li>
+            <li class="breadcrumb-item"><a href="{% url 'masking_list' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Masking Part List</li>
         </ol>
     </nav>
 
-        <!-- Header Section -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3">Masking Processes</h1>
-            <a href="{% url 'masking_process_create' %}" class="btn btn-success">
-                <i class="bi bi-plus-lg"></i> Add Masking Process
-            </a>
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Masking Processes</h1>
+        <a href="{% url 'masking_process_add' %}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Add Masking Process
+        </a>
+    </div>
+
+    <!-- Search Form -->
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input 
+                type="text" 
+                name="q" 
+                class="form-control" 
+                placeholder="Search by Part Number or Description" 
+                value="{{ request.GET.q }}" 
+                aria-label="Search by Part Number">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> Search
+            </button>
         </div>
-        <!-- Search Form -->
-        <form method="get" class="mb-4">
-            <div class="input-group">
-                <input 
-                    type="text" 
-                    name="q" 
-                    class="form-control" 
-                    placeholder="Search by Part Number" 
-                    value="{{ query }}" 
-                    aria-label="Search by Part Number">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-search"></i> Search
-                </button>
-            </div>
-        </form>
-    
-    <!-- Parts Table -->
+    </form>
+
+    <!-- Masking Processes Table -->
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
             <thead class="table-dark">
                 <tr>
                     <th>Part Number</th>
                     <th>Part Description</th>
+                    <th>Created</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-            {% for process in masking_processes %}
-                <tr>
-                    <td>{{ process.part_number }}</td>
-                    <td title="{{ process.part_number_masking_description }}">{{ process.part_number_masking_description|truncatechars:50 }}</td>
-                    <td>
-                        <a href="{% url 'masking_process_detail' process.id %}" class="btn btn-primary btn-sm" aria-label="View {{ process.part_number }}"><i class="bi bi-eye"></i> View</a>
-                        <a href="{% url 'masking_process_edit' process.id %}" class="btn btn-warning btn-sm" aria-label="Edit {{ process.part_number }}"><i class="bi bi-pencil-square"></i> Edit</a>
-                    </td>
-                </tr>
+                {% for process in masking_processes %}
+                    <tr>
+                        <td>{{ process.part_number }}</td>
+                        <td title="{{ process.masking_description }}">{{ process.masking_description|default:"No description" }}</td>
+                        <td>{{ process.created_at|date:"Y-m-d" }}</td>
+                        <td>
+                            <a href="{% url 'masking_process_detail' process.id %}" class="btn btn-info btn-sm" aria-label="View {{ process.part_number }}">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a href="{% url 'masking_process_edit' process.id %}" class="btn btn-warning btn-sm" aria-label="Edit {{ process.part_number }}">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                        </td>
+                    </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center text-muted">No parts found.</td>
+                        <td colspan="4" class="text-center text-muted">No masking processes found.</td>
                     </tr>
-            {% endfor %}
+                {% endfor %}
             </tbody>
         </table>
-        </div>
+    </div>
+
 </div>
 {% endblock %}
