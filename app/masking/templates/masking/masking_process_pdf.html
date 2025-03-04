@@ -54,8 +54,9 @@
         /* Column Widths */
         th:nth-child(1), td:nth-child(1) { width: 8%; }  /* Step # */
         th:nth-child(2), td:nth-child(2) { width: 20%; } /* Title */
-        th:nth-child(3), td:nth-child(3) { width: 50%; } /* Description */
-        th:nth-child(4), td:nth-child(4) { width: 22%; } /* Image */
+        th:nth-child(3), td:nth-child(3) { width: 35%; } /* Description */
+        th:nth-child(4), td:nth-child(4) { width: 20%; } /* Image */
+        th:nth-child(4), td:nth-child(4) { width: 10%; } /* Sign-Off */
 
 
         /* Ensure Steps Stay on the Same Page */
@@ -112,8 +113,9 @@
             <tr>
                 <th style="width: 8%;">Step #</th>
                 <th style="width: 15%;">Title</th>
-                <th style="width: 45%">Description</th>
-                <th style="width: 22%;">Image</th>
+                <th style="width: 35%">Description</th>
+                <th style="width: 20%;">Image</th>
+                <th style="width: 10%;">Operator/Date</th>
             </tr>
         </thead>
         <tbody>
@@ -129,6 +131,7 @@
                             No Image
                         {% endif %}
                     </td>
+                    <td></td>
                 </tr>
             {% empty %}
                 <tr>

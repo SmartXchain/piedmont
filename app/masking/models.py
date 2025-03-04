@@ -1,17 +1,41 @@
 from django.db import models
 from django.core.exceptions import PermissionDenied
 from django.utils.html import format_html
-
+from django.utils.timezone import now
 
 class MaskingProcess(models.Model):
-    """Represents a masking process for a specific part."""
+    """Represents a masking process for a specific part with version control."""
     
-    part_number = models.CharField(max_length=255, unique=True)
+    part_number = models.CharField(max_length=255)
     masking_description = models.TextField(blank=True, null=True)
+    version = models.PositiveIntegerField(default=1)  # Tracks process version
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)  # Indicates the latest version
+    previous_version = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name="next_versions")
+
+    class Meta:
+        unique_together = ('part_number', 'version')  # Ensures unique versions per part_number
+
+    def save(self, *args, **kwargs):
+        """Handles versioning when a Masking Process is updated."""
+        if self.pk:  # If the object already exists, create a new version instead of updating
+            self.is_active = False  # Mark current version as inactive
+            super().save(*args, **kwargs)
+
+            # Create a new version
+            new_version = MaskingProcess.objects.create(
+                part_number=self.part_number,
+                masking_description=self.masking_description,
+                version=self.version + 1,
+                previous_version=self,
+                is_active=True
+            )
+            return new_version
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.part_number
+        return f"{self.part_number} (v{self.version})"
 
 
 class MaskingStep(models.Model):

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.db.models import Q
+from django.db.models import Q, Max
 from .models import MaskingProcess, MaskingStep
 from .forms import MaskingProcessForm, MaskingStepForm
 from django.http import HttpResponse
@@ -13,7 +13,7 @@ from django.utils import timezone
 def masking_list(request):
     """Displays a list of masking processes with search functionality."""
     search_query = request.GET.get("search", "").strip()
-    masking_processes = MaskingProcess.objects.all()
+    masking_processes = MaskingProcess.objects.filter(is_active=True)
 
     if search_query:
         masking_processes = masking_processes.filter(
@@ -27,7 +27,13 @@ def masking_process_detail(request, process_id):
     """Displays the details of a MaskingProcess, including its steps."""
     process = get_object_or_404(MaskingProcess, id=process_id)
     steps = process.masking_steps.all()
-    return render(request, "masking/masking_process_detail.html", {"process": process, "steps": steps})
+    previous_versions = MaskingProcess.objects.filter(part_number=process.part_number).exclude(id=process_id).order_by("-version")
+    
+    return render(request, "masking/masking_process_detail.html", {
+        "process": process,
+        "steps": steps,
+        "previous_versions": previous_versions,
+    })
 
 
 def masking_process_form(request, process_id=None):
