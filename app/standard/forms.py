@@ -1,6 +1,7 @@
 from django import forms
 from .models import Standard, InspectionRequirement, PeriodicTest, Classification, StandardRevisionNotification
 
+
 class StandardForm(forms.ModelForm):
     """Form to create and edit Standards with revision tracking."""
 

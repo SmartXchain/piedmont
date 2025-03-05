@@ -21,7 +21,7 @@ def get_standard_by_id(standard_id):
 
 class Standard(models.Model):
     """Tracks standards with versioning and notifications when revised."""
-    
+
     name = models.CharField(max_length=255)
     description = models.TextField()
     revision = models.CharField(max_length=50)
@@ -29,11 +29,11 @@ class Standard(models.Model):
     upload_file = models.FileField(upload_to='standard/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     previous_version = models.ForeignKey(
         'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='next_versions'
     )
-    
+
     requires_process_review = models.BooleanField(default=False, help_text="Flagged when a new revision is issued.")
 
     class Meta:
@@ -47,7 +47,7 @@ class Standard(models.Model):
             if previous_instance.revision != self.revision:
                 # Create a new version instead of modifying the existing one
                 self.requires_process_review = True  # Notify Process App
-                
+
                 # Save current version as old version and create a new entry
                 old_version = Standard.objects.create(
                     name=previous_instance.name,
@@ -68,7 +68,7 @@ class Standard(models.Model):
 
 class StandardRevisionNotification(models.Model):
     """Tracks and alerts when a standard is updated."""
-    
+
     standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField(help_text="Details of the standard update.")
     notified_at = models.DateTimeField(auto_now_add=True)
@@ -76,7 +76,6 @@ class StandardRevisionNotification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.standard.name} (Rev {self.standard.revision})"
-
 
 
 class InspectionRequirement(models.Model):

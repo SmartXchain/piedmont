@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Standard, StandardRevisionNotification, PeriodicTest, InspectionRequirement, Classification
-from .forms import StandardForm, PeriodicTestForm, InspectionRequirementForm, ClassificationForm
+from .forms import StandardForm, StandardRevisionNotificationForm, PeriodicTestForm, InspectionRequirementForm, ClassificationForm
 from django.db import IntegrityError
 from django.utils.timezone import now
 from django.db.models import Max, OuterRef, Subquery
@@ -67,7 +67,7 @@ def standard_create_view(request):
             standard = form.save(commit=False)  # Create but don’t save yet
             standard.requires_process_review = True  # Force review before approval
             standard.save()  # Save the new standard
-            
+
             messages.success(request, "Standard created successfully. Requires process review before use.")
             return redirect("process_review")  # Redirect to the review page
 
@@ -77,16 +77,13 @@ def standard_create_view(request):
     return render(request, "standard/standard_form.html", {"form": form})
 
 
-from django.contrib import messages
-from django.db import IntegrityError
-
 def standard_edit_view(request, standard_id):
     """Handles revision updates while preserving previous versions and notifying process review."""
     standard = get_object_or_404(Standard, id=standard_id)
 
     if request.method == "POST":
         form = StandardForm(request.POST, request.FILES)
-        
+
         if form.is_valid():
             try:
                 # Check if revision has changed
@@ -110,14 +107,14 @@ def standard_edit_view(request, standard_id):
 
                     messages.success(request, "New revision created successfully.")
                     return redirect("standard_detail", standard_id=new_standard.id)
-                
+
                 else:
                     # If only other fields changed, update the existing standard
                     standard.description = form.cleaned_data["description"]
                     standard.author = form.cleaned_data["author"]
                     standard.upload_file = form.cleaned_data.get("upload_file")
                     standard.save()
-                    
+
                     messages.success(request, "Standard updated successfully.")
                     return redirect("standard_detail", standard_id=standard.id)
 
