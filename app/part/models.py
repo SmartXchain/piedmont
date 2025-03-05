@@ -37,15 +37,22 @@ class PartDetails(models.Model):
     job_identity = models.CharField(
         max_length=50,
         choices=[
-            ('chrome_plate', 'Chrome Plate'),
-            ('cadmium_plate', 'Cadmium Plate'),
-            ('etch', 'Etch'),
+            ('alkaline clean', 'Alkaline Clean'),
             ('anodize', 'Anodize'),
+            ('brush_plate', 'Brush Plate'),
+            ('cadmium_plate', 'Cadmium Plate'),
+            ('chrome_plate', 'Chrome Plate'),
+            ('cleaning', 'Cleaning'),
+            ('conversion_coating', 'Conversion Coating'),
+            ('Descale', 'Descale'),
+            ('etch', 'Etch'),
+            ('ni_plate', 'Nickel Plate'),
+            ('nital_temper_etch', 'Nital/Temper Etch'),
             ('paint', 'Paint'),
             ('passivation', 'Passivation'),
-            ('cleaning', 'cleaning'),
-            ('chemical conversion', 'chemical conversion'),
-            ('descale', 'descale')
+            ('pre_pen_etch', 'Pre-Penetrant Etching'),
+            ('solvent_clean', 'Solvent Clean'),
+            ('stripping', 'Stripping'),
         ]
     )
     processing_standard = models.ForeignKey(
@@ -117,11 +124,18 @@ class JobDetails(models.Model):
     job_identity = models.CharField(
         max_length=50,
         choices=[
-            ('chrome_plate', 'Chrome Plate'),
-            ('cadmium_plate', 'Cadmium Plate'),
-            ('etch', 'Etch'),
+            ('alkaline clean', 'Alkaline Clean'),
             ('anodize', 'Anodize'),
+            ('cadmium_plate', 'Cadmium Plate'),
+            ('chemical conversion', 'Chemical Conversion'),
+            ('chrome_plate', 'Chrome Plate'),
+            ('cleaning', 'Cleaning'),
+            ('Descale', 'Descale'),
+            ('etch', 'Etch'),
+            ('ni_plate', 'Nickel Plate'),
             ('paint', 'Paint'),
+            ('passivation', 'Passivation'),
+            ('solvent_clean', 'Solvent Clean')
         ]
     )
 

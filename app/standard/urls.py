@@ -15,4 +15,7 @@ urlpatterns = [
     path('<int:standard_id>/classifications/', views.classification_list_view, name='classification_list'),
     path('<int:standard_id>/classifications/add/', views.classification_create_view, name='classification_create'),
     path('classifications/<int:classification_id>/edit/', views.classification_edit_view, name='classification_edit'),
+
+    # Process Review View
+    path("process-review/", views.process_review_view, name="process_review"),
 ]

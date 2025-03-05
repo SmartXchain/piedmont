@@ -54,8 +54,11 @@
 
         <!-- Rework -->
         <div class="col-md-6">
-            <label for="id_rework" class="form-label">Rework</label>
-            {{ form.rework|add_class:"form-control" }}
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="id_rework" name="rework"
+                       {% if form.rework.value %}checked{% endif %}>
+                <label class="form-check-label" for="id_rework">Rework</label>
+            </div>
         </div>
 
         <!-- Buttons -->

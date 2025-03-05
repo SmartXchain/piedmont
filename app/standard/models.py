@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 def create_standard(name, description, revision, author, upload_file=None):
@@ -19,6 +20,8 @@ def get_standard_by_id(standard_id):
 
 
 class Standard(models.Model):
+    """Tracks standards with versioning and notifications when revised."""
+    
     name = models.CharField(max_length=255)
     description = models.TextField()
     revision = models.CharField(max_length=50)
@@ -26,9 +29,54 @@ class Standard(models.Model):
     upload_file = models.FileField(upload_to='standard/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    previous_version = models.ForeignKey(
+        'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='next_versions'
+    )
+    
+    requires_process_review = models.BooleanField(default=False, help_text="Flagged when a new revision is issued.")
+
+    class Meta:
+        unique_together = ('name', 'revision')  # Ensures unique revisions per standard
+
+    def save(self, *args, **kwargs):
+        """Handles revisioning and process notifications."""
+        if self.pk:  # If updating an existing standard
+            # Check if revision number has changed
+            previous_instance = Standard.objects.get(pk=self.pk)
+            if previous_instance.revision != self.revision:
+                # Create a new version instead of modifying the existing one
+                self.requires_process_review = True  # Notify Process App
+                
+                # Save current version as old version and create a new entry
+                old_version = Standard.objects.create(
+                    name=previous_instance.name,
+                    description=previous_instance.description,
+                    revision=previous_instance.revision,
+                    author=previous_instance.author,
+                    upload_file=previous_instance.upload_file,
+                    previous_version=previous_instance,
+                    requires_process_review=False  # Older versions do not require review
+                )
+                self.previous_version = old_version  # Link new version to the old one
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} (Rev {self.revision}) {'🔴 Requires Process Review' if self.requires_process_review else ''}"
+
+
+class StandardRevisionNotification(models.Model):
+    """Tracks and alerts when a standard is updated."""
+    
+    standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField(help_text="Details of the standard update.")
+    notified_at = models.DateTimeField(auto_now_add=True)
+    is_acknowledged = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.standard.name} (Rev {self.standard.revision})"
+
 
 
 class InspectionRequirement(models.Model):
