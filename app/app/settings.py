@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'process',
     'methods',
     'masking',
+    'kanban',
 ]
 
 MIDDLEWARE = [

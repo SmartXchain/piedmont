@@ -1,35 +1,81 @@
-# views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from django.utils.timezone import now
 from .models import Chemical
+from .forms import ChemicalForm
+from datetime import timedelta
+from django.db.models import F
 
 
-def index(request):
+def chemical_list(request):
+    """Display all chemicals with their status."""
+    chemicals = Chemical.objects.all().order_by("name")
+    return render(request, "kanban/chemical_list.html", {"chemicals": chemicals})
+
+
+def chemical_detail(request, chemical_id):
+    """Show details for a single chemical."""
+    chemical = get_object_or_404(Chemical, id=chemical_id)
+    return render(request, "kanban/chemical_detail.html", {"chemical": chemical})
+
+
+def chemical_create(request):
+    """Add a new chemical to inventory."""
+    if request.method == "POST":
+        form = ChemicalForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Chemical added successfully.")
+            return redirect("chemical_list")
+    else:
+        form = ChemicalForm()
+    
+    return render(request, "kanban/chemical_form.html", {"form": form})
+
+
+def chemical_edit(request, chemical_id):
+    """Edit an existing chemical in inventory."""
+    chemical = get_object_or_404(Chemical, id=chemical_id)
+
+    if request.method == "POST":
+        form = ChemicalForm(request.POST, request.FILES, instance=chemical)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Chemical updated successfully.")
+            return redirect("chemical_detail", chemical_id=chemical.id)
+    else:
+        form = ChemicalForm(instance=chemical)
+
+    return render(request, "kanban/chemical_form.html", {"form": form, "chemical": chemical})
+
+
+def chemical_expired_list(request):
+    """Show all expired chemicals."""
+    expired_chemicals = Chemical.objects.filter(expiry_date__lt=now().date())
+    return render(request, "kanban/chemical_expired_list.html", {"chemicals": expired_chemicals})
+
+
+def chemical_expiring_list(request):
+    """Show chemicals expiring soon (within 7 days)."""
+    expiring_soon = now().date() + timedelta(days=7)
+    chemicals = Chemical.objects.filter(expiry_date__lte=expiring_soon, expiry_date__gte=now().date())
+    return render(request, "kanban/chemical_expiring_list.html", {"chemicals": chemicals})
+
+def kanban_dashboard(request):
+    """Displays an overview of inventory status, expiring chemicals, and auto-reorder alerts."""
+    
+    # Fetch all chemicals
     chemicals = Chemical.objects.all()
-    available = [chem for chem in chemicals if chem.status == 'Available']
-    expiring_soon = [chem for chem in chemicals if chem.status == 'Expiring Soon']
-    expired = [chem for chem in chemicals if chem.status == 'Expired']
+    
+    # Filter chemicals based on status
+    expired_chemicals = chemicals.filter(expiry_date__lt=now().date())
+    expiring_chemicals = chemicals.filter(expiry_date__range=[now().date(), now().date() + timedelta(days=7)])
+    low_stock_chemicals = chemicals.filter(quantity__lte=F("reorder_level"))  # ✅ Fix: Correctly using F()
 
-    context = {
-        'available': available,
-        'expiring_soon': expiring_soon,
-        'expired': expired,
-    }
-
-    return render(request, 'kanban/index.html', context)
-
-
-def add_chemical(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        quantity = int(request.POST.get('quantity'))
-        expiry_date = request.POST.get('expiry_date')
-
-        Chemical.objects.create(
-            name=name,
-            quantity=quantity,
-            expiry_date=expiry_date
-        )
-
-        return redirect('index')
-    return render(request, 'kanban/add_chemical.html')
+    return render(request, "kanban/kanban_dashboard.html", {
+        "total_chemicals": chemicals.count(),
+        "expired_chemicals": expired_chemicals,
+        "expiring_chemicals": expiring_chemicals,
+        "low_stock_chemicals": low_stock_chemicals,
+        "recent_chemicals": chemicals.order_by("-created_at")[:5],  # ✅ Show the 5 latest chemicals
+    })

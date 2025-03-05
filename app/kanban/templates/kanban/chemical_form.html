@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{{ chemical|yesno:"Edit Chemical,Add Chemical" }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="h3">{{ chemical|yesno:"Edit Chemical,Add Chemical" }}</h1>
+
+    <form method="post" class="row g-3 needs-validation" novalidate enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Name -->
+        <div class="col-md-6">
+            <label for="id_name" class="form-label">Name</label>
+            {{ form.name|add_class:"form-control" }}
+        </div>
+
+        <!-- Quantity -->
+        <div class="col-md-6">
+            <label for="id_quantity" class="form-label">Quantity</label>
+            {{ form.quantity|add_class:"form-control" }}
+        </div>
+
+        <!-- Lot Number -->
+        <div class="col-md-6">
+            <label for="id_lot_number" class="form-label">Lot Number</label>
+            {{ form.lot_number|add_class:"form-control" }}
+        </div>
+
+        <!-- Expiry Date -->
+        <div class="col-md-6">
+            <label for="id_expiry_date" class="form-label">Expiry Date</label>
+            {{ form.expiry_date|add_class:"form-control" }}
+        </div>
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Save
+            </button>
+            <a href="{% url 'chemical_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

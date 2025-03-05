@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Chemical Details{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'chemical_list' %}">Inventory</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ chemical.name }}</li>
+        </ol>
+    </nav>
+
+    <h1 class="h3">{{ chemical.name }}</h1>
+    
+    <table class="table table-bordered mt-3">
+        <tr><th>Quantity</th><td>{{ chemical.quantity }}</td></tr>
+        <tr><th>Lot Number</th><td>{{ chemical.lot_number }}</td></tr>
+        <tr><th>Expiry Date</th><td>{{ chemical.expiry_date }}</td></tr>
+        <tr>
+            <th>Status</th>
+            <td>
+                {% if chemical.status == "Expired" %}
+                    <span class="badge bg-danger">Expired</span>
+                {% elif chemical.status == "Expiring Soon" %}
+                    <span class="badge bg-warning text-dark">Expiring Soon</span>
+                {% else %}
+                    <span class="badge bg-success">Available</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <a href="{% url 'chemical_edit' chemical.id %}" class="btn btn-warning">
+        <i class="bi bi-pencil-square"></i> Edit
+    </a>
+    <a href="{% url 'chemical_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+</div>
+{% endblock %}

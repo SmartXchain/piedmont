@@ -5,6 +5,7 @@ from .forms import StandardForm, StandardRevisionNotificationForm, PeriodicTestF
 from django.db import IntegrityError
 from django.utils.timezone import now
 from django.db.models import Max, OuterRef, Subquery
+from collections import defaultdict, OrderedDict
 
 
 def standard_list_view(request):
@@ -14,25 +15,24 @@ def standard_list_view(request):
     latest_standards = Standard.objects.filter(
         revision=Subquery(
             Standard.objects.filter(name=OuterRef('name'))
-            .order_by('-updated_at')
-            .values('revision')[:1]  # Get the latest revision
+            .order_by('-updated_at')  # Get latest revision by update date
+            .values('revision')[:1]
         )
     ).exclude(requires_process_review=True).order_by('name')
 
-    # Check if any standards require review
+    # Fetch pending review standards separately
     pending_reviews = Standard.objects.filter(requires_process_review=True)
     requires_review = pending_reviews.exists()
 
-    # Group standards by author
-    authors = latest_standards.values('author').distinct()
-
-    standards_by_author = {
-        author['author']: latest_standards.filter(author=author['author'])
-        for author in authors
-    }
+    # Group standards by author (ensuring alphabetical sorting)
+    authors = latest_standards.values_list('author', flat=True).distinct().order_by('author')
+    
+    standards_by_author = OrderedDict()
+    for author in authors:
+        standards_by_author[author] = latest_standards.filter(author=author)
 
     return render(request, 'standard/standard_list.html', {
-        'standards_by_author': standards_by_author,
+        'standards_by_author': standards_by_author,  # Grouped and sorted
         'pending_reviews': pending_reviews,
         'requires_review': requires_review
     })

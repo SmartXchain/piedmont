@@ -29,7 +29,7 @@
               <li class="nav-item">
                   <a class="nav-link {% if request.resolver_match.url_name == 'standard_list' %}active{% endif %}" 
                      href="{% url 'standard_list' %}">
-                      <i class="bi bi-journal-text"></i> Spec
+                      <i class="bi bi-journal-text"></i> Standards
                   </a>
               </li>
               <li class="nav-item">
@@ -54,6 +54,12 @@
                 <a class="nav-link {% if request.resolver_match.url_name == 'masking_list' %}active{% endif %}" 
                    href="{% url 'masking_list' %}">
                     <i class="bi bi-wrench-adjustable-circle-fill"></i> Masking
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'kanban_dashboard' %}active{% endif %}" 
+                   href="{% url 'kanban_dashboard' %}">
+                    <i class="bi bi-wrench-adjustable-circle-fill"></i> Inventory
                 </a>
             </li>
           </ul>
