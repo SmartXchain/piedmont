@@ -25,14 +25,13 @@ def chemical_create(request):
 
     if request.method == "POST":
         print("DEBUG: Received POST request with data:", request.POST)  # ✅ Check if data is received
-
         form = ChemicalForm(request.POST, request.FILES)
 
         if form.is_valid():
             print("DEBUG: Form is valid, saving data...")  # ✅ Form is valid, saving chemical
             form.save()
             messages.success(request, "Chemical added successfully.")
-            return redirect("kanban_dashboard")
+            return redirect("chemical_list")
         else:
             print("DEBUG: Form errors:", form.errors)  # ❌ Form errors detected!
             messages.error(request, "Error: Please correct the form errors.")
