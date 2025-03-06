@@ -26,7 +26,7 @@ def standard_list_view(request):
 
     # Group standards by author (ensuring alphabetical sorting)
     authors = latest_standards.values_list('author', flat=True).distinct().order_by('author')
-    
+
     standards_by_author = OrderedDict()
     for author in authors:
         standards_by_author[author] = latest_standards.filter(author=author)

@@ -18,6 +18,7 @@ def chemical_detail(request, chemical_id):
     chemical = get_object_or_404(Chemical, id=chemical_id)
     return render(request, "kanban/chemical_detail.html", {"chemical": chemical})
 
+
 def chemical_create(request):
     """Add a new chemical to inventory."""
     print("DEBUG: Entered chemical_create view")  # ✅ Check if function is called
@@ -26,7 +27,7 @@ def chemical_create(request):
         print("DEBUG: Received POST request with data:", request.POST)  # ✅ Check if data is received
 
         form = ChemicalForm(request.POST, request.FILES)
-        
+
         if form.is_valid():
             print("DEBUG: Form is valid, saving data...")  # ✅ Form is valid, saving chemical
             form.save()
@@ -41,6 +42,7 @@ def chemical_create(request):
         print("DEBUG: Displaying empty form")  # ✅ Ensure form is displayed
 
     return render(request, "kanban/chemical_form.html", {"form": form})
+
 
 def chemical_edit(request, chemical_id):
     """Edit an existing chemical in inventory."""
@@ -70,12 +72,13 @@ def chemical_expiring_list(request):
     chemicals = Chemical.objects.filter(expiry_date__lte=expiring_soon, expiry_date__gte=now().date())
     return render(request, "kanban/chemical_expiring_list.html", {"chemicals": chemicals})
 
+
 def kanban_dashboard(request):
     """Displays an overview of inventory status, expiring chemicals, and auto-reorder alerts."""
-    
+
     # Fetch all chemicals
     chemicals = Chemical.objects.all()
-    
+
     # Filter chemicals based on status
     expired_chemicals = chemicals.filter(expiry_date__lt=now().date())
     expiring_chemicals = chemicals.filter(expiry_date__range=[now().date(), now().date() + timedelta(days=7)])

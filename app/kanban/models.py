@@ -2,9 +2,10 @@ from django.db import models
 from django.utils.timezone import now
 from datetime import timedelta
 
+
 class Chemical(models.Model):
     """Represents a chemical in the inventory system with Kanban tracking."""
-    
+
     name = models.CharField(max_length=255, unique=True, help_text="Enter the chemical name")
     quantity = models.PositiveIntegerField(default=0, help_text="Current stock quantity")
     lot_number = models.CharField(max_length=100, blank=True, null=True, help_text="Lot tracking number")
@@ -37,5 +38,3 @@ class Chemical(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.quantity} units ({self.status})"
-    
-    

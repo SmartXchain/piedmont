@@ -2,9 +2,10 @@ from django import forms
 from .models import Chemical
 from django.utils.timezone import now
 
+
 class ChemicalForm(forms.ModelForm):
     """Form for managing chemical inventory."""
-    
+
     class Meta:
         model = Chemical
         fields = ['name', 'quantity', 'lot_number', 'expiry_date', 'coc_scan', 'reorder_level']
