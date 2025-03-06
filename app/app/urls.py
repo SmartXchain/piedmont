@@ -27,6 +27,7 @@ urlpatterns = [
     path('methods/', include('methods.urls')),
     path('masking/', include('masking.urls')),
     path('inventory/', include('kanban.urls')),
+    path('pm/', include('pm.urls')),
     path('admin/', admin.site.urls),
 ]
 if bool(settings.DEBUG):

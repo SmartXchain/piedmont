@@ -18,20 +18,29 @@ def chemical_detail(request, chemical_id):
     chemical = get_object_or_404(Chemical, id=chemical_id)
     return render(request, "kanban/chemical_detail.html", {"chemical": chemical})
 
-
 def chemical_create(request):
     """Add a new chemical to inventory."""
+    print("DEBUG: Entered chemical_create view")  # ✅ Check if function is called
+
     if request.method == "POST":
+        print("DEBUG: Received POST request with data:", request.POST)  # ✅ Check if data is received
+
         form = ChemicalForm(request.POST, request.FILES)
+        
         if form.is_valid():
+            print("DEBUG: Form is valid, saving data...")  # ✅ Form is valid, saving chemical
             form.save()
             messages.success(request, "Chemical added successfully.")
-            return redirect("chemical_list")
+            return redirect("kanban_dashboard")
+        else:
+            print("DEBUG: Form errors:", form.errors)  # ❌ Form errors detected!
+            messages.error(request, "Error: Please correct the form errors.")
+
     else:
         form = ChemicalForm()
-    
-    return render(request, "kanban/chemical_form.html", {"form": form})
+        print("DEBUG: Displaying empty form")  # ✅ Ensure form is displayed
 
+    return render(request, "kanban/chemical_form.html", {"form": form})
 
 def chemical_edit(request, chemical_id):
     """Edit an existing chemical in inventory."""
