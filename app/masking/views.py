@@ -8,6 +8,8 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 import tempfile
 from django.utils import timezone
+from django.conf import settings
+import os
 
 
 def masking_list(request):
@@ -17,7 +19,7 @@ def masking_list(request):
 
     if search_query:
         masking_processes = masking_processes.filter(
-            Q(part_number__icontains=search_query) | Q(part_number_masking_description__icontains=search_query)
+            Q(part_number__icontains=search_query) | Q(masking_description__icontains=search_query)
         )
 
     return render(request, "masking/masking_list.html", {"masking_processes": masking_processes})
@@ -82,17 +84,22 @@ def masking_process_pdf_view(request, process_id):
     process = get_object_or_404(MaskingProcess, id=process_id)
     steps = MaskingStep.objects.filter(masking_process=process).order_by("step_number")
 
-    # Debugging: Print process details
-    print(f"Process: {process.part_number}, Description: {process.masking_description}")
-
-    # Debugging: Print step details
-    print(f"Total Steps: {steps.count()}")
+    # Ensure images have absolute URLs using MEDIA_URL & MEDIA_ROOT
+    step_data = []
     for step in steps:
-        print(f"Step {step.step_number}: {step.title} - {step.description}")
+        image_url = None
+        if step.image:
+            # Ensure correct MEDIA_URL path for production
+            image_url = os.path.join(settings.MEDIA_ROOT, step.image.name)
+            if not os.path.exists(image_url):  # Debugging
+                print(f"Image NOT FOUND: {image_url}")
 
-    # Ensure images have absolute URLs
-    for step in steps:
-        step.image_absolute_url = request.build_absolute_uri(step.image.url) if step.image else None
+        step_data.append({
+            "step_number": step.step_number,
+            "title": step.title,
+            "description": step.description,
+            "image_absolute_url": image_url
+        })
 
     # Add Company Logo
     company_logo = request.build_absolute_uri('/static/images/company_logo.png')
@@ -102,7 +109,7 @@ def masking_process_pdf_view(request, process_id):
         "masking/masking_process_pdf.html",
         {
             "process": process,
-            "steps": steps,
+            "steps": step_data,  # Pass cleaned-up step data
             "company_logo": company_logo,
             "current_date": timezone.now().strftime("%Y-%m-%d"),
         },

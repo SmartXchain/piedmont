@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'masking',
     'kanban',
     'pm',
+    'fixtures',
 ]
 
 MIDDLEWARE = [

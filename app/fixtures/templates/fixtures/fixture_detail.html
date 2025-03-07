@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}{{ fixture.name }} Details{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'fixture_list' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Fixture Dashboard</li>
+        </ol>
+    </nav>
+    <h1 class="mb-4">{{ fixture.name }} Details</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">{{ fixture.name }}</h5>
+            <p><strong>Max Amps:</strong> {{ fixture.max_amps }}</p>
+            <p><strong>Available Quantity:</strong> {{ fixture.quantity_available }}</p>
+            <p><strong>Fixtures Due for Repair:</strong> {{ fixture.fixtures_due_for_repair }}</p>
+            <p><strong>Next Inspection:</strong> {{ fixture.inspection_schedule }}</p>
+            <p><strong>Status:</strong> <span class="badge bg-{% if fixture.is_due_for_inspection %}warning{% elif fixture.is_needing_repair %}danger{% else %}success{% endif %}">{{ fixture.status }}</span></p>
+            
+            {% if fixture.drawing %}
+                <p><strong>Drawing:</strong> <a href="{{ fixture.drawing.url }}" class="btn btn-primary btn-sm">View Drawing</a></p>
+            {% endif %}
+
+            <a href="{% url 'fixture_edit' fixture.id %}" class="btn btn-warning">Edit Fixture</a>
+            <a href="{% url 'fixture_list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

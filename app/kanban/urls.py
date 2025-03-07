@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    chemical_list, chemical_detail, chemical_create, chemical_edit, 
+    chemical_list, chemical_detail, chemical_create, chemical_edit,
     chemical_expired_list, chemical_expiring_list, kanban_dashboard
 )
 

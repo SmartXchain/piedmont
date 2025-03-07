@@ -28,6 +28,7 @@ urlpatterns = [
     path('masking/', include('masking.urls')),
     path('inventory/', include('kanban.urls')),
     path('pm/', include('pm.urls')),
+    path('fixtures/', include('fixtures.urls')),
     path('admin/', admin.site.urls),
 ]
 if bool(settings.DEBUG):

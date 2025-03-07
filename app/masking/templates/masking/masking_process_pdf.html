@@ -120,24 +120,21 @@
         </thead>
         <tbody>
             {% for step in steps %}
-                <tr class="step-row">
-                    <td>{{ step.step_number }}</td>
-                    <td>{{ step.title }}</td>
-                    <td>{{ step.description }}</td>
-                    <td class="img-cell">
-                        {% if step.image_absolute_url %}
-                            <img src="{{ step.image_absolute_url }}" class="img-preview">
-                        {% else %}
-                            No Image
-                        {% endif %}
-                    </td>
-                    <td></td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center">No masking steps available.</td>
-                </tr>
-            {% endfor %}
+    <tr>
+        <td>{{ step.step_number }}</td>
+        <td>{{ step.title }}</td>
+        <td>{{ step.description }}</td>
+        <td class="img-cell">
+            {% if step.image_absolute_url %}
+                <img src="file://{{ step.image_absolute_url }}" class="img-preview">
+                <p>{{ step.image_absolute_url }}</p>
+            {% else %}
+                <p class="text-muted">No Image</p>
+            {% endif %}
+        </td>
+        <td></td>
+    </tr>
+{% endfor %}
         </tbody>
     </table>
     </div>
