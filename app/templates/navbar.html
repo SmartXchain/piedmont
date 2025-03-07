@@ -33,6 +33,12 @@
                   </a>
               </li>
               <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'tank_list' %}active{% endif %}" 
+                   href="{% url 'tank_list' %}">
+                    <i class="bi bi-journal-text"></i> Tanks
+                </a>
+            </li>              
+              <li class="nav-item">
                   <a class="nav-link {% if request.resolver_match.url_name == 'part_list' %}active{% endif %}" 
                      href="{% url 'part_list' %}">
                       <i class="bi bi-box-seam"></i> Parts

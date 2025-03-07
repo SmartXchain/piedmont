@@ -6,3 +6,6 @@ pytest==8.3.3
 pytest-django==4.9.0
 weasyprint==63.0
 django-widget-tweaks==1.5.0
+openpyxl==3.1.5
+pandas==2.2.3
+XlsxWriter==3.2.2

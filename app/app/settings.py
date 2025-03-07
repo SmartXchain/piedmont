@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'kanban',
     'pm',
     'fixtures',
+    'tanks',
 ]
 
 MIDDLEWARE = [
