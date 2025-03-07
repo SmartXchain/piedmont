@@ -1,6 +1,7 @@
 from django import forms
 from .models import Tank, ProductionLine
 
+
 class TankForm(forms.ModelForm):
     """Form for managing tank details."""
 

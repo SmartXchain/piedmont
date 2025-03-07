@@ -4,6 +4,7 @@ from collections import OrderedDict
 import pandas as pd
 from django.http import HttpResponse
 
+
 def tank_list(request):
     """Displays all tanks grouped by production line."""
     tanks = Tank.objects.all().order_by("production_line__name")

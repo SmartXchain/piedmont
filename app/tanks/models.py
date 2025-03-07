@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class ProductionLine(models.Model):
     """Represents a production line that tanks belong to."""
     name = models.CharField(
@@ -20,6 +21,7 @@ class ProductionLine(models.Model):
 
     def __str__(self):
         return self.get_name_display()  # Display the full name
+
 
 class Tank(models.Model):
     """Represents a tank used in production."""
