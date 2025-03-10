@@ -3,8 +3,8 @@ from django.utils.timezone import now
 from datetime import timedelta
 from django.http import HttpResponse
 import pandas as pd
-
 from .models import Product, ChemicalLot
+
 
 def kanban_dashboard(request):
     """Displays the Kanban Inventory Dashboard."""
@@ -24,7 +24,6 @@ def kanban_dashboard(request):
         'expired_products': expired_products,
         'needs_reorder_products': needs_reorder_products
     })
-
 
 
 def product_list(request):

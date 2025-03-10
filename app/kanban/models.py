@@ -5,7 +5,7 @@ from datetime import timedelta
 
 class Product(models.Model):
     """Master list of products with general details like stock thresholds and supplier information."""
-    
+
     name = models.CharField(max_length=255, unique=True, help_text="Product name")
     supplier_name = models.CharField(max_length=255, blank=True, null=True, help_text="Supplier Name")
     supplier_part_number = models.CharField(max_length=100, blank=True, null=True, help_text="Supplier Part Number")
