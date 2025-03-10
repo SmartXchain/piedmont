@@ -1,92 +1,87 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
+from django.shortcuts import render
 from django.utils.timezone import now
-from .models import Chemical
-from .forms import ChemicalForm
 from datetime import timedelta
-from django.db.models import F
+from django.http import HttpResponse
+import pandas as pd
 
-
-def chemical_list(request):
-    """Display all chemicals with their status."""
-    chemicals = Chemical.objects.all().order_by("name")
-    return render(request, "kanban/chemical_list.html", {"chemicals": chemicals})
-
-
-def chemical_detail(request, chemical_id):
-    """Show details for a single chemical."""
-    chemical = get_object_or_404(Chemical, id=chemical_id)
-    return render(request, "kanban/chemical_detail.html", {"chemical": chemical})
-
-
-def chemical_create(request):
-    """Add a new chemical to inventory."""
-    print("DEBUG: Entered chemical_create view")  # ✅ Check if function is called
-
-    if request.method == "POST":
-        print("DEBUG: Received POST request with data:", request.POST)  # ✅ Check if data is received
-        form = ChemicalForm(request.POST, request.FILES)
-
-        if form.is_valid():
-            print("DEBUG: Form is valid, saving data...")  # ✅ Form is valid, saving chemical
-            form.save()
-            messages.success(request, "Chemical added successfully.")
-            return redirect("chemical_list")
-        else:
-            print("DEBUG: Form errors:", form.errors)  # ❌ Form errors detected!
-            messages.error(request, "Error: Please correct the form errors.")
-
-    else:
-        form = ChemicalForm()
-        print("DEBUG: Displaying empty form")  # ✅ Ensure form is displayed
-
-    return render(request, "kanban/chemical_form.html", {"form": form})
-
-
-def chemical_edit(request, chemical_id):
-    """Edit an existing chemical in inventory."""
-    chemical = get_object_or_404(Chemical, id=chemical_id)
-
-    if request.method == "POST":
-        form = ChemicalForm(request.POST, request.FILES, instance=chemical)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Chemical updated successfully.")
-            return redirect("chemical_detail", chemical_id=chemical.id)
-    else:
-        form = ChemicalForm(instance=chemical)
-
-    return render(request, "kanban/chemical_form.html", {"form": form, "chemical": chemical})
-
-
-def chemical_expired_list(request):
-    """Show all expired chemicals."""
-    expired_chemicals = Chemical.objects.filter(expiry_date__lt=now().date())
-    return render(request, "kanban/chemical_expired_list.html", {"chemicals": expired_chemicals})
-
-
-def chemical_expiring_list(request):
-    """Show chemicals expiring soon (within 7 days)."""
-    expiring_soon = now().date() + timedelta(days=7)
-    chemicals = Chemical.objects.filter(expiry_date__lte=expiring_soon, expiry_date__gte=now().date())
-    return render(request, "kanban/chemical_expiring_list.html", {"chemicals": chemicals})
-
+from .models import Product, ChemicalLot
 
 def kanban_dashboard(request):
-    """Displays an overview of inventory status, expiring chemicals, and auto-reorder alerts."""
+    """Displays the Kanban Inventory Dashboard."""
 
-    # Fetch all chemicals
-    chemicals = Chemical.objects.all()
+    # Fetch all products
+    products = Product.objects.all()
 
-    # Filter chemicals based on status
-    expired_chemicals = chemicals.filter(expiry_date__lt=now().date())
-    expiring_chemicals = chemicals.filter(expiry_date__range=[now().date(), now().date() + timedelta(days=7)])
-    low_stock_chemicals = chemicals.filter(quantity__lte=F("reorder_level"))  # ✅ Fix: Correctly using F()
+    # Separate products into categories based on their status
+    available_products = [product for product in products if product.get_current_stock() > product.trigger_level]
+    expiring_soon_products = [product for product in products if any(lot.is_expiring_soon() for lot in product.chemical_lots.all())]
+    expired_products = [product for product in products if any(lot.is_expired() for lot in product.chemical_lots.all())]
+    needs_reorder_products = [product for product in products if product.get_current_stock() <= product.trigger_level]
 
-    return render(request, "kanban/kanban_dashboard.html", {
-        "total_chemicals": chemicals.count(),
-        "expired_chemicals": expired_chemicals,
-        "expiring_chemicals": expiring_chemicals,
-        "low_stock_chemicals": low_stock_chemicals,
-        "recent_chemicals": chemicals.order_by("-created_at")[:5],  # ✅ Show the 5 latest chemicals
+    return render(request, 'kanban/kanban_dashboard.html', {
+        'available_products': available_products,
+        'expiring_soon_products': expiring_soon_products,
+        'expired_products': expired_products,
+        'needs_reorder_products': needs_reorder_products
     })
+
+
+
+def product_list(request):
+    """Displays a list of all products and their stock status."""
+    products = Product.objects.all()
+    return render(request, "kanban/product_list.html", {"products": products})
+
+
+def product_detail(request, product_id):
+    """Displays details of a specific product, including lots."""
+    product = Product.objects.get(id=product_id)
+    chemical_lots = ChemicalLot.objects.filter(product=product).order_by('expiry_date')
+    return render(request, "kanban/product_detail.html", {"product": product, "chemical_lots": chemical_lots})
+
+
+def export_inventory_report(request):
+    """Exports the inventory data as an Excel file."""
+    today = now().date()
+
+    # Fetch product data
+    products = Product.objects.all().values(
+        'name', 'supplier_name', 'supplier_part_number', 'min_quantity', 'max_quantity', 'trigger_level'
+    )
+
+    # Fetch chemical lots and manually compute status
+    chemical_lots = []
+    for lot in ChemicalLot.objects.select_related("product").all():
+        if lot.expiry_date:
+            if lot.expiry_date < today:
+                lot_status = "Expired"
+            elif lot.expiry_date <= today + timedelta(days=7):
+                lot_status = "Expiring Soon"
+            else:
+                lot_status = "Available"
+        else:
+            lot_status = "N/A"
+
+        chemical_lots.append({
+            "Product Name": lot.product.name,
+            "Purchase Order": lot.purchase_order,
+            "Lot Number": lot.lot_number,
+            "Expiry Date": lot.expiry_date if lot.expiry_date else "N/A",
+            "Quantity": lot.quantity,
+            "Status": lot_status,
+        })
+
+    # Convert to DataFrames
+    product_df = pd.DataFrame(list(products))
+    chemical_lot_df = pd.DataFrame(chemical_lots)
+
+    # Create Excel file
+    with pd.ExcelWriter("inventory_report.xlsx") as writer:
+        product_df.to_excel(writer, sheet_name="Products", index=False)
+        chemical_lot_df.to_excel(writer, sheet_name="Chemical Lots", index=False)
+
+    # Return as downloadable response
+    with open("inventory_report.xlsx", "rb") as excel:
+        response = HttpResponse(excel.read(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = 'attachment; filename="inventory_report.xlsx"'
+        return response
