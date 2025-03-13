@@ -43,19 +43,6 @@
                      href="{% url 'part_list' %}">
                       <i class="bi bi-box-seam"></i> Parts
                   </a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link {% if request.resolver_match.url_name == 'process_list' %}active{% endif %}" 
-                     href="{% url 'process_list' %}">
-                      <i class="bi bi-diagram-3-fill"></i> Processes
-                  </a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link {% if request.resolver_match.url_name == 'method_list' %}active{% endif %}" 
-                     href="{% url 'method_list' %}">
-                      <i class="bi bi-wrench-adjustable-circle-fill"></i> Methods
-                  </a>
-              </li>
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'masking_list' %}active{% endif %}" 
                    href="{% url 'masking_list' %}">

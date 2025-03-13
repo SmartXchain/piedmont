@@ -24,7 +24,6 @@ urlpatterns = [
     path('standard/', include('standard.urls')),
     path('part/', include('part.urls')),
     path('process/', include('process.urls')),
-    path('methods/', include('methods.urls')),
     path('masking/', include('masking.urls')),
     path('inventory/', include('kanban.urls')),
     path('pm/', include('pm.urls')),
