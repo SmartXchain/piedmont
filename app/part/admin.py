@@ -1,17 +1,22 @@
 from django.contrib import admin
-from .models import Part, PartDetails, JobDetails
+from .models import Part, PartStandard, WorkOrder
 
 
 @admin.register(Part)
 class PartAdmin(admin.ModelAdmin):
     list_display = ('part_number', 'part_description', 'part_revision')
+    search_fields = ('part_number', 'part_description')
 
 
-@admin.register(PartDetails)
-class PartDetailsAdmin(admin.ModelAdmin):
-    list_display = ('part', 'job_identity', 'processing_standard', 'alloy_with_heat_treat_condition')
+@admin.register(PartStandard)
+class PartStandardAdmin(admin.ModelAdmin):
+    list_display = ('part', 'standard', 'classification')
+    list_filter = ('standard', 'classification')
+    search_fields = ('part__part_number', 'standard__name', 'classification__name')
 
 
-@admin.register(JobDetails)
-class JobDetailsAdmin(admin.ModelAdmin):
-    list_display = ('job_number', 'part_detail', 'part_quantity', 'date')
+@admin.register(WorkOrder)
+class WorkOrderAdmin(admin.ModelAdmin):
+    list_display = ('work_order_number', 'part', 'standard', 'classification', 'surface_repaired')
+    list_filter = ('standard', 'classification')
+    search_fields = ('work_order_number', 'part__part_number', 'standard__name', 'classification__name')

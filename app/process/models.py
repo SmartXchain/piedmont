@@ -3,6 +3,7 @@ from methods.models import Method
 from standard.models import Standard, Classification
 
 
+
 class Process(models.Model):
     standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='processes')
     classification = models.ForeignKey(Classification, on_delete=models.SET_NULL, blank=True, null=True)

@@ -1,119 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Job Process Steps</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* Page and layout styles */
-        @page {
-            size: letter landscape;
-            margin: 3rem;
-
-            @top-left {
-                content: "Piedmont Aviation";
-                font-size: 0.5rem;
+    <head>
+        <meta charset="UTF-8">
+        <title>Job Process Steps</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            /* Page and layout styles */
+            @page {
+                size: letter landscape;
+                margin: 3rem;
+    
+                @top-left {
+                    content: "Piedmont Aviation";
+                    font-size: 0.5rem;
+                }
+    
+                @top-center {
+                    content: "Job Process Steps";
+                    font-size: 1rem;
+                    font-weight: bold;
+                }
+    
+                @bottom-left {
+                    content: "Doc ID: CPTS\A Rev: 0 \A Date: 2-18-2025";
+                    font-size: 0.5rem;
+                    white-space: pre;
+                }
+    
+                @bottom-center {
+                    content: "Page " counter(page) " of " counter(pages);
+                    font-size: 0.5rem;
+                }
+    
+                @bottom-right {
+                    content: "Repair Station: QKPR504X\A {{ footer_text }}";
+                    font-size: 0.5rem;
+                    white-space: pre;
+                }
             }
-
-            @top-center {
-                content: "Job Process Steps";
-                font-size: 1rem;
-                font-weight: bold;
+    
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 0.6rem;
+                margin: 0;
             }
-
-            @bottom-left {
-                content: "Doc ID: CPTS\A Rev: 0 \A Date: 2-18-2025";
-                font-size: 0.5rem;
-                white-space: pre;
+    
+            /* Table styles */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 0.6rem;
             }
-
-            @bottom-center {
-                content: "Page " counter(page) " of " counter(pages);
-                font-size: 0.5rem;
+            table, th, td {
+                border: 0.0625rem solid black;
+                padding: 0.3125rem;
+                text-align: left;
             }
-
-            @bottom-right {
-                content: "Repair Station: QKPR504X\A {{ footer_text }}";
-                font-size: 0.5rem;
-                white-space: pre;
+            .part-info-table td {
+                width: auto;
             }
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 0.6rem;
-            margin: 0;
-        }
-
-        /* Table styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.6rem;
-        }
-        table, th, td {
-            border: 0.0625rem solid black;
-            padding: 0.3125rem;
-            text-align: left;
-        }
-        .part-info-table td {
-            width: auto;
-        }
-        .instructions-column {
-            width: 50%;
-        }
-        .blank-line {
-            display: inline-block;
-            width: 100%;
-            border-bottom: 1px solid black;
-            height: 20px;
-        }
-        .notes {
-            height: 50px;
-        }
-        .report-container {
-            padding: 20px;
-            border: 2px solid black;
-            border-radius: 8px;
-        }
-        .inner-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .inner-table th, .inner-table td {
-            padding: 10px;
-            border-bottom: 1px solid black;
-            text-align: left;
-        }
-    </style>
+            .instructions-column {
+                width: 50%;
+            }
+            .blank-line {
+                display: inline-block;
+                width: 100%;
+                border-bottom: 1px solid black;
+                height: 20px;
+            }
+            .notes {
+                height: 50px;
+            }
+            .report-container {
+                padding: 20px;
+                border: 2px solid black;
+                border-radius: 8px;
+            }
+            .inner-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+    
+            .inner-table th, .inner-table td {
+                padding: 10px;
+                border-bottom: 1px solid black;
+                text-align: left;
+            }
+        </style>
 </head>
 <body>
 
-    <!-- Job and Part Information -->
-    <h2>Job and Part Information</h2>
+    <!-- Work Order and Part Information -->
+    <h2>Work Order and Part Information</h2>
     <table class="part-info-table">
         <tr>
-            <td><strong>Job Number:</strong> {{ job.job_number }}</td>
-            <td><strong>Part Number:</strong> {{ job.part_detail.part.part_number }}</td>
-            <td><strong>Serial Number:</strong> {{ job.serial_or_lot_numbers }}</td>
-            <td><strong>Customer:</strong> {{ job.customer }}</td>
+            <td><strong>Work Order Number:</strong> {{ work_order.work_order_number }}</td>
+            <td><strong>Part Number:</strong> {{ work_order.part.part_number }}</td>
+            <td><strong>Serial Number:</strong> {{ work_order.serial_or_lot_numbers }}</td>
+            <td><strong>Customer:</strong> {{ work_order.customer }}</td>
         </tr>
         <tr>
-            <td><strong>Part Revision:</strong> {{ job.part_detail.part.part_revision}}</td>
-            <td><strong>Part Description:</strong> {{ job.part_detail.part.part_description }}</td>
-            <td><strong>Surface Repaired:</strong> {{ job.surface_repaired }}</td>
-            <td><strong>Purchase Order:</strong> {{ job.purchase_order_with_revision }}</td>
+            <td><strong>Part Revision:</strong> {{ work_order.part.part_revision}}</td>
+            <td><strong>Part Description:</strong> {{ work_order.part.part_description }}</td>
+            <td><strong>Surface Repaired:</strong> {{ work_order.surface_repaired }}</td>
+            <td><strong>Purchase Order:</strong> {{ work_order.purchase_order_with_revision }}</td>
         </tr>
         <tr>
-            <td><strong>Job Identity:</strong> {{ job.part_detail.job_identity }}</td>
-            <td><strong>Rework:</strong> {{ job.part_detail.rework }}</td>
-            <td><strong>Alloy:</strong> {{ job.part_detail.alloy_with_heat_treat_condition }}</td>
-            <td><strong>Quantity:</strong> {{ job.part_quantity }}</td>
+            <td><strong>Job Identity:</strong> {{ work_order.job_identity }}</td>
+            <td><strong>Rework:</strong> {{ work_order.rework }}</td>
+            <td><strong>Alloy:</strong> {{ work_order.alloy_with_heat_treat_condition }}</td>
+            <td><strong>Quantity:</strong> {{ work_order.part_quantity }}</td>
         </tr>
         <tr>
-            <td><strong>Processing Standard:</strong> {{ job.processing_standard.name|default:"N/A" }}</td>
-            <td><strong>Classification:</strong> {{ job.classification|default:"N/A" }}</td>
+            <td><strong>Processing Standard:</strong> {{ work_order.processing_standard.name|default:"N/A" }}</td>
+            <td><strong>Classification:</strong> {{ work_order.classification|default:"N/A" }}</td>
         </tr>
     </table>
 
