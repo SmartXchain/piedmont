@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Preventive Maintenance{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'pm_landing_page' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Preventive Maintenance</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3"><i class="bi bi-tools"></i> Preventive Maintenance</h1>
+    </div>
+
+    <p class="lead">Welcome to the Preventive Maintenance System. Select a module below to continue.</p>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Equipment Maintenance</h5>
+                    <p class="card-text">Team,<br>
+                        We will no longer be using the help desk for maintenance
+                        requests and will instead transition to the new system. The 
+                        access link is provided below and can be used on your phone, 
+                        tablet, or computer via a web browser.
+                    </p>
+                    <p>Your username follows this format: your first name, followed 
+                        by an underscore, then your last name with the first initial 
+                        in all capital letters (see example below). An SOP for creating
+                        a work request is attached
+                    </p>
+                    <p>If you need assistance or prefer a one-on-one walkthrough, feel 
+                        free to reach out to Ryan Dickinson. 
+                    </p>
+                    <p>Username: DONNIE_L<br>
+                        Password: Piedmont1!
+                    </p>
+                    <a href="http://www.piedmontaviation.mvpplant.com" class="btn btn-primary">Go to Preventive Maintenance Requests</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">SOP for Creating Request</h5>
+                    <p class="card-text">
+                        <div class="accordion" id="workRequestAccordion">
+        
+                            <!-- Step 1 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="stepOneHeader">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#stepOne" aria-expanded="true" aria-controls="stepOne">
+                                        Step 1: Logging In and Accessing Dashboard
+                                    </button>
+                                </h2>
+                                <div id="stepOne" class="accordion-collapse collapse show" aria-labelledby="stepOneHeader" data-bs-parent="#workRequestAccordion">
+                                    <div class="accordion-body">
+                                        <p>After logging in with your credentials, you will arrive at your dashboard as shown below. Click on the <strong>Work Icon</strong>.</p>
+                                        <img src="{% static 'pm/images/Pic_One.png' %}" class="img-fluid" alt="Dashboard Screenshot">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 2 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="stepTwoHeader">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stepTwo" aria-expanded="false" aria-controls="stepTwo">
+                                        Step 2: Navigating to Work Requests
+                                    </button>
+                                </h2>
+                                <div id="stepTwo" class="accordion-collapse collapse" aria-labelledby="stepTwoHeader" data-bs-parent="#workRequestAccordion">
+                                    <div class="accordion-body">
+                                        <p>After selecting the work tab, click on <strong>Work Request</strong>.</p>
+                                        <img src="{% static 'pm/images/Pic_Two.png' %}" class="img-fluid" alt="Work Request Screenshot">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 3 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="stepThreeHeader">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stepThree" aria-expanded="false" aria-controls="stepThree">
+                                        Step 3: Creating a New Work Request
+                                    </button>
+                                </h2>
+                                <div id="stepThree" class="accordion-collapse collapse" aria-labelledby="stepThreeHeader" data-bs-parent="#workRequestAccordion">
+                                    <div class="accordion-body">
+                                        <p>Click on the <strong>+ New</strong> icon found to the left of the search window.</p>
+                                        <img src="{% static 'pm/images/Pic_Three.png' %}" class="img-fluid" alt="New Work Request Screenshot">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 4 -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="stepFourHeader">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stepFour" aria-expanded="false" aria-controls="stepFour">
+                                        Step 4: Filling Out Work Request Form
+                                    </button>
+                                </h2>
+                                <div id="stepFour" class="accordion-collapse collapse" aria-labelledby="stepFourHeader" data-bs-parent="#workRequestAccordion">
+                                    <div class="accordion-body">
+                                        <p>Fill out the required fields highlighted in blue:</p>
+                                        <ul>
+                                            <li><strong>Asset ID:</strong> Identifies the specific piece of equipment needing service.</li>
+                                            <li><strong>Description:</strong> Describe the issue or request in detail, including the specific area or workstation.</li>
+                                            <li><strong>Priority:</strong> Choose when the request needs to be completed (Priority 1-6).</li>
+                                            <li><strong>Requested Date and Completion Date:</strong> Fill out the expected dates and click <strong>Save</strong>.</li>
+                                        </ul>
+                                        <img src="{% static 'pm/images/Pic_Four.png' %}" class="img-fluid" alt="Work Request Form Screenshot">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                    </p>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

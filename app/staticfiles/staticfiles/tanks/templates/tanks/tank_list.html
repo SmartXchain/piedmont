@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Tank List{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tank_list' %}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tank List</li>
+        </ol>
+    </nav>
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h3">Tank List</h1>
+            <a href="{% url 'export_tanks_to_excel' %}" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Export to Excel
+            </a>
+        </div>
+    </div>
+    <h1 class="mb-4"><i class="bi bi-database"></i> Tanks Overview</h1>
+
+    <div class="accordion" id="tankAccordion">
+        {% for production_line, tanks in tanks_by_production_line.items %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
+                        type="button" data-bs-toggle="collapse" 
+                        data-bs-target="#collapse{{ forloop.counter }}" 
+                        aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                        aria-controls="collapse{{ forloop.counter }}">
+                    <strong>Production Line: {{ production_line }}</strong>
+                </button>
+            </h2>
+            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                 aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#tankAccordion">
+                <div class="accordion-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Chemical Composition</th>
+                                    <th>Surface Area (sq in)</th>
+                                    <th>Max Amps</th>
+                                    <th>Vented</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for tank in tanks %}
+                                <tr>
+                                    <td>{{ tank.name }}</td>
+                                    <td>{{ tank.chemical_composition }}</td>
+                                    <td>{{ tank.surface_area }}</td>
+                                    <td>{{ tank.max_amps|default:"N/A" }}</td>
+                                    <td>{% if tank.is_vented %}Yes{% else %}No{% endif %}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No tanks available.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+            <p class="text-muted">No production lines available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

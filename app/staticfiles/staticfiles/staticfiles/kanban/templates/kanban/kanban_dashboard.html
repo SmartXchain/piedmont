@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Kanban Inventory Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page">Kanban Dashboard</li>
+        </ol>
+    </nav>
+
+    <h1 class="mb-4"><i class="bi bi-kanban"></i> Kanban Inventory Dashboard</h1>
+
+    <!-- Header and Download Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3"><i class="bi bi-kanban"></i> Kanban Inventory Dashboard</h1>
+        <a href="{% url 'export_inventory_report' %}" class="btn btn-success">
+            <i class="bi bi-download"></i> Download Excel
+        </a>
+    </div>
+
+    <!-- Kanban Columns -->
+    <div class="row">
+        <!-- Available Products -->
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">Available</div>
+                <div class="card-body">
+                    {% for product in available_products %}
+                        <p>{{ product.name }} ({{ product.get_status_display }})</p>
+                    {% empty %}
+                        <p class="text-muted">No available products.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Expiring Soon -->
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">Expiring Soon</div>
+                <div class="card-body">
+                    {% for product in expiring_soon_products %}
+                        <p>{{ product.name }} (Expiring: {{ product.expiry_date }})</p>
+                    {% empty %}
+                        <p class="text-muted">No expiring products.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Expired -->
+        <div class="col-md-3">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">Expired</div>
+                <div class="card-body">
+                    {% for product in expired_products %}
+                        <p>{{ product.name }} (Expired: {{ product.expiry_date }})</p>
+                    {% empty %}
+                        <p class="text-muted">No expired products.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Needs Reorder -->
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">Needs Reorder</div>
+                <div class="card-body">
+                    {% for product in needs_reorder_products %}
+                        <p>{{ product.name }} (Stock: {{ product.quantity }})</p>
+                    {% empty %}
+                        <p class="text-muted">No products need reorder.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

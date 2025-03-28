@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <!-- Rack Header -->
+  <h2 class="mb-3">Rack: {{ rack.rack_id }}</h2>
+  <div class="mb-4">
+    <p><strong>Description:</strong> {{ rack.description }}</p>
+    <p><strong>Location:</strong> {{ rack.location }}</p>
+    <p><strong>Coating Type:</strong> {{ rack.coating_type }}</p>
+    <p><strong>In Service Date:</strong> {{ rack.in_service_date }}</p>
+  </div>
+
+<!-- Nav Tabs -->
+<ul class="nav nav-tabs mb-4" id="rackTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" type="button" role="tab">Rack Photos</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="pm-tab" data-bs-toggle="tab" data-bs-target="#pm-history" type="button" role="tab">PM History</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="plan-tab" data-bs-toggle="tab" data-bs-target="#pm-plan" type="button" role="tab">PM Plan</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">PM Task Instructions</button>
+  </li>
+</ul>
+
+
+  <!-- Tab Content -->
+  <div class="tab-content" id="rackTabContent">
+
+    <!-- Rack Photos Tab -->
+    <div class="tab-pane fade show active" id="photos" role="tabpanel">
+      {% if rack.photos.all %}
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+        {% for photo in rack.photos.all %}
+        <div class="col">
+          <div class="card shadow-sm">
+            <a href="#" data-bs-toggle="modal" data-bs-target="#photoModal{{ forloop.counter }}">
+              <img src="{{ photo.image.url }}" class="card-img-top img-fluid" alt="Rack Photo">
+            </a>
+          </div>
+        </div>
+
+        <!-- Modal for Image -->
+        <div class="modal fade" id="photoModal{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+              <img src="{{ photo.image.url }}" class="img-fluid rounded" alt="Rack Photo">
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted">No photos uploaded for this rack.</p>
+      {% endif %}
+    </div>
+
+    <!-- PM History Tab -->
+    <div class="tab-pane fade" id="pm-history" role="tabpanel">
+      {% if pm_history %}
+      <div class="table-responsive mt-3">
+        <table class="table table-bordered table-striped">
+          <thead class="table-light">
+            <tr>
+              <th>Date</th>
+              <th>Task</th>
+              <th>Passed</th>
+              <th>Performed By</th>
+              <th>Notes</th>
+              <th>Photo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pm in pm_history %}
+            <tr>
+              <td>{{ pm.date_performed }}</td>
+              <td>{{ pm.pm_task.title }}</td>
+              <td>{{ pm.passed|yesno:"✅,❌" }}</td>
+              <td>{{ pm.performed_by }}</td>
+              <td>{{ pm.notes }}</td>
+              <td>
+                {% if pm.photo %}
+                <a href="#" data-bs-toggle="modal" data-bs-target="#pmPhotoModal{{ forloop.counter }}">
+                  <img src="{{ pm.photo.url }}" class="img-thumbnail" style="max-height: 80px;">
+                </a>
+
+                <!-- PM Photo Modal -->
+                <div class="modal fade" id="pmPhotoModal{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                      <img src="{{ pm.photo.url }}" class="img-fluid rounded" alt="PM Photo">
+                    </div>
+                  </div>
+                </div>
+                {% else %}
+                <span class="text-muted">No photo</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted mt-3">No PM records found.</p>
+      {% endif %}
+    </div>
+
+<!-- PM Plan Tab -->
+<div class="tab-pane fade" id="pm-plan" role="tabpanel">
+  {% if rack.pm_plan.all %}
+  <div class="table-responsive mt-3">
+    <table class="table table-bordered table-striped">
+      <thead class="table-light">
+        <tr>
+          <th>Task</th>
+          <th>Frequency</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for plan in rack.pm_plan.all %}
+        <tr>
+          <td>{{ plan.task.title }}</td>
+          <td>
+            {% if plan.due_every_days %}
+              Every {{ plan.due_every_days }} days
+            {% else %}
+              {{ plan.task.frequency_days }} days (default)
+            {% endif %}
+          </td>
+          <td>{{ plan.notes|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted mt-3">No planned PM tasks assigned to this rack.</p>
+  {% endif %}
+</div>
+
+
+
+
+<!-- PM Task Instructions Tab -->
+<div class="tab-pane fade" id="tasks" role="tabpanel">
+  {% with tasks=pm_tasks|default:None %}
+    {% if tasks %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 mt-3">
+      {% for task in tasks %}
+      <div class="col">
+        <div class="card h-100 shadow-sm">
+          {% if task.instruction_photo %}
+          <a href="#" data-bs-toggle="modal" data-bs-target="#taskModal{{ forloop.counter }}">
+            <img src="{{ task.instruction_photo.url }}" class="card-img-top img-fluid" alt="Instruction Photo">
+          </a>
+          {% else %}
+          <div class="card-header bg-light text-muted text-center py-4">
+            <em>No Photo</em>
+          </div>
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ task.title }}</h5>
+            <p class="card-text">{{ task.description|truncatechars:100 }}</p>
+          </div>
+        </div>
+      </div>
+
+      {% if task.instruction_photo %}
+      <!-- Modal for Task Photo -->
+      <div class="modal fade" id="taskModal{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <img src="{{ task.instruction_photo.url }}" class="img-fluid rounded" alt="Instruction Photo">
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted mt-3">No instructional tasks available.</p>
+    {% endif %}
+  {% endwith %}
+</div>
+
+  </div>
+
+  <!-- Back Button -->
+  <div class="mt-5">
+    <a href="{% url 'rack_list' %}" class="btn btn-secondary">← Back to Rack List</a>
+  </div>
+
+</div>
+{% endblock %}

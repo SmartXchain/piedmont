@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Product List{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'kanban_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Product List</li>
+        </ol>
+    </nav>
+
+    <h1 class="mb-4"><i class="bi bi-box"></i> Product List</h1>
+
+    <!-- Export Button -->
+    <div class="mb-3 text-end">
+        <a href="{% url 'export_inventory_report' %}" class="btn btn-success">
+            <i class="bi bi-download"></i> Download Excel Report
+        </a>
+    </div>
+
+    <!-- Product Table -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Supplier</th>
+                    <th>Supplier Part #</th>
+                    <th>Min Qty</th>
+                    <th>Max Qty</th>
+                    <th>Trigger Level</th>
+                    <th>Current Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.supplier_name }}</td>
+                        <td>{{ product.supplier_part_number }}</td>
+                        <td>{{ product.min_quantity }}</td>
+                        <td>{{ product.max_quantity }}</td>
+                        <td>{{ product.trigger_level }}</td>
+                        <td>{{ product.get_current_stock }}</td>
+                        <td>{{ product.status }}</td>
+                        <td>
+                            <a href="{% url 'product_detail' product.id %}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">No products available.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

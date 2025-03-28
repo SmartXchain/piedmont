@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ standard.name }} (Rev {{ standard.revision }}){% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">{{ standard.name }} (Rev {{ standard.revision }})</h1>
+        <div>
+            <a href="{% url 'standard_edit' standard.id %}" class="btn btn-warning me-2">
+                <i class="bi bi-pencil-square"></i> Edit
+            </a>
+            <a href="{% url 'standard_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <!-- Process Review Alert -->
+    {% if standard.requires_process_review %}
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            This standard has been updated. **Process App requires review.**
+            <a href="{% url 'process_review' %}" class="btn btn-sm btn-warning ms-3">
+                Mark as Reviewed
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- Standard Details -->
+    <div class="mb-4">
+        <h2 class="h5">Standard Details</h2>
+        <p><strong>Description:</strong> {{ standard.description }}</p>
+        <p><strong>Revision:</strong> {{ standard.revision }}</p>
+        <p><strong>Author:</strong> {{ standard.author }}</p>
+        <p><strong>Uploaded File:</strong>
+            {% if standard.upload_file %}
+                <a href="{{ standard.upload_file.url }}" class="btn btn-link" aria-label="Download file">
+                    <i class="bi bi-download"></i> Download File
+                </a>
+            {% else %}
+                <span class="text-muted">No file uploaded.</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Revision History -->
+    {% if previous_versions %}
+        <div class="mb-4">
+            <h2 class="h5">Revision History</h2>
+            <ul class="list-group">
+                {% for old_standard in previous_versions %}
+                    <li class="list-group-item">
+                        <strong>Revision {{ old_standard.revision }}</strong> - Updated on {{ old_standard.updated_at|date:"F j, Y" }}
+                        <a href="{% url 'standard_detail' old_standard.id %}" class="btn btn-sm btn-outline-secondary ms-2">
+                            View
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if standard.requires_process_review %}
+    <div class="alert alert-warning">
+        <strong>⚠️ This standard has been updated!</strong> The process needs review.
+        <a href="{% url 'process_review' %}" class="btn btn-warning btn-sm">
+            <i class="bi bi-exclamation-triangle"></i> Review Now
+        </a>
+    </div>
+    {% endif %}
+
+
+    <!-- Classifications Section -->
+    <div class="mb-4">
+        <h2 class="h5">Classifications</h2>
+        {% if classifications %}
+            <ul class="list-group">
+                {% for classification in classifications %}
+                    <li class="list-group-item">
+                        <p><strong>Method:</strong> {{ classification.method|default:"N/A" }} - {{ classification.method_description|default:"No description" }}</p>
+                        <p><strong>Class:</strong> {{ classification.class_name|default:"N/A" }} - {{ classification.class_description|default:"No description" }}</p>
+                        <p><strong>Type:</strong> {{ classification.type|default:"N/A" }} - {{ classification.type_description|default:"No description" }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">No classifications for this standard.</p>
+        {% endif %}
+        <a href="{% url 'classification_list' standard.id %}" class="btn btn-primary mt-3">
+            <i class="bi bi-gear"></i> Manage Classifications
+        </a>
+    </div>
+
+    <!-- Inspection Requirements Section -->
+    <div class="mb-4">
+        <h2 class="h5">Inspection Requirements</h2>
+        {% if inspections %}
+            <ul class="list-group">
+                {% for inspection in inspections %}
+                    <li class="list-group-item">
+                        <strong>{{ inspection.name }}</strong>: {{ inspection.description }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">No inspection requirements for this standard.</p>
+        {% endif %}
+        <a href="{% url 'inspection_list' standard.id %}" class="btn btn-primary mt-3">
+            <i class="bi bi-gear"></i> Manage Inspections
+        </a>
+    </div>
+
+    <!-- Periodic Tests Section -->
+    <div class="mb-4">
+        <h2 class="h5">Periodic Tests</h2>
+        {% if standard.periodic_tests.all %}
+            <ul class="list-group">
+                {% for test in standard.periodic_tests.all %}
+                    <li class="list-group-item">
+                        <strong>{{ test.name }}</strong> - {{ test.get_time_period_display }}<br>
+                        <span class="text-muted">Spec: {{ test.specification }} | Specimens: {{ test.number_of_specimens }} | Material: {{ test.material }} | Dimensions: {{ test.dimensions }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">No periodic tests for this standard.</p>
+        {% endif %}
+        <a href="{% url 'periodic_test_list' standard.id %}" class="btn btn-primary mt-3">
+            <i class="bi bi-gear"></i> Manage Periodic Tests
+        </a>
+    </div>
+
+</div>
+{% endblock %}

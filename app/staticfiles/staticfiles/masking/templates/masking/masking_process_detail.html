@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Masking Process Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'masking_list' %}">Masking Processes</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ process.part_number }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">{{ process.part_number }}  (v{{ process.version }})</h1>
+        <div>
+            <!-- View PDF Button -->
+            <a href="{% url 'masking_process_pdf' process.id %}" class="btn btn-primary" target="_blank">
+                <i class="bi bi-file-earmark-pdf"></i> View PDF
+            </a>
+            
+            <!-- Download PDF Button -->
+            <a href="{% url 'masking_process_pdf' process.id %}" class="btn btn-danger" download>
+                <i class="bi bi-download"></i> Download PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Process Description -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Process Description</h5>
+            <p class="card-text">{{ process.masking_description|default:"No description available." }}</p>
+            <p class="text-muted"><small>Created on: {{ process.created_at|date:"Y-m-d" }}</small></p>
+        </div>
+    </div>
+
+    <!-- Masking Steps Section -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4">Masking Steps</h2>
+        <a href="{% url 'masking_step_add' process.id %}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Add Step
+        </a>
+        <a href="{% url 'masking_process_pdf' process.id %}" class="btn btn-danger">
+        <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+    </a>
+    </div>
+
+
+    <!-- Steps Table -->
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Step #</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for step in steps %}
+                    <tr>
+                        <td>{{ step.step_number }}</td>
+                        <td>{{ step.title }}</td>
+                        <td title="{{ step.description }}">{{ step.description }}</td>
+                        <td>
+                            {% if step.image %}
+                                <img src="{{ step.image.url }}" alt="Step Image" class="img-thumbnail" width="300">
+                            {% else %}
+                                <span class="text-muted">No Image</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'masking_step_edit' process.id step.id %}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No masking steps added.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <h3>Previous Versions</h3>
+    <ul>
+        {% for version in previous_versions %}
+            <li>
+                <a href="{% url 'masking_process_detail' version.id %}">
+                    Version {{ version.version }} - Created on {{ version.created_at|date:"Y-m-d" }}
+                </a>
+            </li>
+        {% empty %}
+            <li>No previous versions available.</li>
+        {% endfor %}
+    </ul>
+
+</div>
+{% endblock %}
