@@ -59,6 +59,24 @@ def work_order_print_steps_view(request, work_order_id):
 
     # Fetch the latest footer settings (or use defaults)
     pdf_settings = PDFSettings.objects.first()
+    
+    amps = None
+    if work_order.surface_area and work_order.current_density:
+        if work_order.job_identity == 'chrome_plate':
+            amps = work_order.surface_area * work_order.current_density
+        elif work_order.job_identity == 'cadmium_plate':
+            amps = (work_order.surface_area / 144) * work_order.current_density
+
+    job_data = {
+        'surface_area': work_order.surface_area,
+        'current_density': work_order.current_density,
+        'amps': amps,
+        'is_chrome_or_cadmium': work_order.job_identity in ['chrome_plate', 'cadmium_plate'],
+        'instructions': ["Record amperage and current density during plating operation."]
+    }
+
+    inspections = work_order.standard.inspections.all() if hasattr(work_order.standard, 'inspections') else []
+    print(inspections)
 
     context = {
         'work_order': work_order,
@@ -69,6 +87,8 @@ def work_order_print_steps_view(request, work_order_id):
         'date': pdf_settings.date.strftime('%m-%d-%Y') if pdf_settings else current_date,
         'repair_station': pdf_settings.repair_station if pdf_settings else 'QKPR504X',
         'footer_text': pdf_settings.footer_text if pdf_settings else f"Printed on: {current_date}",
+        'job_data': job_data,
+        'inspections': inspections,
     }
 
     # Render the template with context
