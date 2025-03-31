@@ -4,6 +4,11 @@ from django import forms
 from methods.models import Method
 
 
+class MethodChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f"{obj.title} - {obj.description[:100]}{'...' if len(obj.description) > 100 else ''}"
+
+
 class ProcessStepInline(admin.TabularInline):
     model = ProcessStep
     extra = 1
@@ -12,16 +17,11 @@ class ProcessStepInline(admin.TabularInline):
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == "method":
-            kwargs["queryset"] = Method.objects.all()
-            return forms.ModelChoiceField(
-                queryset=kwargs["queryset"],
-                label="Method",
+            return MethodChoiceField(
+                queryset=Method.objects.all(),
                 widget=forms.Select,
-                to_field_name="id",
                 empty_label="Select a method",
                 help_text="Select a method to use for this step.",
-                # Format: "Title - First 100 chars of description"
-                label_from_instance=lambda obj: f"{obj.title} - {obj.description[:100]}{'...' if len(obj.description) > 100 else ''}"
             )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
