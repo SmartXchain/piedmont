@@ -59,7 +59,7 @@ def work_order_print_steps_view(request, work_order_id):
 
     # Fetch the latest footer settings (or use defaults)
     pdf_settings = PDFSettings.objects.first()
-    
+
     amps = None
     if work_order.surface_area and work_order.current_density:
         if work_order.job_identity == 'chrome_plate':
