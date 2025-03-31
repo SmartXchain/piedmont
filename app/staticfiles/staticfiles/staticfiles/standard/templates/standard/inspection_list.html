@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Inspections for {{ standard.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Manage Inspections for {{ standard.name }}</h1>
+        <a href="{% url 'inspection_create' standard.id %}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Add Inspection
+        </a>
+    </div>
+
+    {% if inspections %}
+        <div class="list-group">
+            {% for inspection in inspections %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ inspection.name }}</strong>: {{ inspection.description }}
+                    </div>
+                    <a href="{% url 'inspection_edit' inspection.id %}" 
+                       class="btn btn-sm btn-warning" 
+                       aria-label="Edit {{ inspection.name }}">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-3" role="alert">
+            No inspections added for this standard.
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'standard_detail' standard.id %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Standard
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -20,9 +20,30 @@ class StandardRevisionNotificationAdmin(admin.ModelAdmin):
 
 @admin.register(InspectionRequirement)
 class InspectionRequirementAdmin(admin.ModelAdmin):
-    list_display = ('standard', 'name', 'description')
-    search_fields = ('standard__name', 'name')
-    list_filter = ('standard',)
+    list_display = (
+        'standard',
+        'name',
+        'paragraph_section',
+        'sampling_plan',
+        'operator',
+        'date',
+    )
+    search_fields = ('standard__name', 'name', 'paragraph_section', 'operator')
+    list_filter = ('standard', 'date')
+    ordering = ('-date',)
+    fieldsets = (
+        (None, {
+            'fields': (
+                'standard',
+                'name',
+                'description',
+                'paragraph_section',
+                'sampling_plan',
+                'operator',
+                'date',
+            )
+        }),
+    )
 
 
 @admin.register(PeriodicTest)

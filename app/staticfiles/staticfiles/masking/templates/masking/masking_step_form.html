@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Masking Step{% else %}Add Masking Step{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'masking_list' %}">Masking Processes</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'masking_process_detail' process.id %}">{{ process.part_number }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {% if form.instance.pk %}Edit Masking Step{% else %}Add Masking Step{% endif %}
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3">{% if form.instance.pk %}Edit Masking Step{% else %}Add Masking Step{% endif %}</h1>
+        <a href="{% url 'masking_process_detail' process.id %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Process
+        </a>
+    </div>
+
+    <!-- Masking Step Form -->
+    <div class="card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Error Handling -->
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Please correct the following errors:</strong>
+                        <ul>
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Step Title -->
+                <div class="mb-3">
+                    {{ form.title.label_tag }}
+                    {{ form.title }}
+                </div>
+
+                <!-- Step Description -->
+                <div class="mb-3">
+                    {{ form.description.label_tag }}
+                    {{ form.description }}
+                </div>
+
+                <!-- Image Upload -->
+                <div class="mb-3">
+                    {{ form.image.label_tag }}
+                    {{ form.image }}
+                </div>
+
+                <!-- Display Image Preview if Editing -->
+                {% if form.instance.image %}
+                    <div class="mb-3">
+                        <strong>Current Image:</strong><br>
+                        <img src="{{ form.instance.image.url }}" class="img-thumbnail" width="200" alt="Step Image">
+                    </div>
+                {% endif %}
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> {% if form.instance.pk %}Save Changes{% else %}Add Step{% endif %}
+                    </button>
+                    <a href="{% url 'masking_process_detail' process.id %}" class="btn btn-secondary">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

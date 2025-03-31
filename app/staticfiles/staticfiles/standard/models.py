@@ -82,6 +82,10 @@ class InspectionRequirement(models.Model):
     standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='inspections')
     name = models.CharField(max_length=255)
     description = models.TextField()
+    paragraph_section = models.CharField(max_length=255, blank=True, null=True, help_text="Section in the standard where this inspection is referenced")
+    sampling_plan = models.CharField(max_length=255, blank=True, null=True, help_text="Sampling plan details")
+    operator = models.CharField(max_length=255, blank=True, null=True, help_text="Operator who performed the inspection")
+    date = models.DateField(blank=True, null=True, help_text="Date the inspection was performed")
 
     def __str__(self):
         return self.name

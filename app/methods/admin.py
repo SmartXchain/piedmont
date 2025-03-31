@@ -1,28 +1,36 @@
 from django.contrib import admin
 from .models import Method, ParameterToBeRecorded
+from django import forms
+from .models import Method, TITLE_CHOICES, Method
 
 
-@admin.register(Method)
-class MethodAdmin(admin.ModelAdmin):
-    list_display = ('title', 'method_type', 'description', 'tank_name', 'is_rectified')
-    list_filter = ('method_type', 'is_rectified')
-    search_fields = ('title', 'description', 'tank_name', 'chemical')
-
-    fieldsets = (
-        ('General Information', {
-            'fields': ('method_type', 'title', 'description')
-        }),
-        ('Processing Tank Details', {
-            'fields': ('tank_name', 'temp_min', 'temp_max', 'immersion_time_min', 'immersion_time_max', 'chemical', 'is_rectified'),
-            'classes': ('collapse',),  # Collapsible section
-        }),
+class MethodAdminForm(forms.ModelForm):
+    predefined_title = forms.ChoiceField(
+        choices=[('', '--- Select Predefined ---')] + TITLE_CHOICES,
+        required=False,
+        label='Predefined Title',
     )
 
-    def get_readonly_fields(self, request, obj=None):
-        """Make certain fields readonly for existing objects."""
-        if obj:
-            return ['method_type']
-        return []
+    class Meta:
+        model = Method
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        custom_title = cleaned_data.get('title')
+        predefined_title = cleaned_data.get('predefined_title')
+        if not custom_title and predefined_title:
+            cleaned_data['title'] = predefined_title
+        return cleaned_data
+
+
+class MethodAdmin(admin.ModelAdmin):
+    form = MethodAdminForm
+    list_display = ('title', 'method_type', 'tank_name', 'chemical')
+    search_fields = ['title', 'description'] 
+
+
+admin.site.register(Method, MethodAdmin)
 
 
 @admin.register(ParameterToBeRecorded)

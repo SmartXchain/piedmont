@@ -47,8 +47,11 @@ METHOD_TYPE_CHOICES = [
 
 class Method(models.Model):
     method_type = models.CharField(max_length=50, choices=METHOD_TYPE_CHOICES, blank=True)
-    title = models.CharField(max_length=255, choices=TITLE_CHOICES, blank=True)
+    title = models.CharField(max_length=255, blank=True, help_text="Enter a custom title or select one below.")
     description = models.TextField(blank=True)
+
+    # Optional: keep this for UI reference only (not enforced)
+    PREDEFINED_TITLES = [title for title, _ in TITLE_CHOICES]
 
     tank_name = models.CharField(max_length=255, blank=True, null=True)
     temp_min = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)

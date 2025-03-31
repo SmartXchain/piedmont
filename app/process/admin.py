@@ -1,12 +1,28 @@
 from django.contrib import admin
 from .models import Process, ProcessStep
+from django import forms
 
 
-class ProcessStepInline(admin.TabularInline):  # Inline editing for ProcessSteps within Process
+class ProcessStepInline(admin.TabularInline):
     model = ProcessStep
-    extra = 1  # Show one empty row for quick addition
+    extra = 1
     fields = ('method', 'step_number')
     ordering = ['step_number']
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == "method":
+            kwargs["queryset"] = Method.objects.all()
+            return forms.ModelChoiceField(
+                queryset=kwargs["queryset"],
+                label="Method",
+                widget=forms.Select,
+                to_field_name="id",
+                empty_label="Select a method",
+                help_text="Select a method to use for this step.",
+                # Format: "Title - First 100 chars of description"
+                label_from_instance=lambda obj: f"{obj.title} - {obj.description[:100]}{'...' if len(obj.description) > 100 else ''}"
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(Process)
