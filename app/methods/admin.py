@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import Method, ParameterToBeRecorded
+from .models import Method, ParameterToBeRecorded, TITLE_CHOICES
 from django import forms
-from .models import Method, TITLE_CHOICES, Method
 
 
 class MethodAdminForm(forms.ModelForm):
@@ -27,7 +26,7 @@ class MethodAdminForm(forms.ModelForm):
 class MethodAdmin(admin.ModelAdmin):
     form = MethodAdminForm
     list_display = ('title', 'method_type', 'tank_name', 'chemical')
-    search_fields = ['title', 'description'] 
+    search_fields = ['title', 'description']
 
 
 admin.site.register(Method, MethodAdmin)
