@@ -22,7 +22,6 @@ def part_detail_view(request, part_id):
     return render(request, 'part/part_detail.html', {'part': part, 'standards': standards, 'work_orders': work_orders})
 
 
-
 # 📌 List all work orders (Read-Only)
 def work_order_list_view(request):
     work_orders = WorkOrder.objects.all()

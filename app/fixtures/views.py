@@ -1,5 +1,3 @@
-# views.py
-
 from django.shortcuts import render, get_object_or_404
 from .models import Rack, RackPM, PMTask
 from datetime import timedelta, date
@@ -44,7 +42,6 @@ def rack_list(request):
         },
     }
     return render(request, 'fixtures/rack_list.html', context)
-
 
 
 def rack_detail(request, pk):

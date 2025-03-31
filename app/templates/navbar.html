@@ -56,12 +56,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'kanban_dashboard' %}active{% endif %}" 
-                   href="{% url 'kanban_dashboard' %}">
-                    <i class="bi bi-wrench-adjustable-circle-fill"></i> Inventory
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'pm_landing_page' %}active{% endif %}" 
                    href="{% url 'pm_landing_page' %}">
                     <i class="bi bi-wrench-adjustable-circle-fill"></i> Maintenance Request
