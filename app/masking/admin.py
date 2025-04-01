@@ -7,7 +7,7 @@ class MaskingStepInline(admin.TabularInline):
     """Inline admin for Masking Steps inside Masking Process."""
     model = MaskingStep
     extra = 1
-    fields = ("step_number", "title", "description", "image_preview")
+    fields = ("step_number", "title", "description", "image", "image_preview")
     readonly_fields = ("image_preview",)
 
     def image_preview(self, obj):
