@@ -50,6 +50,24 @@ class WorkOrder(models.Model):
     Represents a work order for a part, associated with a specific standard/classification.
     """
     part = models.ForeignKey(Part, on_delete=models.CASCADE, related_name='work_orders')
+    rework = models.BooleanField(default=False)
+    job_identity = models.CharField(
+        max_length=50,
+        choices=[
+            ('alkaline clean', 'Alkaline Clean'),
+            ('anodize', 'Anodize'),
+            ('cadmium_plate', 'Cadmium Plate'),
+            ('chemical conversion', 'Chemical Conversion'),
+            ('chrome_plate', 'Chrome Plate'),
+            ('cleaning', 'Cleaning'),
+            ('etch', 'Etch'),
+            ('ni_plate', 'Nickel Plate'),
+            ('paint', 'Paint'),
+            ('passivation', 'Passivation'),
+            ('solvent_clean', 'Solvent Clean'),
+            ('Strip', 'Strip')
+        ]
+    )
     work_order_number = models.CharField(max_length=255)  # Allow duplicates with different standards/classifications/surface_repaired
     standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='work_orders')
     classification = models.ForeignKey(Classification, on_delete=models.CASCADE, blank=True, null=True, related_name='work_orders')
@@ -64,23 +82,7 @@ class WorkOrder(models.Model):
     current_density = models.FloatField(blank=True, null=True, verbose_name="Current Density (amps/sq in)")
     amps = models.FloatField(blank=True, null=True, verbose_name="Amps Required")
 
-    job_identity = models.CharField(
-        max_length=50,
-        choices=[
-            ('alkaline clean', 'Alkaline Clean'),
-            ('anodize', 'Anodize'),
-            ('cadmium_plate', 'Cadmium Plate'),
-            ('chemical conversion', 'Chemical Conversion'),
-            ('chrome_plate', 'Chrome Plate'),
-            ('cleaning', 'Cleaning'),
-            ('Descale', 'Descale'),
-            ('etch', 'Etch'),
-            ('ni_plate', 'Nickel Plate'),
-            ('paint', 'Paint'),
-            ('passivation', 'Passivation'),
-            ('solvent_clean', 'Solvent Clean')
-        ]
-    )
+
 
     class Meta:
         constraints = [
