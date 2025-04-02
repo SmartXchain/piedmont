@@ -1,129 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Job Process Steps</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-            /* Page and layout styles */
-            @page {
-                size: letter landscape;
-                margin: 3rem;
-    
-                @top-left {
-                    content: "Piedmont Aviation";
-                    font-size: 0.5rem;
-                }
-    
-                @top-center {
-                    content: "Job Process Steps";
-                    font-size: 1rem;
-                    font-weight: bold;
-                }
-    
-                @bottom-left {
-                    content: "Doc ID: {{ doc_id }}\A Rev: {{ revision }} \A Date: {{ date }}";
-                    font-size: 0.5rem;
-                    white-space: pre;
-                }
+<head>
+    <meta charset="UTF-8">
+    <title>Job Process Steps</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-                @bottom-center {
-                    content: "Page " counter(page) " of " counter(pages);
-                    font-size: 0.5rem;
-                }
+    <style>
+        @page {
+            size: letter landscape;
+            margin: 3rem;
+            @top-left {
+                content: "Piedmont Aviation";
+                font-size: 0.5rem;
+            }
+            @top-center {
+                content: "Job Process Steps";
+                font-size: 1rem;
+                font-weight: bold;
+            }
+            @bottom-left {
+                content: "Doc ID: {{ doc_id }}\A Rev: {{ revision }}\A Date: {{ date }}";
+                font-size: 0.5rem;
+                white-space: pre;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 0.5rem;
+            }
+            @bottom-right {
+                content: "Repair Station: {{ repair_station }}\A {{ footer_text }}";
+                font-size: 0.5rem;
+                white-space: pre;
+            }
+        }
 
-                @bottom-right {
-                    content: "Repair Station: {{ repair_station }}\A {{ footer_text }}";
-                    font-size: 0.5rem;
-                    white-space: pre;
-                }
-            }
-    
-            body {
-                font-family: Arial, sans-serif;
-                font-size: 0.6rem;
-                margin: 0;
-            }
-    
-            /* Table styles */
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 0.6rem;
-            }
-            table, th, td {
-                border: 0.0625rem solid black;
-                padding: 0.3125rem;
-                text-align: left;
-            }
-            .part-info-table td {
-                width: auto;
-            }
-            .instructions-column {
-                width: 50%;
-            }
-            .blank-line {
-                display: inline-block;
-                width: 100%;
-                border-bottom: 1px solid black;
-                height: 20px;
-            }
-            .notes {
-                height: 50px;
-            }
-            .report-container {
-                padding: 20px;
-                border: 2px solid black;
-                border-radius: 8px;
-            }
-            .inner-table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-    
-            .inner-table th, .inner-table td {
-                padding: 10px;
-                border-bottom: 1px solid black;
-                text-align: left;
-            }
-        </style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 0.6rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.6rem;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+            padding: 0.3125rem;
+            text-align: left;
+        }
+
+        .instructions-column {
+            width: 50%;
+        }
+
+        .blank-line {
+            display: inline-block;
+            width: 100%;
+            border-bottom: 1px dotted #000;
+            height: 1.2rem;
+            margin: 0.2rem 0;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Work Order and Part Information -->
-    <h2>Work Order and Part Information</h2>
-    <table class="part-info-table">
-        <tr>
-            <td><strong>Work Order Number:</strong> {{ work_order.work_order_number }}</td>
-            <td><strong>Part Number:</strong> {{ work_order.part.part_number }}</td>
-            <td><strong>Serial Number:</strong> {{ work_order.serial_or_lot_numbers }}</td>
-            <td><strong>Customer:</strong> {{ work_order.customer }}</td>
-        </tr>
-        <tr>
-            <td><strong>Part Revision:</strong> {{ work_order.part.part_revision}}</td>
-            <td><strong>Part Description:</strong> {{ work_order.part.part_description }}</td>
-            <td><strong>Surface Repaired:</strong> {{ work_order.surface_repaired }}</td>
-            <td><strong>Purchase Order:</strong> {{ work_order.purchase_order_with_revision }}</td>
-        </tr>
-        <tr>
-            <td><strong>Job Identity:</strong> {{ work_order.job_identity }}</td>
-            <td><strong>Rework:</strong> {{ work_order.rework }}</td>
-            <td><strong>Alloy:</strong> {{ work_order.alloy_with_heat_treat_condition }}</td>
-            <td><strong>Quantity:</strong> {{ work_order.part_quantity }}</td>
-        </tr>
-        <tr>
-            <td><strong>Processing Standard:</strong> {{ work_order.standard|default:"N/A" }}</td>
-            <td><strong>Classification:</strong> {{ work_order.classification|default:"N/A" }}</td>
-            <td></td>
-            <td></td>
-        </tr>
+    <!-- Work Order and Part Info -->
+    <h2 class="mt-4">Work Order and Part Information</h2>
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <td><strong>Work Order Number:</strong> {{ work_order.work_order_number }}</td>
+                <td><strong>Part Number:</strong> {{ work_order.part.part_number }}</td>
+                <td><strong>Serial Number:</strong> {{ work_order.serial_or_lot_numbers }}</td>
+                <td><strong>Customer:</strong> {{ work_order.customer }}</td>
+            </tr>
+            <tr>
+                <td><strong>Part Revision:</strong> {{ work_order.part.part_revision }}</td>
+                <td><strong>Part Description:</strong> {{ work_order.part.part_description }}</td>
+                <td><strong>Surface Repaired:</strong> {{ work_order.surface_repaired }}</td>
+                <td><strong>Purchase Order:</strong> {{ work_order.purchase_order_with_revision }}</td>
+            </tr>
+            <tr>
+                <td><strong>Job Identity:</strong> {{ work_order.job_identity }}</td>
+                <td><strong>Rework:</strong> {{ work_order.rework }}</td>
+                <td><strong>Alloy:</strong> {{ work_order.alloy_with_heat_treat_condition }}</td>
+                <td><strong>Quantity:</strong> {{ work_order.part_quantity }}</td>
+            </tr>
+            <tr>
+                <td><strong>Processing Standard:</strong> {{ work_order.standard|default:"N/A" }}</td>
+                <td><strong>Classification:</strong> {{ work_order.classification|default:"N/A" }}</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
     </table>
 
-    <!-- Process Steps Section -->
-    <br>
-    <h2>Process Steps</h2>
-    <table>
-        <thead>
+    <!-- Process Steps -->
+    <h2 class="mt-4">Process Steps</h2>
+    <table class="table table-bordered">
+        <thead class="table-light">
             <tr>
                 <th>Step Number</th>
                 <th>Step Name</th>
@@ -132,88 +109,120 @@
                 <th>Date</th>
             </tr>
         </thead>
-        <br>
         <tbody>
             {% for step in process_steps %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ step.method.title }}</td>
-                    <!-- Description -->
-                    <td>
-                        {% if step.method.title == 'Stress Relief' %}
-                            <!-- Stress Relief Details -->
-                            <strong>Stress Relief Details:</strong>
-                            <p>Date and time of start of baking.<span class="blank-line"></span></p>
-                            <p>Date and time of start of soak.<span class="blank-line"></span></p>
-                            <p>Date and time of completion of baking.<span class="blank-line"></span></p>
-                            <p>Furnace control instrument set temperature.<span class="blank-line"></span></p>
-                            <p>Furnace identification.<span class="blank-line"></span></p>
-                            <p>Graph Number:<span class="blank-line"></span></p>
-                        {% endif %}
-                        {% if step.method.title == 'Hydrogen Embrittlement Relief' %}
-                        <!-- Hydrogen Embrittlement Relief Details -->
-                            <strong>Hydrogen Embrittlement Relief Details:</strong>
-                            <p>Date and Time of completion of the plating process.<span class="blank-line"></span></p>
-                            <p>Date and time of start of baking.<span class="blank-line"></span></p>
-                            <p>Date and time of start of soak.<span class="blank-line"></span></p>
-                            <p>Date and time of completion of baking.<span class="blank-line"></span></p>
-                            <p>Furnace control instrument set temperature.<span class="blank-line"></span></p>
-                            <p>Furnace identification.<span class="blank-line"></span></p>
-                            <p>Graph Number:<span class="blank-line"></span></p>
-                        {% endif %}            
-                        {% if step.method.method_type == 'processing_tank' %}
-                            <!-- Processing Tank Details -->
-                            <strong>Processing Tank Details:</strong>
-                            <ul>
-                                <li><strong>Tank Name:</strong> {{ step.method.tank_name }}</li>
-                                <li><strong>Content:</strong> {{ step.method.chemical }}</li>
-                                <li><strong>Temperature Range:</strong> {{ step.method.temp_min }}°F - {{ step.method.temp_max }}°F</li>
-                                <li><strong>Time Range:</strong> {{ step.method.immersion_time_min }} min - {{ step.method.immersion_time_max }} min</li>
-                            </ul>
-                        {% endif %}
-                        <p>{{ step.method.description|safe }}</p>
-                        <!-- Rectified Information -->
-                        {% if step.method.is_rectified %}
-                            {% if job_data.is_chrome_or_cadmium %}
-                                <strong>Surface Area:</strong> {{ job_data.surface_area|floatformat:2 }} in<sup>2</sup><br>
-                                <strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi<br>
-                                <strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps<br>
-                                <strong>Process:</strong>
-                                <ul>
-                                    {% for instruction in job_data.instructions %}
-                                        <li>{{ instruction }}</li><br>
-                                        <p>Amps Used:____________________ Current Density Used: ______________________</p>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ step.method.title }}</td>
+                <td>
+                    {% if step.method.title == 'Stress Relief' %}
+                    <strong>Stress Relief Details:</strong>
+                    <div class="mb-2"><strong>Date and Time of Start of Baking:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Date and Time of Start of Soak:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Date and Time of Completion of Baking:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Furnace Control Instrument Set Temperature:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Furnace Identification:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Graph Number:</strong><div class="blank-line"></div></div>
+                {% elif step.method.title == 'Hydrogen Embrittlement Relief' %}
+                    <strong>Hydrogen Embrittlement Relief Details:</strong>
+                    <div class="mb-2"><strong>Date and Time of Completion of the Plating Process:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Date and Time of Start of Baking:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Date and Time of Start of Soak:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Date and Time of Completion of Baking:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Furnace Control Instrument Set Temperature:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Furnace Identification:</strong><div class="blank-line"></div></div>
+                    <div class="mb-2"><strong>Graph Number:</strong><div class="blank-line"></div></div>
+                {% endif %}
+
+                    {% if step.method.method_type == 'processing_tank' %}
+                        <strong>Processing Tank Details:</strong>
+                        <ul>
+                            <li><strong>Tank Name:</strong> {{ step.method.tank_name }}</li>
+                            <li><strong>Content:</strong> {{ step.method.chemical }}</li>
+                            <li><strong>Temperature Range:</strong> {{ step.method.temp_min }}°F - {{ step.method.temp_max }}°F</li>
+                            <li><strong>Time Range:</strong> {{ step.method.immersion_time_min }} min - {{ step.method.immersion_time_max }} min</li>
+                        </ul>
+                    {% endif %}
+
+                    <p>{{ step.method.description|safe }}</p>
+
+                    {% if step.method.is_rectified %}
+                        {% if job_data.is_chrome_or_cadmium %}
+                            <div class="card my-2">
+                                <div class="card-header bg-secondary text-white">
+                                    Rectified Process Details
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Surface Area:</strong> {{ job_data.surface_area|floatformat:2 }} in<sup>2</sup></p>
+                                    <p><strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi</p>
+                                    <p><strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps</p>
+
+                                    {% if job_data.is_chrome_plate %}
+                                        <strong>Process:</strong>
+                                        <ol>
+                                            <li>
+                                                Reverse etch in the plating bath for 2 asi for 30 sec to 10 min.
+                                                <div class="mb-2"><strong>Amps Used:</strong><div class="blank-line"></div></div>
+                                                <div class="mb-2"><strong>Etch Time:</strong><div class="blank-line"></div></div>
+                                            </li>
+                                            <li>
+                                                If plating on base metal:  
+                                                Strike at <strong>twice required amperage</strong> for 2–5 minutes.
+                                                <div class="mb-2"><strong>Amps Used:</strong><div class="blank-line"></div></div>
+                                                <div class="mb-2"><strong>Strike Time:</strong><div class="blank-line"></div></div>
+                                                If plating on chrome: <strong>Do not perform a strike.</strong>
+                                            </li>
+                                            <li>Plate as required.</li>
+                                        </ol>
+                                    {% endif %}
+
+                                    <strong>Instructions:</strong>
+                                    <ul class="list-group">
+                                        {% for instruction in job_data.instructions %}
+                                            <li class="list-group-item">
+                                                {{ instruction }}<br>
+                                                <div class="mb-2">
+                                                    <strong>Amps:</strong> <div class="blank-line"></div>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <strong>Current Density:</strong> <div class="blank-line"></div>
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mt-2">
                                 <strong>Instructions:</strong> {{ job_data.instructions.0 }}
-                            {% endif %}
+                            </div>
                         {% endif %}
-                        <!-- Parameters -->
-                        {% if step.parameters %}
-                            <strong>Parameters to be Recorded:</strong>
-                            <ul>
-                                {% for parameter in step.parameters %}
-                                    <li><strong>{{ parameter.title }}:</strong> {{ parameter.description }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </td>
-                    <td>{{ step.operator }}</td>
-                    <td>{{ step.date }}</td>
-                </tr>
+                    {% endif %}
+
+                    {% if step.parameters %}
+                        <strong>Parameters to be Recorded:</strong>
+                        <ul>
+                            {% for parameter in step.parameters %}
+                                <li><strong>{{ parameter.title }}:</strong> {{ parameter.description }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </td>
+                <td>{{ step.operator }}</td>
+                <td>{{ step.date }}</td>
+            </tr>
             {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center">No process steps available for this job.</td>
-                </tr>
+            <tr>
+                <td colspan="5" class="text-center">No process steps available for this job.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
-    <!-- Inspection Requirements Section -->
-    <br>
-    <h2>Inspection Requirements</h2>
-    <table>
-        <thead>
+
+    <!-- Inspection Requirements -->
+    <h2 class="mt-4">Inspection Requirements</h2>
+    <table class="table table-bordered">
+        <thead class="table-light">
             <tr>
                 <th>Inspection Name</th>
                 <th class="instructions-column">Acceptance Criteria</th>
@@ -223,24 +232,22 @@
                 <th>Date</th>
             </tr>
         </thead>
-        <br>
         <tbody>
             {% for inspection in inspections %}
-                <tr>
-                    <td>{{ inspection.name }}</td>
-                    <td>{{ inspection.description }}</td>
-                    <td>{{ inspection.paragraph_section }}</td>
-                    <td>{{ inspection.sampling_plan }}</td>
-                    <td></td>
-                    <td></td>
-                </tr>
+            <tr>
+                <td>{{ inspection.name }}</td>
+                <td>{{ inspection.description }}</td>
+                <td>{{ inspection.paragraph_section }}</td>
+                <td>{{ inspection.sampling_plan }}</td>
+                <td></td>
+                <td></td>
+            </tr>
             {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center">No inspection requirements available for this standard.</td>
-                </tr>
+            <tr>
+                <td colspan="6" class="text-center">No inspection requirements available for this standard.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
-
 </body>
 </html>
