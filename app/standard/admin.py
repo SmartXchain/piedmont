@@ -1,5 +1,32 @@
 from django.contrib import admin
-from .models import Standard, StandardRevisionNotification, InspectionRequirement, PeriodicTest, Classification
+from .models import (
+    Standard,
+    StandardRevisionNotification,
+    InspectionRequirement,
+    PeriodicTest,
+    Classification,
+)
+
+
+class InspectionRequirementInline(admin.TabularInline):
+    model = InspectionRequirement
+    extra = 1
+    fields = ('name', 'description', 'paragraph_section', 'sampling_plan', 'operator', 'date')
+    show_change_link = True
+
+
+class PeriodicTestInline(admin.TabularInline):
+    model = PeriodicTest
+    extra = 1
+    fields = ('name', 'time_period', 'specification', 'number_of_specimens', 'material', 'dimensions')
+    show_change_link = True
+
+
+class ClassificationInline(admin.TabularInline):
+    model = Classification
+    extra = 1
+    fields = ('method', 'method_description', 'class_name', 'class_description', 'type', 'type_description')
+    show_change_link = True
 
 
 @admin.register(Standard)
@@ -9,6 +36,7 @@ class StandardAdmin(admin.ModelAdmin):
     list_filter = ('requires_process_review', 'created_at', 'updated_at')
     readonly_fields = ('created_at', 'updated_at')
     ordering = ('-updated_at',)
+    inlines = [InspectionRequirementInline, PeriodicTestInline, ClassificationInline]
 
 
 @admin.register(StandardRevisionNotification)
@@ -16,49 +44,3 @@ class StandardRevisionNotificationAdmin(admin.ModelAdmin):
     list_display = ('standard', 'message', 'notified_at', 'is_acknowledged')
     search_fields = ('standard__name', 'message')
     list_filter = ('is_acknowledged', 'notified_at')
-
-
-@admin.register(InspectionRequirement)
-class InspectionRequirementAdmin(admin.ModelAdmin):
-    list_display = (
-        'standard',
-        'name',
-        'paragraph_section',
-        'sampling_plan',
-        'operator',
-        'date',
-    )
-    search_fields = ('standard__name', 'name', 'paragraph_section', 'operator')
-    list_filter = ('standard', 'date')
-    ordering = ('-date',)
-    fieldsets = (
-        (None, {
-            'fields': (
-                'standard',
-                'name',
-                'description',
-                'paragraph_section',
-                'sampling_plan',
-                'operator',
-                'date',
-            )
-        }),
-    )
-
-
-@admin.register(PeriodicTest)
-class PeriodicTestAdmin(admin.ModelAdmin):
-    list_display = ('standard', 'name', 'time_period', 'number_of_specimens', 'material', 'dimensions')
-    search_fields = ('standard__name', 'name', 'time_period')
-    list_filter = ('time_period', 'standard')
-
-
-@admin.register(Classification)
-class ClassificationAdmin(admin.ModelAdmin):
-    list_display = ('standard', 'method', 'class_name', 'type')
-    search_fields = ('standard__name', 'method', 'class_name', 'type')
-    list_filter = ('standard',)
-
-
-# Optional: Registering all models at once
-# admin.site.register([Standard, StandardRevisionNotification, InspectionRequirement, PeriodicTest, Classification])
