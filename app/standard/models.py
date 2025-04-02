@@ -108,8 +108,10 @@ def create_standard(name, description, revision, author, upload_file=None):
         name=name, description=description, revision=revision, author=author, upload_file=upload_file
     )
 
+
 def list_standards():
     return Standard.objects.all()
+
 
 def get_standard_by_id(standard_id):
     return Standard.objects.get(id=standard_id)
