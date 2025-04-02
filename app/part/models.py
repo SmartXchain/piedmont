@@ -82,7 +82,6 @@ class WorkOrder(models.Model):
     current_density = models.FloatField(blank=True, null=True, verbose_name="Current Density (amps/sq in)")
     amps = models.FloatField(blank=True, null=True, verbose_name="Amps Required")
 
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
