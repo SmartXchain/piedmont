@@ -18,6 +18,7 @@ class Part(models.Model):
         ]
         verbose_name = "Part"
         verbose_name_plural = "Parts"
+        ordering = ['part_number']
 
     def __str__(self):
         return f"{self.part_number}"
@@ -40,6 +41,7 @@ class PartStandard(models.Model):
         ]
         verbose_name = "Part Standard"
         verbose_name_plural = "Part Standards"
+        ordering = ['part']
 
     def __str__(self):
         return f"{self.part.part_number} - {self.standard.name} - {self.classification or 'No Classification'}"
@@ -89,7 +91,7 @@ class WorkOrder(models.Model):
                 name='unique_work_order_details'
             )
         ]
-        ordering = ['work_order_number']
+        ordering = ['work_order_number', 'part']
         verbose_name = "Work Order"
         verbose_name_plural = "Work Orders"
 

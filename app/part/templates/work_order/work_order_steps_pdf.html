@@ -112,8 +112,10 @@
             <td><strong>Quantity:</strong> {{ work_order.part_quantity }}</td>
         </tr>
         <tr>
-            <td><strong>Processing Standard:</strong> {{ work_order.processing_standard.name|default:"N/A" }}</td>
+            <td><strong>Processing Standard:</strong> {{ work_order.standard|default:"N/A" }}</td>
             <td><strong>Classification:</strong> {{ work_order.classification|default:"N/A" }}</td>
+            <td></td>
+            <td></td>
         </tr>
     </table>
 

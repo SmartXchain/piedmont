@@ -38,11 +38,3 @@ class ProcessAdmin(admin.ModelAdmin):
         if obj:
             return ['standard', 'classification']
         return []
-
-
-@admin.register(ProcessStep)
-class ProcessStepAdmin(admin.ModelAdmin):
-    list_display = ('process', 'method', 'step_number')
-    list_filter = ('process__standard', 'method')
-    search_fields = ('process__standard__name', 'method__title')
-    ordering = ['process', 'step_number']

@@ -19,6 +19,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+admin.site.site_header = "Piedmont Aviation"
+admin.site.site_title = "CP"
+admin.site.index_title = "Special Processes Admin Portal"
+
+
 urlpatterns = [
     path('', include('landing_page.urls')),
     path('standard/', include('standard.urls')),

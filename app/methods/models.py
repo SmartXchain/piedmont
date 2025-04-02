@@ -64,6 +64,7 @@ class Method(models.Model):
     class Meta:
         verbose_name = "Method"
         verbose_name_plural = "Methods"
+        ordering = ['method_type']
 
     def __str__(self):
         return f"{self.title} ({self.method_type})"

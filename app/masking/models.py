@@ -16,6 +16,9 @@ class MaskingProcess(models.Model):
 
     class Meta:
         unique_together = ('part_number', 'version')  # Ensures unique versions per part_number
+        verbose_name = "Masking Process"
+        verbose_name_plural = "Masking Processes"
+        ordering = ['part_number']
 
     def save(self, *args, **kwargs):
         """Handles versioning when a Masking Process is updated."""
