@@ -83,7 +83,6 @@ class WorkOrder(models.Model):
     amps = models.FloatField(blank=True, null=True, verbose_name="Amps Required")
 
 
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
