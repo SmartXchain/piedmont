@@ -58,7 +58,7 @@
         .blank-line {
             display: inline-block;
             width: 100%;
-            border-bottom: 1px dotted #000;
+            border-bottom: 1px solid #000;
             height: 1.2rem;
             margin: 0.2rem 0;
         }
@@ -132,6 +132,30 @@
                     <div class="mb-2"><strong>Furnace Control Instrument Set Temperature:</strong><div class="blank-line"></div></div>
                     <div class="mb-2"><strong>Furnace Identification:</strong><div class="blank-line"></div></div>
                     <div class="mb-2"><strong>Graph Number:</strong><div class="blank-line"></div></div>
+                {% elif step.method.title == 'Demasking' or step.method.title == 'Wax-Masking' or step.method.title == 'Masking' %}
+                <div class="container">
+                    <h4 class="text-center mb-4">Operator Acknowledgment of Masking Procedures</h4>
+                
+                    <p class="mb-2">
+                      I hereby confirm that I have reviewed the masking procedures applicable to the parts and processes I am assigned. 
+                      I understand and agree to follow these procedures as outlined.
+                    </p>
+                
+                    <div class="row mb-2">
+                      <div class="col-md-2">
+                        <div class="label">Printed Name:</div>
+                        <div class="signature-line"></div>
+                      </div>
+                      <div class="col-md-2">
+                        <div class="label">Signature:</div>
+                        <div class="signature-line"></div>
+                      </div>
+                      <div class="col-md-2">
+                        <div class="label">Date:</div>
+                        <div class="signature-line"></div>
+                      </div>
+                    </div>
+                  </div>
                 {% endif %}
 
                     {% if step.method.method_type == 'processing_tank' %}
