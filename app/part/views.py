@@ -72,6 +72,7 @@ def work_order_print_steps_view(request, work_order_id):
         'current_density': work_order.current_density,
         'amps': amps,
         'is_chrome_or_cadmium': work_order.job_identity in ['chrome_plate', 'cadmium_plate'],
+        'is_chrome_plate': work_order.job_identity == 'chrome_plate',
         'instructions': ["Record amperage and current density during plating operation."]
     }
 
