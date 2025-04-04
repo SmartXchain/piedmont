@@ -159,7 +159,7 @@
         <td>{{ forloop.counter }}</td>
         <td>{{ step.method.title }}</td>
         <td>
-          {% if step.method.title in ['Stress Relief', 'Hydrogen Embrittlement Relief'] %}
+          {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' %}
             <strong>{{ step.method.title }} Details:</strong>
             {% for label in [
               "Date and Time of Start of Baking",
