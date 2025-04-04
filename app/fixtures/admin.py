@@ -30,10 +30,7 @@ class PMTaskAdmin(admin.ModelAdmin):
 
 @admin.register(RackPM)
 class RackPMAdmin(admin.ModelAdmin):
-    list_display = [
-        'rack', 'pm_task', 'performed_by', 'passed', 'date_performed',
-        'created_by', 'modified_by', 'created_at', 'modified_at'
-    ]
+    list_display = ['rack', 'pm_task', 'performed_by', 'passed', 'date_performed']
     list_filter = ['passed', 'date_performed', 'performed_by']
     search_fields = ['rack__rack_id', 'pm_task__title', 'notes']
     readonly_fields = ['created_by', 'modified_by', 'created_at', 'modified_at']

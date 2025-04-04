@@ -6,12 +6,30 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from weasyprint import HTML
 from process.models import Process, ProcessStep
+from django.core.paginator import Paginator
 
 
 # 📌 List all parts (Read-Only)
 def part_list_view(request):
+    query = request.GET.get('q', '')
+    sort = request.GET.get('sort', 'part_number')  # default sort
     parts = Part.objects.all()
-    return render(request, 'part/part_list.html', {'parts': parts})
+
+    if query:
+        parts = parts.filter(part_number__icontains=query)
+
+    parts = parts.order_by(sort)
+
+    paginator = Paginator(parts, 20)  # Show 20 parts per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+        'sort': sort,
+    }
+    return render(request, 'part/part_list.html', context)
 
 
 # 📌 View part details (Read-Only)
