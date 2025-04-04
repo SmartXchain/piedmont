@@ -179,11 +179,26 @@
       margin-bottom: 0.8rem;
     }
 
+    .step-section {
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    .step-text {
+      margin-left: 1rem;
+      line-height: 1.4;
+    }
+
     .step-input-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-top: 0.2rem;
+      margin: 0.3rem 1rem;
     }
 
     .step-input-label {
@@ -314,31 +329,54 @@
                 <p><strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi</p>
                 <p><strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps</p>
                 {% if job_data.is_chrome_plate %}
-                  <ol class="step-list">
-                    <li>
-                      Reverse etch (2 asi, 30 sec – 10 min).
-                      <div class="step-input-row">
-                        <div class="step-input-label">Amps Used:</div>
-                        <div class="step-input-line"></div>
-                      </div>
-                      <div class="step-input-row">
-                        <div class="step-input-label">Etch Time:</div>
-                        <div class="step-input-line"></div>
-                      </div>
-                    </li>
-                    <li>
-                      Strike (if base metal): Twice amps for 1–5 min.
-                      <div class="step-input-row">
-                        <div class="step-input-label">Amps Used:</div>
-                        <div class="step-input-line"></div>
-                      </div>
-                      <div class="step-input-row">
-                        <div class="step-input-label">Strike Time:</div>
-                        <div class="step-input-line"></div>
-                      </div>
-                    </li>
-                    <li>Plate as required.</li>
-                  </ol>
+                  <div class="step-section">
+                    <div class="step-title">Step 1:</div>
+                    <div class="step-text">
+                      Immerse the component in the plating solution and allow the part to come to temperature (5 - 10 minutes).
+                    </div>
+                  </div>
+                  
+                  <div class="step-section">
+                    <div class="step-title">Step 2:</div>
+                    <div class="step-text">
+                      Reverse etch (1 - 3 asi, 30 sec – 120 seconds).
+                    </div>
+                    <div class="step-input-row">
+                      <div class="step-input-label">Amps Used:</div>
+                      <div class="step-input-line"></div>
+                    </div>
+                    <div class="step-input-row">
+                      <div class="step-input-label">Etch Time:</div>
+                      <div class="step-input-line"></div>
+                    </div>
+                  </div>
+                  
+                  <div class="step-section">
+                    <div class="step-title">Step 3:</div>
+                    <div class="step-text">
+                      Slowly ramp the current from zero up to the required plating current over the course of five to ten minutes; plate until desired thickness is achieved.
+                    </div>
+                  </div>
+                  
+                  <div class="step-section">
+                    <div class="step-title">Step 4:</div>
+                    <div class="step-text">
+                      Strike (if base metal): Two or Three Times Amps for 30–60 seconds.
+                    </div>
+                    <div class="step-input-row">
+                      <div class="step-input-label">Amps Used:</div>
+                      <div class="step-input-line"></div>
+                    </div>
+                    <div class="step-input-row">
+                      <div class="step-input-label">Strike Time:</div>
+                      <div class="step-input-line"></div>
+                    </div>
+                  </div>
+                  
+                  <div class="step-section">
+                    <div class="step-title">Step 5:</div>
+                    <div class="step-text">Plate as required.</div>
+                  </div>                
                 {% endif %}
                 <strong>Instructions:</strong>
                 <ul>
@@ -357,7 +395,7 @@
                         <div class="input-line"></div>
                       </div>
                       <div class="input-row">
-                        <div class="input-label">Dim Thickness Finish:</div>
+                        <div class="input-label">Dim Thickness Required:</div>
                         <div class="input-line"></div>
                       </div>
                   {% endfor %}
