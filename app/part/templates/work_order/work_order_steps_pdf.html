@@ -169,6 +169,35 @@
       height: 1.5rem;
     }
 
+    ol.step-list {
+      margin-left: 1.2rem;
+      padding-left: 0.5rem;
+      list-style-type: decimal;
+    }
+
+    ol.step-list li {
+      margin-bottom: 0.8rem;
+    }
+
+    .step-input-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 0.2rem;
+    }
+
+    .step-input-label {
+      flex: 1;
+      font-weight: bold;
+    }
+
+    .step-input-line {
+      flex: 2;
+      border-bottom: 1px solid #000;
+      height: 1.5rem;
+      margin-left: 0.5rem;
+    }
+
   </style>
 </head>
 <body>
@@ -223,11 +252,11 @@
         <td>{{ step.method.title }}</td>
         <td>
           <div class="description-box description-text">
-            {{ step.method.description|safe }}
+            {{ step.method.description|linebreaks }}
           </div>
           {# Special condition: Stress Relief or Hydrogen Embrittlement Relief #}
           {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' %}
-            <strong>{{ step.method.title|upper }} DETAILS:</strong>
+            <div class="text-center">{{ step.method.title|upper }} DETAILS:</strong></div><strong>
             <div class="input-row">
               <div class="input-label">Date and Time of Start of Baking:</div>
               <div class="input-line"></div>
@@ -285,14 +314,28 @@
                 <p><strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi</p>
                 <p><strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps</p>
                 {% if job_data.is_chrome_plate %}
-                  <ol>
-                    <li>Reverse etch (2 asi, 30 sec – 10 min).
-                      <div><strong>Amps Used:</strong><div class="blank-line"></div></div>
-                      <div><strong>Etch Time:</strong><div class="blank-line"></div></div>
+                  <ol class="step-list">
+                    <li>
+                      Reverse etch (2 asi, 30 sec – 10 min).
+                      <div class="step-input-row">
+                        <div class="step-input-label">Amps Used:</div>
+                        <div class="step-input-line"></div>
+                      </div>
+                      <div class="step-input-row">
+                        <div class="step-input-label">Etch Time:</div>
+                        <div class="step-input-line"></div>
+                      </div>
                     </li>
-                    <li>Strike (if base metal): Twice amps for 2–5 min.
-                      <div><strong>Amps Used:</strong><div class="blank-line"></div></div>
-                      <div><strong>Strike Time:</strong><div class="blank-line"></div></div>
+                    <li>
+                      Strike (if base metal): Twice amps for 2–5 min.
+                      <div class="step-input-row">
+                        <div class="step-input-label">Amps Used:</div>
+                        <div class="step-input-line"></div>
+                      </div>
+                      <div class="step-input-row">
+                        <div class="step-input-label">Strike Time:</div>
+                        <div class="step-input-line"></div>
+                      </div>
                     </li>
                     <li>Plate as required.</li>
                   </ol>
