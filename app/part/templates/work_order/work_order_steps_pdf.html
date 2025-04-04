@@ -113,7 +113,41 @@
       break-inside: avoid;
     }
 
+    .tall-cell{
+      height: 2rem;
+      vertical-align: bottom;
+    }
 
+    .description-text {
+      font-size: 0.7rem;
+      line-height: 1.4;
+      margin-top: 0.3rem;
+      margin-bottom: 0.3rem;
+      color: #222;
+    }
+
+    .description-text p {
+      margin: 0.3rem 0;
+    }
+
+    .description-text ul, .description-text ol {
+      margin-left: 1.2rem;
+      padding-left: 0.5rem;
+    }
+
+    .description-box {
+      background: #f8f8f8;
+      padding: 0.4rem;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+
+    .description-text strong {
+      font-weight: bold;
+      text-decoration: underline;
+      color: #000;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
@@ -122,27 +156,30 @@
   <table>
     <tbody>
       <tr>
-        <td><strong>Work Order Number:</strong> {{ work_order.work_order_number }}</td>
-        <td><strong>Part Number:</strong> {{ work_order.part.part_number }}</td>
-        <td><strong>Serial Number:</strong> {{ work_order.serial_or_lot_numbers }}</td>
-        <td><strong>Customer:</strong> {{ work_order.customer }}</td>
+        <td><strong>Work Order Number:</strong> {{ work_order.work_order_number|default_if_none:"" }}</td>
+        <td><strong>Part Number:</strong> {{ work_order.part.part_number|default_if_none:"" }}</td>
+        <td><strong>Serial Number:</strong> {{ work_order.serial_or_lot_numbers|default_if_none:"" }}</td>
+        <td><strong>Customer:</strong> {{ work_order.customer|default_if_none:"" }}</td>
       </tr>
       <tr>
-        <td><strong>Part Revision:</strong> {{ work_order.part.part_revision }}</td>
-        <td><strong>Part Description:</strong> {{ work_order.part.part_description }}</td>
-        <td><strong>Surface Repaired:</strong> {{ work_order.surface_repaired }}</td>
-        <td><strong>Purchase Order:</strong> {{ work_order.purchase_order_with_revision }}</td>
+        <td><strong>Part Revision:</strong> {{ work_order.part.part_revision|default_if_none:"" }}</td>
+        <td><strong>Part Description:</strong> {{ work_order.part.part_description|default_if_none:"" }}</td>
+        <td><strong>Surface Repaired:</strong> {{ work_order.surface_repaired|default_if_none:"" }}</td>
+        <td><strong>Purchase Order:</strong> {{ work_order.purchase_order_with_revision|default_if_none:"" }}</td>
       </tr>
       <tr>
-        <td><strong>Job Identity:</strong> {{ work_order.job_identity }}</td>
-        <td><strong>Rework:</strong> {{ work_order.rework }}</td>
-        <td><strong>Alloy:</strong> {{ work_order.alloy_with_heat_treat_condition }}</td>
-        <td><strong>Quantity:</strong> {{ work_order.part_quantity }}</td>
+        <td><strong>Job Identity:</strong> {{ work_order.job_identity|default_if_none:"" }}</td>
+        <td><strong>Rework:</strong>
+          {% if work_order.rework %}✓{% else %}✗{% endif %}
+        </td>
+        <td><strong>Alloy:</strong> {{ work_order.alloy_with_heat_treat_condition|default_if_none:"" }}</td>
+        <td><strong>Quantity:</strong> {{ work_order.part_quantity|default_if_none:"" }}</td>
       </tr>
       <tr>
-        <td><strong>Processing Standard:</strong> {{ work_order.standard|default:"N/A" }}</td>
-        <td><strong>Classification:</strong> {{ work_order.classification|default:"N/A" }}</td>
-        <td colspan="2"></td>
+        <td><strong>Processing Standard:</strong> {{ work_order.standard|default_if_none:"" }}</td>
+        <td><strong>Classification:</strong> {{ work_order.classification|default_if_none:"" }}</td>
+        <td></td>
+        <td></td>
       </tr>
     </tbody>
   </table>
@@ -164,7 +201,9 @@
         <td>{{ forloop.counter }}</td>
         <td>{{ step.method.title }}</td>
         <td>
-          {{ step.method.description|safe }}
+          <div class="description-box description-text">
+            {{ step.method.description|safe }}
+          </div>
           {# Special condition: Stress Relief or Hydrogen Embrittlement Relief #}
           {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' %}
             <strong>{{ step.method.title }} Details:</strong>
@@ -246,8 +285,12 @@
             </ul>
           {% endif %}
         </td>
-        <td>{{ step.operator }}</td>
-        <td>{{ step.date }}</td>
+        <td class="tall-cell">
+          {% if step.operator %}{{ step.operator }}{% else %}&nbsp;{% endif %}
+        </td>
+        <td class="tall-cell">
+          {% if step.date %}{{ step.date }}{% else %}&nbsp;{% endif %}
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="5" class="text-center">No process steps available for this job.</td></tr>
