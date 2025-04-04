@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Job Process Steps</title>
+
   <style>
     @page {
       size: letter landscape;
@@ -96,14 +97,6 @@
       padding: 0.2rem 0.4rem;
     }
 
-    .text-center {
-      text-align: center;
-    }
-
-    .text-muted {
-      color: #555;
-    }
-
     .alert-info {
       border: 1px dashed #333;
       padding: 0.4rem;
@@ -159,19 +152,19 @@
         <td>{{ forloop.counter }}</td>
         <td>{{ step.method.title }}</td>
         <td>
+          {# Special condition: Stress Relief or Hydrogen Embrittlement Relief #}
           {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' %}
             <strong>{{ step.method.title }} Details:</strong>
-            {% for label in [
-              "Date and Time of Start of Baking",
-              "Date and Time of Start of Soak",
-              "Date and Time of Completion of Baking",
-              "Furnace Control Instrument Set Temperature",
-              "Furnace Identification",
-              "Graph Number"
-            ] %}
-              <div class="mb-2"><strong>{{ label }}:</strong><div class="blank-line"></div></div>
-            {% endfor %}
-          {% elif step.method.title in ['Demasking', 'Wax-Masking', 'Masking'] %}
+            <div class="mb-2"><strong>Date and Time of Start of Baking:</strong><div class="blank-line"></div></div>
+            <div class="mb-2"><strong>Date and Time of Start of Soak:</strong><div class="blank-line"></div></div>
+            <div class="mb-2"><strong>Date and Time of Completion of Baking:</strong><div class="blank-line"></div></div>
+            <div class="mb-2"><strong>Furnace Control Instrument Set Temperature:</strong><div class="blank-line"></div></div>
+            <div class="mb-2"><strong>Furnace Identification:</strong><div class="blank-line"></div></div>
+            <div class="mb-2"><strong>Graph Number:</strong><div class="blank-line"></div></div>
+          {% endif %}
+
+          {# Masking acknowledgement #}
+          {% if step.method.title == 'Masking' or step.method.title == 'Wax-Masking' or step.method.title == 'Demasking' %}
             <div>
               <strong>Operator Acknowledgment of Masking Procedures</strong>
               <p>
@@ -195,40 +188,42 @@
 
           {{ step.method.description|safe }}
 
-          {% if step.method.is_rectified and job_data.is_chrome_or_cadmium %}
-            <div class="card">
-              <div class="card-header">Rectified Process Details</div>
-              <p><strong>Surface Area:</strong> {{ job_data.surface_area|floatformat:2 }} in²</p>
-              <p><strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi</p>
-              <p><strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps</p>
-              {% if job_data.is_chrome_plate %}
-                <ol>
-                  <li>Reverse etch (2 asi, 30 sec – 10 min).
-                    <div><strong>Amps Used:</strong><div class="blank-line"></div></div>
-                    <div><strong>Etch Time:</strong><div class="blank-line"></div></div>
-                  </li>
-                  <li>Strike (if base metal): Twice amps for 2–5 min.
-                    <div><strong>Amps Used:</strong><div class="blank-line"></div></div>
-                    <div><strong>Strike Time:</strong><div class="blank-line"></div></div>
-                  </li>
-                  <li>Plate as required.</li>
-                </ol>
-              {% endif %}
-              <strong>Instructions:</strong>
-              <ul>
-                {% for instruction in job_data.instructions %}
-                  <li>
-                    {{ instruction }}
-                    <div><strong>Amps:</strong> <div class="blank-line"></div></div>
-                    <div><strong>Current Density:</strong> <div class="blank-line"></div></div>
-                  </li>
-                {% endfor %}
-              </ul>
-            </div>
-          {% elif step.method.is_rectified %}
-            <div class="alert-info">
-              <strong>Instructions:</strong> {{ job_data.instructions.0 }}
-            </div>
+          {% if step.method.is_rectified %}
+            {% if job_data.is_chrome_or_cadmium %}
+              <div class="card">
+                <div class="card-header">Rectified Process Details</div>
+                <p><strong>Surface Area:</strong> {{ job_data.surface_area|floatformat:2 }} in²</p>
+                <p><strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi</p>
+                <p><strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps</p>
+                {% if job_data.is_chrome_plate %}
+                  <ol>
+                    <li>Reverse etch (2 asi, 30 sec – 10 min).
+                      <div><strong>Amps Used:</strong><div class="blank-line"></div></div>
+                      <div><strong>Etch Time:</strong><div class="blank-line"></div></div>
+                    </li>
+                    <li>Strike (if base metal): Twice amps for 2–5 min.
+                      <div><strong>Amps Used:</strong><div class="blank-line"></div></div>
+                      <div><strong>Strike Time:</strong><div class="blank-line"></div></div>
+                    </li>
+                    <li>Plate as required.</li>
+                  </ol>
+                {% endif %}
+                <strong>Instructions:</strong>
+                <ul>
+                  {% for instruction in job_data.instructions %}
+                    <li>
+                      {{ instruction }}
+                      <div><strong>Amps:</strong><div class="blank-line"></div></div>
+                      <div><strong>Current Density:</strong><div class="blank-line"></div></div>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% else %}
+              <div class="alert-info">
+                <strong>Instructions:</strong> {{ job_data.instructions.0 }}
+              </div>
+            {% endif %}
           {% endif %}
 
           {% if step.parameters %}

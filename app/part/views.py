@@ -97,6 +97,15 @@ def work_order_print_steps_view(request, work_order_id):
     inspections = work_order.standard.inspections.all() if hasattr(work_order.standard, 'inspections') else []
     print(inspections)
 
+    bake_labels = [
+        "Date and Time of Start of Baking",
+        "Date and Time of Start of Soak",
+        "Date and Time of Completion of Baking",
+        "Furnace Control Instrument Set Temperature",
+        "Furnace Identification",
+        "Graph Number"
+    ]
+
     context = {
         'work_order': work_order,
         'process_steps': process_steps,
@@ -108,6 +117,7 @@ def work_order_print_steps_view(request, work_order_id):
         'footer_text': pdf_settings.footer_text if pdf_settings else f"Printed on: {current_date}",
         'job_data': job_data,
         'inspections': inspections,
+        'bake_labels': bake_labels,
     }
 
     # Render the template with context
