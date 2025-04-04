@@ -91,7 +91,7 @@ def work_order_print_steps_view(request, work_order_id):
         'amps': amps,
         'is_chrome_or_cadmium': work_order.job_identity in ['chrome_plate', 'cadmium_plate'],
         'is_chrome_plate': work_order.job_identity == 'chrome_plate',
-        'instructions': ["Record amperage and current density during plating operation."]
+        'instructions': ["Record amp, current density, Dim Thickness Started and Dim Thickness Finish"]
     }
 
     inspections = work_order.standard.inspections.all() if hasattr(work_order.standard, 'inspections') else []

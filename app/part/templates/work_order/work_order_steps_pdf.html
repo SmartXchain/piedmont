@@ -327,7 +327,7 @@
                       </div>
                     </li>
                     <li>
-                      Strike (if base metal): Twice amps for 2–5 min.
+                      Strike (if base metal): Twice amps for 1–5 min.
                       <div class="step-input-row">
                         <div class="step-input-label">Amps Used:</div>
                         <div class="step-input-line"></div>
@@ -343,11 +343,23 @@
                 <strong>Instructions:</strong>
                 <ul>
                   {% for instruction in job_data.instructions %}
-                    <li>
                       {{ instruction }}
-                      <div><strong>Amps:</strong><div class="blank-line"></div></div>
-                      <div><strong>Current Density:</strong><div class="blank-line"></div></div>
-                    </li>
+                      <div class="input-row">
+                        <div class="input-label">Amps:</div>
+                        <div class="input-line"></div>
+                      </div>
+                      <div class="input-row">
+                        <div class="input-label">Current Density:</div>
+                        <div class="input-line"></div>
+                      </div>
+                      <div class="input-row">
+                        <div class="input-label">Dim Thickness Start:</div>
+                        <div class="input-line"></div>
+                      </div>
+                      <div class="input-row">
+                        <div class="input-label">Dim Thickness Finish:</div>
+                        <div class="input-line"></div>
+                      </div>
                   {% endfor %}
                 </ul>
               </div>
@@ -397,7 +409,7 @@
       {% for inspection in inspections %}
       <tr class="avoid-break">
         <td>{{ inspection.name }}</td>
-        <td class="description-box description-text">{{ inspection.description|linebreaks }}</td>
+        <td><div class="description-box description-text">{{ inspection.description|linebreaks }}</div></td>
         <td>{{ inspection.paragraph_section }}</td>
         <td>{{ inspection.sampling_plan }}</td>
         <td></td>
