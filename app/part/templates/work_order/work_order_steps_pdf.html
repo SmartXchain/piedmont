@@ -42,6 +42,7 @@
     h2 {
       font-size: 0.9rem;
       margin-top: 1rem;
+      page-break-after: avoid;
     }
 
     table {
@@ -102,6 +103,17 @@
       padding: 0.4rem;
       font-style: italic;
     }
+
+    .page_break {
+      page-break-before: always;
+    }
+
+    .avoid-break {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+
   </style>
 </head>
 <body>
@@ -148,10 +160,11 @@
     </thead>
     <tbody>
       {% for step in process_steps %}
-      <tr>
+      <tr class="avoid-break">
         <td>{{ forloop.counter }}</td>
         <td>{{ step.method.title }}</td>
         <td>
+          {{ step.method.description|safe }}
           {# Special condition: Stress Relief or Hydrogen Embrittlement Relief #}
           {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' %}
             <strong>{{ step.method.title }} Details:</strong>
@@ -185,8 +198,6 @@
               <li><strong>Time Range:</strong> {{ step.method.immersion_time_min }}–{{ step.method.immersion_time_max }} mins</li>
             </ul>
           {% endif %}
-
-          {{ step.method.description|safe }}
 
           {% if step.method.is_rectified %}
             {% if job_data.is_chrome_or_cadmium %}
@@ -244,6 +255,7 @@
     </tbody>
   </table>
 
+  <div class="page-break"></div>
   <h2>Inspection Requirements</h2>
   <table>
     <thead>
@@ -258,7 +270,7 @@
     </thead>
     <tbody>
       {% for inspection in inspections %}
-      <tr>
+      <tr class="avoid-break">
         <td>{{ inspection.name }}</td>
         <td>{{ inspection.description }}</td>
         <td>{{ inspection.paragraph_section }}</td>
