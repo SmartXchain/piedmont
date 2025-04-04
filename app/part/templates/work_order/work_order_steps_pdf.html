@@ -104,8 +104,9 @@
       font-style: italic;
     }
 
-    .page_break {
+    .page-break {
       page-break-before: always;
+      break-before: page;
     }
 
     .avoid-break {
@@ -148,6 +149,26 @@
       color: #000;
       text-transform: uppercase;
     }
+
+    .input-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 0.4rem;
+    }
+
+    .input-label {
+      flex: 1;
+      font-weight: bold;
+      margin-right: 0.5rem;
+    }
+
+    .input-line {
+      flex: 2;
+      border-bottom: 1px solid #000;
+      height: 1.5rem;
+    }
+
   </style>
 </head>
 <body>
@@ -206,13 +227,31 @@
           </div>
           {# Special condition: Stress Relief or Hydrogen Embrittlement Relief #}
           {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' %}
-            <strong>{{ step.method.title }} Details:</strong>
-            <div class="mb-2"><strong>Date and Time of Start of Baking:</strong><div class="blank-line"></div></div>
-            <div class="mb-2"><strong>Date and Time of Start of Soak:</strong><div class="blank-line"></div></div>
-            <div class="mb-2"><strong>Date and Time of Completion of Baking:</strong><div class="blank-line"></div></div>
-            <div class="mb-2"><strong>Furnace Control Instrument Set Temperature:</strong><div class="blank-line"></div></div>
-            <div class="mb-2"><strong>Furnace Identification:</strong><div class="blank-line"></div></div>
-            <div class="mb-2"><strong>Graph Number:</strong><div class="blank-line"></div></div>
+            <strong>{{ step.method.title|upper }} DETAILS:</strong>
+            <div class="input-row">
+              <div class="input-label">Date and Time of Start of Baking:</div>
+              <div class="input-line"></div>
+            </div>
+            <div class="input-row">
+              <div class="input-label">Date and Time of Start of Soak:</div>
+              <div class="input-line"></div>
+            </div>
+            <div class="input-row">
+              <div class="input-label">Date and Time of Completion of Baking:</div>
+              <div class="input-line"></div>
+            </div>
+            <div class="input-row">
+              <div class="input-label">Furnace Control Instrument Set Temperature:</div>
+              <div class="input-line"></div>
+            </div>
+            <div class="input-row">
+              <div class="input-label">Furnace Identification:</div>
+              <div class="input-line"></div>
+            </div>
+            <div class="input-row">
+              <div class="input-label">Graph Number:</div>
+              <div class="input-line"></div>
+            </div>
           {% endif %}
 
           {# Masking acknowledgement #}
