@@ -397,7 +397,7 @@
       {% for inspection in inspections %}
       <tr class="avoid-break">
         <td>{{ inspection.name }}</td>
-        <td>{{ inspection.description }}</td>
+        <td class="description-box description-text">{{ inspection.description|linebreaks }}</td>
         <td>{{ inspection.paragraph_section }}</td>
         <td>{{ inspection.sampling_plan }}</td>
         <td></td>
