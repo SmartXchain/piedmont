@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Add Work Order{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 text-primary">
+      <i class="bi bi-plus-circle-fill me-2"></i>
+      New Work Order for Part <span class="fw-bold">{{ part.part_number }}</span>
+    </h2>
+    <a href="{% url 'part_detail' part.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Part
+    </a>
+  </div>
+
+  <!-- Work Order Form -->
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- SECTION: Basic Info -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-light">
+        <strong><i class="bi bi-file-earmark-text me-1"></i> Work Order Info</strong>
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-md-6">
+          {{ form.work_order_number.label_tag }} <span class="text-danger">*</span>
+          {{ form.work_order_number|add_class:"form-control" }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form.rework.label_tag }}
+          {{ form.rework|add_class:"form-check-input ms-2" }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form.job_identity.label_tag }} <span class="text-danger">*</span>
+          {{ form.job_identity|add_class:"form-select" }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form.surface_repaired.label_tag }}
+          {{ form.surface_repaired|add_class:"form-control" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: Standard & Classification -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-light">
+        <strong><i class="bi bi-journals me-1"></i> Process Standard</strong>
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-md-6">
+          {{ form.standard.label_tag }} <span class="text-danger">*</span>
+          {{ form.standard|add_class:"form-select" }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form.classification.label_tag }}
+          {{ form.classification|add_class:"form-select" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: Customer & Order -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-light">
+        <strong><i class="bi bi-people me-1"></i> Customer Info</strong>
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-md-6">
+          {{ form.customer.label_tag }}
+          {{ form.customer|add_class:"form-control" }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form.purchase_order_with_revision.label_tag }}
+          {{ form.purchase_order_with_revision|add_class:"form-control" }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form.part_quantity.label_tag }}
+          {{ form.part_quantity|add_class:"form-control" }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form.serial_or_lot_numbers.label_tag }}
+          {{ form.serial_or_lot_numbers|add_class:"form-control" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: Rectified Tank Values -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-light">
+        <strong><i class="bi bi-lightning-charge me-1"></i> Rectified Process Values</strong>
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-md-6">
+          {{ form.surface_area.label_tag }}
+          {{ form.surface_area|add_class:"form-control" }}
+          <small class="text-muted">Area in square inches</small>
+        </div>
+
+        <div class="col-md-6">
+          {{ form.current_density.label_tag }}
+          {{ form.current_density|add_class:"form-control" }}
+          <small class="text-muted">Amps per square inch</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="d-flex justify-content-end">
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-check-circle me-1"></i> Save Work Order
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

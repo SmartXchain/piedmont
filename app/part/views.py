@@ -7,6 +7,8 @@ from django.utils import timezone
 from weasyprint import HTML
 from process.models import Process, ProcessStep
 from django.core.paginator import Paginator
+from .forms import WorkOrderForm
+from django.shortcuts import redirect
 
 
 # 📌 List all parts (Read-Only)
@@ -51,6 +53,25 @@ def work_order_detail_view(request, work_order_id):
     work_order = get_object_or_404(WorkOrder, id=work_order_id)
     process_steps = work_order.get_process_steps()
     return render(request, 'work_order/work_order_detail.html', {'work_order': work_order, 'process_steps': process_steps})
+
+
+def work_order_create_view(request, part_id):
+    part = get_object_or_404(Part, id=part_id)
+
+    if request.method == 'POST':
+        form = WorkOrderForm(request.POST, part=part)
+        if form.is_valid():
+            work_order = form.save(commit=False)
+            work_order.part = part
+            work_order.save()
+            return redirect('part_detail', part_id=part.id)
+    else:
+        form = WorkOrderForm(part=part)
+
+    return render(request, 'work_order/work_order_form.html', {
+        'form': form,
+        'part': part
+    })
 
 
 def work_order_print_steps_view(request, work_order_id):
