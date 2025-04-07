@@ -11,6 +11,8 @@ class PartStandardForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # Custom label for classifications showing method/class/type and standard name
         self.fields['classification'].label_from_instance = lambda obj: (
-            f"{obj.name} ({obj.standard.name})" if obj.standard else obj.name
+            f"Method: {obj.method or '—'}, Class: {obj.class_name or '—'}, Type: {obj.type or '—'}"
+            + (f" ({obj.standard.name})" if obj.standard else "")
         )

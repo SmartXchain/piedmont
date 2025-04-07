@@ -31,10 +31,9 @@ class ClassificationInline(admin.TabularInline):
 
 @admin.register(Standard)
 class StandardAdmin(admin.ModelAdmin):
-    list_display = ('name', 'revision', 'author', 'process', 'requires_process_review')
+    list_display = ('name', 'revision', 'author', 'process', 'nadcap', 'requires_process_review')
     search_fields = ('name', 'revision', 'author', 'process')
-    list_filter = ('requires_process_review', 'created_at', 'updated_at')
-    ordering = ('-updated_at',)
+    ordering = ('-name',)
     inlines = [InspectionRequirementInline, PeriodicTestInline, ClassificationInline]
 
 

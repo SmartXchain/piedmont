@@ -14,6 +14,7 @@ class Standard(models.Model):
         ('passivation', 'Passivation'),
         ('pre-pen etch', 'Pre-Pen Etch'),
         ('strip', 'Stripping of Coating'),
+        ('thermal', 'Thermal Treatment'),
     ]
 
     name = models.CharField(max_length=255)
@@ -21,6 +22,7 @@ class Standard(models.Model):
     revision = models.CharField(max_length=50)
     author = models.CharField(max_length=255)
     process = models.CharField(max_length=50, choices=PROCESS_CHOICES)
+    nadcap = models.BooleanField(default=False)
     upload_file = models.FileField(upload_to='standard/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
