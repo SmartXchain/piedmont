@@ -1,14 +1,16 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Part, WorkOrder, PDFSettings
 import tempfile
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 from weasyprint import HTML
 from process.models import Process, ProcessStep
 from django.core.paginator import Paginator
-from .forms import WorkOrderForm
+from .forms import WorkOrderForm, PartForm, PartStandardForm
 from django.shortcuts import redirect
+from django.contrib import messages
+from standard.models import Classification
 
 
 # 📌 List all parts (Read-Only)
@@ -40,6 +42,42 @@ def part_detail_view(request, part_id):
     standards = part.standards.all()
     work_orders = part.work_orders.all()
     return render(request, 'part/part_detail.html', {'part': part, 'standards': standards, 'work_orders': work_orders})
+
+
+def part_create_view(request):
+    if request.method == 'POST':
+        form = PartForm(request.POST)
+        if form.is_valid():
+            part = form.save()
+            messages.success(request, "✅ Part created. Now assign a standard to continue.")
+            return redirect('part_assign_standard', part_id=part.id)
+    else:
+        form = PartForm()
+
+    return render(request, 'part/part_form.html', {'form': form})
+
+def part_assign_standard_view(request, part_id):
+    part = get_object_or_404(Part, id=part_id)
+
+    if request.method == 'POST':
+        form = PartStandardForm(request.POST)
+        if form.is_valid():
+            part_standard = form.save(commit=False)
+            part_standard.part = part
+            part_standard.save()
+            messages.success(request, "✅ Standard assigned. You can now create the work order.")
+            return redirect('work_order_create', part_id=part.id)
+    else:
+        form = PartStandardForm()
+
+    # 🚨 Filter classifications to only those related to the selected standard (if selected)
+    if form.data.get('standard'):
+        selected_standard_id = form.data.get('standard')
+        form.fields['classification'].queryset = Classification.objects.filter(standard_id=selected_standard_id)
+    else:
+        form.fields['classification'].queryset = Classification.objects.none()
+
+    return render(request, 'part/part_assign_standard_form.html', {'form': form, 'part': part})
 
 
 # 📌 List all work orders (Read-Only)
@@ -153,3 +191,9 @@ def work_order_print_steps_view(request, work_order_id):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="Work_Order_{work_order.work_order_number}_Steps.pdf"'
     return response
+
+
+def standard_classifications_json(request, standard_id):
+    classifications = Classification.objects.filter(standard_id=standard_id)
+    data = [{"id": c.id, "label": str(c)} for c in classifications]
+    return JsonResponse(data, safe=False)

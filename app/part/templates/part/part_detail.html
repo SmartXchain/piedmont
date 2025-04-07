@@ -1,83 +1,108 @@
 {% extends "base.html" %}
+{% block title %}Part Details{% endblock %}
+
 {% block content %}
-<h2>Part Details</h2>
+<div class="container py-5">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'part_list' %}">Parts</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ part.part_number }}</li>
+    </ol>
+  </nav>
 
-<!-- In part_detail.html -->
-<div class="d-flex justify-content-end mb-3">
+  <!-- Part Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 text-primary">
+      <i class="bi bi-gear-wide-connected me-2"></i>
+      Part: <span class="fw-bold">{{ part.part_number }}</span>
+    </h2>
     <a href="{% url 'work_order_create' part.id %}" class="btn btn-success">
-      <i class="bi bi-plus-circle"></i> Add Work Order
+      <i class="bi bi-file-earmark-plus"></i> Add Work Order
     </a>
-  </div>  
+  </div>
 
-<!-- Part Information -->
-<div class="card mb-3">
-    <div class="card-header">
-        <strong>Part Information</strong>
+  <!-- Part Info Card -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-light">
+      <strong><i class="bi bi-info-circle me-1"></i> Part Information</strong>
     </div>
     <div class="card-body">
-        <p><strong>Part Number:</strong> {{ part.part_number }}</p>
-        <p><strong>Description:</strong> {{ part.part_description }}</p>
-        <p><strong>Revision:</strong> {{ part.part_revision|default:"-" }}</p>
+      <p><strong>Part Number:</strong> {{ part.part_number }}</p>
+      <p><strong>Description:</strong> {{ part.part_description }}</p>
+      <p><strong>Revision:</strong> {{ part.part_revision|default:"-" }}</p>
     </div>
-</div>
+  </div>
 
-<!-- Assigned Standards and Classifications -->
-<div class="card mb-3">
-    <div class="card-header">
-        <strong>Assigned Standards & Classifications</strong>
+  <!-- Standards Assignment Card -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <strong><i class="bi bi-journals me-1"></i> Assigned Standards</strong>
+      <a href="{% url 'part_assign_standard' part.id %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-plus-circle"></i> Assign Standard
+      </a>
+    </div>
+  
+    <div class="card-body">
+      {% if standards %}
+        <ul class="list-group">
+          {% for standard in standards %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+                <strong>{{ standard.standard.name }}</strong>
+                {% if standard.classification %}-
+                  Method: {{ standard.classification.method|default:"N/A" }} |
+                  Class: {{ standard.classification.class_name|default:"N/A" }} |
+                  Type: {{ standard.classification.type|default:"N/A" }}
+                {% endif %}
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">No standards assigned to this part.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Work Orders Table -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-light">
+      <strong><i class="bi bi-clipboard-data me-1"></i> Work Orders</strong>
     </div>
     <div class="card-body">
-        {% if standards %}
-            <ul class="list-group">
-                {% for standard in standards %}
-                <li class="list-group-item">
-                    <strong>{{ standard.standard.name }}</strong> - {{ standard.classification.name|default:"No Classification" }}
-                </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No standards assigned to this part.</p>
-        {% endif %}
+      {% if work_orders %}
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>WO #</th>
+                <th>Standard</th>
+                <th>Classification</th>
+                <th>Surface</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for wo in work_orders %}
+              <tr>
+                <td>{{ wo.work_order_number }}</td>
+                <td>{{ wo.standard.name }}</td>
+                <td>{{ wo.classification|default:"-" }}</td>
+                <td>{{ wo.surface_repaired|default:"-" }}</td>
+                <td>
+                  <a href="{% url 'work_order_detail' wo.id %}" class="btn btn-info btn-sm">Details</a>
+                  <a href="{% url 'work_order_pdf' wo.id %}" class="btn btn-primary btn-sm" target="_blank">Print</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">No work orders created yet.</p>
+      {% endif %}
     </div>
+  </div>
 </div>
-
-<!-- Work Orders for This Part -->
-<div class="card mb-3">
-    <div class="card-header">
-        <strong>Work Orders</strong>
-    </div>
-    <div class="card-body">
-        {% if part.work_orders.all %}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Work Order Number</th>
-                        <th>Standard</th>
-                        <th>Classification</th>
-                        <th>Surface Repaired</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for work_order in part.work_orders.all %}
-                    <tr>
-                        <td>{{ work_order.work_order_number }}</td>
-                        <td>{{ work_order.standard.name }}</td>
-                        <td>{{ work_order.classification.name|default:"-" }}</td>
-                        <td>{{ work_order.surface_repaired|default:"-" }}</td>
-                        <td>
-                            <a href="{% url 'work_order_detail' work_order.id %}" class="btn btn-info btn-sm">View Details</a>
-                            <a href="{% url 'work_order_pdf' work_order.id %}" class="btn btn-primary btn-sm" target="_blank">Print Steps</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No work orders available for this part.</p>
-        {% endif %}
-    </div>
-</div>
-
-<a href="{% url 'part_list' %}" class="btn btn-secondary">Back to Parts List</a>
 {% endblock %}

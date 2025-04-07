@@ -15,9 +15,6 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3"><i class="bi bi-book"></i> Standards</h1>
-        <a href="{% url 'standard_create' %}" class="btn btn-success shadow-sm">
-            <i class="bi bi-plus-lg"></i> Add Standard
-        </a>
     </div>
 
     <!-- 🔥 Process Review Warning -->
@@ -25,7 +22,7 @@
         <div class="alert alert-warning d-flex align-items-center" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
             <div>
-                The following standards require process review before they can be used:
+                Some standards require process review before they can be used.
             </div>
         </div>
         <ul class="list-group shadow-sm mb-4">
@@ -40,19 +37,21 @@
         </ul>
     {% endif %}
 
+    <!-- Process Filter -->
     <form method="get" class="mb-4 d-flex align-items-center gap-2">
         <label for="process" class="form-label me-2 mb-0"><strong>Filter by Process:</strong></label>
         <select name="process" id="process" class="form-select w-auto" onchange="this.form.submit()">
             <option value="">All</option>
-            {% for code, label in process_choices %}
-                <option value="{{ code }}" {% if selected_process == code %}selected{% endif %}>{{ label }}</option>
+            {% for value, label in process_choices %}
+                <option value="{{ value }}" {% if selected_process == value %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
         {% if selected_process %}
             <a href="{% url 'standard_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
         {% endif %}
     </form>
-    <!-- 📂 Standards Accordion by Author -->
+
+    <!-- 📚 Standards Accordion by Author -->
     <div class="accordion shadow-sm" id="standardsAccordion">
         {% for author, standards in standards_by_author.items %}
         <div class="accordion-item">
@@ -76,7 +75,7 @@
                                     <th>Revision</th>
                                     <th>Process</th>
                                     <th>Last Updated</th>
-                                    <th class="text-center">Actions</th>
+                                    <th class="text-center">View</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -108,9 +107,6 @@
                                         <a href="{% url 'standard_detail' standard.id %}" class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="tooltip" title="View Details">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{% url 'standard_edit' standard.id %}" class="btn btn-warning btn-sm shadow-sm" data-bs-toggle="tooltip" title="Edit Standard">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
                                     </td>
                                 </tr>
                             {% empty %}
@@ -137,5 +133,4 @@
         });
     });
 </script>
-
 {% endblock %}

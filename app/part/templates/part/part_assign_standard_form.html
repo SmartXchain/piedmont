@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load form_tags %}
+{% block title %}Assign Standard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">Assign a Standard to Part <strong>{{ part.part_number }}</strong></h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="mb-3">
+      {{ form.standard.label_tag }} <span class="text-danger">*</span>
+      {{ form.standard|add_class:"form-select" }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.classification.label_tag }}
+      {{ form.classification|add_class:"form-select" }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-save me-1"></i> Assign Standard
+    </button>
+    <a href="{% url 'part_detail' part.id %}" class="btn btn-secondary ms-2">Cancel</a>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const standardSelect = document.getElementById('id_standard');
+    const classificationSelect = document.getElementById('id_classification');
+
+    function fetchClassifications(standardId) {
+      fetch(`/standards/${standardId}/classifications/json/`)
+        .then(response => response.json())
+        .then(data => {
+          classificationSelect.innerHTML = '<option value="">---------</option>';
+          data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.label;
+            classificationSelect.appendChild(option);
+          });
+        });
+    }
+
+    standardSelect.addEventListener('change', function () {
+      const selected = this.value;
+      if (selected) {
+        fetchClassifications(selected);
+      } else {
+        classificationSelect.innerHTML = '<option value="">---------</option>';
+      }
+    });
+
+    if (standardSelect.value) {
+      fetchClassifications(standardSelect.value);
+    }
+  });
+</script>
+{% endblock %}

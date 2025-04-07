@@ -1,79 +1,100 @@
 {% extends "base.html" %}
+{% block title %}Find a Part{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Parts List</h2>
-    <form method="get" class="d-flex flex-wrap gap-2 align-items-center">
-      <input type="text" name="q" class="form-control me-2" placeholder="Search by Part Number" value="{{ query }}">
-      <select name="sort" class="form-select me-2">
-        <option value="part_number" {% if sort == "part_number" %}selected{% endif %}>Sort: Part Number</option>
-        <option value="-part_number" {% if sort == "-part_number" %}selected{% endif %}>Sort: Part Number (Desc)</option>
-      </select>
-      <button type="submit" class="btn btn-outline-primary">Search</button>
-      {% if query %}
-      <a href="{% url 'part_list' %}" class="btn btn-outline-secondary">Clear</a>
-      {% endif %}
-    </form>
+<div class="container my-5">
+  <!-- Page Header -->
+  <div class="text-center mb-4">
+    <h1 class="display-6 text-primary fw-bold">
+      <i class="bi bi-tools me-2"></i> Start a Work Order
+    </h1>
+    <p class="text-muted">1. Search for your part → 2. Check standard → 3. Start work order.</p>
   </div>
 
-  {% if page_obj %}
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover align-middle">
-        <thead class="table-light sticky-top">
-          <tr>
-            <th>Part Number</th>
-            <th>Description</th>
-            <th>Revision</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for part in page_obj.object_list %}
-          <tr>
-            <td>{{ part.part_number }}</td>
-            <td>{{ part.part_description }}</td>
-            <td>{{ part.part_revision|default:"-" }}</td>
-            <td>
-              <a href="{% url 'part_detail' part.id %}" class="btn btn-sm btn-info" title="View Part Details">View</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <!-- Search Bar -->
+  <form method="get" class="d-flex justify-content-center mb-5">
+    <div class="input-group input-group-lg w-75 shadow-sm">
+      <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Enter part number..." autofocus required>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-search"></i> Search
+      </button>
+    </div>
+  </form>
+
+  {% if query %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="text-muted">Results for: <span class="fw-bold text-dark">"{{ query }}"</span></h5>
+      <a href="{% url 'part_create' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle-fill me-1"></i> Add New Part
+      </a>
     </div>
 
-    <!-- Pagination -->
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-          <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}sort={{ sort }}&page={{ page_obj.previous_page_number }}">Previous</a>
-        </li>
-        {% else %}
-        <li class="page-item disabled"><span class="page-link">Previous</span></li>
-        {% endif %}
-
-        {% for num in page_obj.paginator.page_range %}
-          {% if page_obj.number == num %}
-          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-          <li class="page-item"><a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}sort={{ sort }}&page={{ num }}">{{ num }}</a></li>
-          {% endif %}
+    {% if page_obj.object_list %}
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for part in page_obj.object_list %}
+        <div class="col">
+          <div class="card border border-primary h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title mb-1">{{ part.part_number }}</h5>
+              <p class="text-muted small mb-2">{{ part.part_description }}</p>
+              <div class="d-flex justify-content-between">
+                <span class="badge bg-secondary">Rev: {{ part.part_revision|default:"—" }}</span>
+                {% if part.standards.count %}
+                  <span class="badge bg-success" title="Standards assigned">
+                    <i class="bi bi-check-circle-fill"></i> Standard Ready
+                  </span>
+                {% else %}
+                  <span class="badge bg-warning text-dark" title="No standards assigned">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Needs Standard
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="card-footer bg-light text-end">
+              <a href="{% url 'part_detail' part.id %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-chevron-right"></i> Select
+              </a>
+            </div>
+          </div>
+        </div>
         {% endfor %}
+      </div>
 
-        {% if page_obj.has_next %}
-        <li class="page-item">
-          <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}sort={{ sort }}&page={{ page_obj.next_page_number }}">Next</a>
-        </li>
-        {% else %}
-        <li class="page-item disabled"><span class="page-link">Next</span></li>
-        {% endif %}
-      </ul>
-    </nav>
+      <!-- Pagination -->
+      <nav class="mt-4" aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+          {% endif %}
+          {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+              <a class="page-link" href="?q={{ query }}&page={{ num }}">{{ num }}</a>
+            </li>
+          {% endfor %}
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% else %}
+      <div class="alert alert-warning text-center mt-4">
+        <i class="bi bi-exclamation-circle me-2"></i> No matching part found.<br>
+        <a href="{% url 'part_create' %}" class="btn btn-sm btn-success mt-3">
+          <i class="bi bi-plus-circle-fill"></i> Add New Part
+        </a>
+      </div>
+    {% endif %}
   {% else %}
-    <div class="alert alert-warning mt-4" role="alert">
-      No parts found. Try refining your search.
+    <!-- Optional: default call to action when no query -->
+    <div class="text-center text-muted mt-4">
+      <p>Search for a part to begin or add a new one.</p>
+      <a href="{% url 'part_create' %}" class="btn btn-outline-success">
+        <i class="bi bi-plus-circle"></i> Add New Part
+      </a>
     </div>
   {% endif %}
 </div>
