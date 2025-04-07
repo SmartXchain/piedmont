@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Part, PartStandard, WorkOrder, PDFSettings
+from .forms import PartStandardForm  # 👈 import your new form
 
 
 @admin.register(Part)
@@ -10,9 +11,11 @@ class PartAdmin(admin.ModelAdmin):
 
 @admin.register(PartStandard)
 class PartStandardAdmin(admin.ModelAdmin):
+    form = PartStandardForm  # 👈 apply the form
     list_display = ('part', 'standard', 'classification')
     list_filter = ('standard', 'classification')
     search_fields = ('part__part_number', 'standard__name', 'classification__name')
+
 
 
 @admin.register(WorkOrder)

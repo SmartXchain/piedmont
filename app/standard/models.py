@@ -3,10 +3,25 @@ from django.db import models
 
 class Standard(models.Model):
     """Tracks standards with versioning and notifications when revised."""
+    PROCESS_CHOICES = [
+        ('anodize', 'Anodizing'),
+        ('brush plate', 'Brush Plating'),
+        ('clean', 'Cleaning'),
+        ('conversion coating', 'Conversion Coating'),
+        ('electroplate', 'Electroplating'),
+        ('nital etch', 'Nital Etch'),
+        ('paint', 'Paint'),
+        ('passivation', 'Passivation'),
+        ('pre-pen etch', 'Pre-Pen Etch'),
+        ('strip', 'Stripping of Coating'),
+    ]
+
+
     name = models.CharField(max_length=255)
     description = models.TextField()
     revision = models.CharField(max_length=50)
     author = models.CharField(max_length=255)
+    process = models.CharField(max_length=50, choices=PROCESS_CHOICES)
     upload_file = models.FileField(upload_to='standard/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
