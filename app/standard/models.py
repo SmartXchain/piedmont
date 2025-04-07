@@ -16,7 +16,6 @@ class Standard(models.Model):
         ('strip', 'Stripping of Coating'),
     ]
 
-
     name = models.CharField(max_length=255)
     description = models.TextField()
     revision = models.CharField(max_length=50)

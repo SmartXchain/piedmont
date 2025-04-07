@@ -17,7 +17,6 @@ class PartStandardAdmin(admin.ModelAdmin):
     search_fields = ('part__part_number', 'standard__name', 'classification__name')
 
 
-
 @admin.register(WorkOrder)
 class WorkOrderAdmin(admin.ModelAdmin):
     list_display = ('work_order_number', 'part', 'standard', 'classification', 'surface_repaired')

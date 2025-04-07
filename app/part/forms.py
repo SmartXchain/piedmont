@@ -2,6 +2,7 @@
 from django import forms
 from part.models import PartStandard
 
+
 class PartStandardForm(forms.ModelForm):
     class Meta:
         model = PartStandard
