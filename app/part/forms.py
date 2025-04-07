@@ -24,8 +24,7 @@ class WorkOrderForm(forms.ModelForm):
             'work_order_number', 'rework', 'job_identity', 'standard',
             'classification', 'surface_repaired', 'customer',
             'purchase_order_with_revision', 'part_quantity',
-            'serial_or_lot_numbers', 'surface_area',
-            'current_density'
+            'serial_or_lot_numbers', 'surface_area', 'current_density'
         ]
         widgets = {
             'serial_or_lot_numbers': forms.Textarea(attrs={'rows': 2}),
@@ -34,6 +33,13 @@ class WorkOrderForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         part = kwargs.pop('part', None)
         super().__init__(*args, **kwargs)
+
         if part:
-            self.fields['standard'].queryset = part.standards.values_list('standard', flat=True)
-            self.fields['classification'].queryset = part.standards.values_list('classification', flat=True)
+            # ✅ Use actual model instances
+            self.fields['standard'].queryset = Standard.objects.filter(
+                id__in=PartStandard.objects.filter(part=part).values_list('standard', flat=True)
+            )
+
+            self.fields['classification'].queryset = Classification.objects.filter(
+                id__in=PartStandard.objects.filter(part=part).values_list('classification', flat=True)
+            )
