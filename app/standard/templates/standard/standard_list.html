@@ -40,6 +40,18 @@
         </ul>
     {% endif %}
 
+    <form method="get" class="mb-4 d-flex align-items-center gap-2">
+        <label for="process" class="form-label me-2 mb-0"><strong>Filter by Process:</strong></label>
+        <select name="process" id="process" class="form-select w-auto" onchange="this.form.submit()">
+            <option value="">All</option>
+            {% for code, label in process_choices %}
+                <option value="{{ code }}" {% if selected_process == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        {% if selected_process %}
+            <a href="{% url 'standard_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+        {% endif %}
+    </form>
     <!-- 📂 Standards Accordion by Author -->
     <div class="accordion shadow-sm" id="standardsAccordion">
         {% for author, standards in standards_by_author.items %}
@@ -62,6 +74,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Revision</th>
+                                    <th>Process</th>
                                     <th>Last Updated</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
@@ -71,6 +84,25 @@
                                 <tr>
                                     <td>{{ standard.name }}</td>
                                     <td><span class="badge bg-info text-dark">{{ standard.revision }}</span></td>
+                                    <td>
+                                        {% with process=standard.process %}
+                                            <span class="badge 
+                                                {% if process == 'anodize' %}bg-primary
+                                                {% elif process == 'paint' %}bg-danger
+                                                {% elif process == 'clean' %}bg-secondary
+                                                {% elif process == 'conversion coating' %}bg-success
+                                                {% elif process == 'electroplate' %}bg-info
+                                                {% elif process == 'nital etch' %}bg-warning text-dark
+                                                {% elif process == 'passivation' %}bg-dark
+                                                {% elif process == 'pre-pen etch' %}bg-light text-dark
+                                                {% elif process == 'strip' %}bg-warning
+                                                {% elif process == 'thermal' %}bg-danger
+                                                {% else %}bg-secondary
+                                                {% endif %}">
+                                                {{ standard.get_process_display }}
+                                            </span>
+                                        {% endwith %}
+                                    </td>
                                     <td>{{ standard.updated_at|date:"Y-m-d H:i" }}</td>
                                     <td class="text-center">
                                         <a href="{% url 'standard_detail' standard.id %}" class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="tooltip" title="View Details">
@@ -83,7 +115,7 @@
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted">No standards available.</td>
+                                    <td colspan="5" class="text-center text-muted">No standards available.</td>
                                 </tr>
                             {% endfor %}
                             </tbody>

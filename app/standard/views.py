@@ -11,6 +11,8 @@ from collections import defaultdict, OrderedDict
 def standard_list_view(request):
     """Fetches only the latest revision of each standard and flags those requiring review."""
 
+    selected_process = request.GET.get('process')
+
     # Get the latest revision for each standard name
     latest_standards = Standard.objects.filter(
         revision=Subquery(
@@ -19,6 +21,11 @@ def standard_list_view(request):
             .values('revision')[:1]
         )
     ).exclude(requires_process_review=True).order_by('name')
+
+    if selected_process:
+        latest_standards = latest_standards.filter(process=selected_process)
+
+    latest_standards = latest_standards.order_by('name')
 
     # Fetch pending review standards separately
     pending_reviews = Standard.objects.filter(requires_process_review=True)
@@ -34,7 +41,9 @@ def standard_list_view(request):
     return render(request, 'standard/standard_list.html', {
         'standards_by_author': standards_by_author,  # Grouped and sorted
         'pending_reviews': pending_reviews,
-        'requires_review': requires_review
+        'requires_review': requires_review,
+        'selected_process': selected_process,
+        'process_choices': Standard.PROCESS_CHOICES,
     })
 
 
