@@ -1,7 +1,7 @@
 # admin/forms.py
 from django import forms
 from part.models import PartStandard, WorkOrder
-from standard.models import Standard, Classification 
+from standard.models import Standard, Classification
 
 
 class PartStandardForm(forms.ModelForm):
