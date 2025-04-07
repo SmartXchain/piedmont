@@ -16,6 +16,7 @@ class PartStandardForm(forms.ModelForm):
             f"Method: {obj.method or '—'}, Class: {obj.class_name or '—'}, Type: {obj.type or '—'}" + (f" ({obj.standard.name})" if obj.standard else "")
         )
 
+
 class WorkOrderForm(forms.ModelForm):
     class Meta:
         model = WorkOrder
