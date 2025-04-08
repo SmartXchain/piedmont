@@ -105,8 +105,8 @@ class WorkOrder(models.Model):
 
     def clean(self):
         """Ensure required fields are present for rectified processing tanks."""
-        if not self.part:
-            raise ValidationError("Work order must be associated with a valid Part.")
+        if not self.part_id:
+            return
 
         process_steps = self.get_process_steps()
         rectified_steps = [step for step in process_steps if step.method.method_type == 'processing_tank' and step.method.is_rectified]

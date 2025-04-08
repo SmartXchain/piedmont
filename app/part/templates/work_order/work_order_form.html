@@ -3,18 +3,20 @@
 {% block title %}Add Work Order{% endblock %}
 
 {% block content %}
-{% if messages %}
-  <div class="mb-3">
-    {% for message in messages %}
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i> {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
-
 <div class="container my-5">
+
+  <!-- Flash Messages -->
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="bi bi-check-circle me-2"></i> {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h4 text-primary">
@@ -29,107 +31,166 @@
   <!-- Work Order Form -->
   <form method="post" novalidate>
     {% csrf_token %}
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        <strong>There were errors in your form:</strong>
+        <ul class="mb-0">
+          {% for field in form %}
+            {% for error in field.errors %}
+              <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
 
-    <!-- SECTION: Basic Info -->
+    <!-- Basic Info -->
     <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-light">
-        <strong><i class="bi bi-file-earmark-text me-1"></i> Work Order Info</strong>
+      <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-file-earmark-text me-1"></i> Work Order Info
       </div>
       <div class="card-body row g-3">
         <div class="col-md-6">
-          {{ form.work_order_number.label_tag }} <span class="text-danger">*</span>
+          <label class="form-label required">{{ form.work_order_number.label }}</label>
           {{ form.work_order_number|add_class:"form-control" }}
         </div>
 
-        <div class="col-md-6">
-          {{ form.rework.label_tag }}
-          {{ form.rework|add_class:"form-check-input ms-2" }}
+        <div class="col-md-6 d-flex align-items-center">
+          <div class="form-check mt-4">
+            {{ form.rework|add_class:"form-check-input me-2" }}
+            <label class="form-check-label">{{ form.rework.label }}</label>
+          </div>
         </div>
 
         <div class="col-md-6">
-          {{ form.job_identity.label_tag }} <span class="text-danger">*</span>
+          <label class="form-label required">{{ form.job_identity.label }}</label>
           {{ form.job_identity|add_class:"form-select" }}
         </div>
 
         <div class="col-md-6">
-          {{ form.surface_repaired.label_tag }}
+          <label class="form-label">{{ form.surface_repaired.label }}</label>
           {{ form.surface_repaired|add_class:"form-control" }}
         </div>
       </div>
     </div>
 
-    <!-- SECTION: Standard & Classification -->
+    <!-- Process Standard -->
     <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-light">
-        <strong><i class="bi bi-journals me-1"></i> Process Standard</strong>
+      <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-journals me-1"></i> Process Standard
       </div>
       <div class="card-body row g-3">
         <div class="col-md-6">
-          {{ form.standard.label_tag }} <span class="text-danger">*</span>
+          <label class="form-label required">{{ form.standard.label }}</label>
           {{ form.standard|add_class:"form-select" }}
         </div>
 
         <div class="col-md-6">
-          {{ form.classification.label_tag }}
+          <label class="form-label">{{ form.classification.label }}</label>
           {{ form.classification|add_class:"form-select" }}
         </div>
       </div>
     </div>
 
-    <!-- SECTION: Customer & Order -->
+    <!-- Customer Info -->
     <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-light">
-        <strong><i class="bi bi-people me-1"></i> Customer Info</strong>
+      <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-people me-1"></i> Customer Information
       </div>
       <div class="card-body row g-3">
         <div class="col-md-6">
-          {{ form.customer.label_tag }}
+          <label class="form-label">{{ form.customer.label }}</label>
           {{ form.customer|add_class:"form-control" }}
         </div>
 
         <div class="col-md-6">
-          {{ form.purchase_order_with_revision.label_tag }}
+          <label class="form-label">{{ form.purchase_order_with_revision.label }}</label>
           {{ form.purchase_order_with_revision|add_class:"form-control" }}
         </div>
 
         <div class="col-md-6">
-          {{ form.part_quantity.label_tag }}
+          <label class="form-label">{{ form.part_quantity.label }}</label>
           {{ form.part_quantity|add_class:"form-control" }}
         </div>
 
         <div class="col-md-6">
-          {{ form.serial_or_lot_numbers.label_tag }}
+          <label class="form-label">{{ form.serial_or_lot_numbers.label }}</label>
           {{ form.serial_or_lot_numbers|add_class:"form-control" }}
         </div>
       </div>
     </div>
 
-    <!-- SECTION: Rectified Tank Values -->
+    <!-- Rectified Tank Values -->
     <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-light">
-        <strong><i class="bi bi-lightning-charge me-1"></i> Rectified Process Values</strong>
+      <div class="card-header bg-light fw-semibold">
+        <i class="bi bi-lightning-charge me-1"></i> Rectified Process Values <small class="text-muted">(Optional)</small>
       </div>
       <div class="card-body row g-3">
         <div class="col-md-6">
-          {{ form.surface_area.label_tag }}
+          <label class="form-label">{{ form.surface_area.label }}</label>
           {{ form.surface_area|add_class:"form-control" }}
-          <small class="text-muted">Area in square inches</small>
+          <small class="form-text text-muted">Required for rectified tanks (sq in)</small>
         </div>
 
         <div class="col-md-6">
-          {{ form.current_density.label_tag }}
+          <label class="form-label">{{ form.current_density.label }}</label>
           {{ form.current_density|add_class:"form-control" }}
-          <small class="text-muted">Amps per square inch</small>
+          <small class="form-text text-muted">Amps per square inch</small>
         </div>
       </div>
     </div>
 
     <!-- Submit Button -->
     <div class="d-flex justify-content-end">
-      <button type="submit" class="btn btn-primary px-4">
-        <i class="bi bi-check-circle me-1"></i> Save Work Order
+      <button type="submit" class="btn btn-success px-4 shadow-sm">
+        <i class="bi bi-check2-circle me-1"></i> Save Work Order
       </button>
     </div>
   </form>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const standardSelect = document.getElementById("id_standard");
+      const classificationSelect = document.getElementById("id_classification");
+  
+      function updateClassifications(standardId) {
+          if (!standardId) return;
+          fetch("{% url 'standard_classifications_json' 0 %}".replace("0", standardId))
+              .then(response => response.json())
+              .then(data => {
+                  classificationSelect.innerHTML = '<option value="">Select classification</option>';
+                  data.forEach(item => {
+                      const option = document.createElement("option");
+                      option.value = item.id;
+                      option.textContent = item.label;
+                      classificationSelect.appendChild(option);
+                  });
+  
+                  // If a classification was previously selected, re-select it
+                  const currentValue = "{{ form.classification.value|default_if_none:'' }}";
+                  if (currentValue) {
+                      classificationSelect.value = currentValue;
+                  }
+              })
+              .catch(error => {
+                  console.error("Error fetching classifications:", error);
+              });
+      }
+  
+      // Listen for changes
+      standardSelect.addEventListener("change", function () {
+          updateClassifications(this.value);
+      });
+  
+      // Auto-trigger on page load (for pre-filled standard)
+      if (standardSelect.value) {
+          updateClassifications(standardSelect.value);
+      }
+  });
+  </script>
+  
 {% endblock %}

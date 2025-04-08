@@ -96,15 +96,30 @@ def work_order_detail_view(request, work_order_id):
 def work_order_create_view(request, part_id):
     part = get_object_or_404(Part, id=part_id)
 
+    # Get assigned standards for this part
+    assigned_standards = part.standards.all()
+
     if request.method == 'POST':
         form = WorkOrderForm(request.POST, part=part)
         if form.is_valid():
             work_order = form.save(commit=False)
-            work_order.part = part
+            work_order.part = part 
             work_order.save()
+            messages.success(request, "✅ Work order saved successfully.")
             return redirect('part_detail', part_id=part.id)
+        else:
+            print("🔴 FORM INVALID:", form.errors)  # 👈 DEBUG
+            messages.error(request, "❌ There was an error saving the work order. Please check the form.")
     else:
-        form = WorkOrderForm(part=part)
+        initial_data = {}
+        if assigned_standards.count() == 1:
+            # Prefill if only one standard is assigned
+            part_standard = assigned_standards.first()
+            initial_data = {
+                'standard': part_standard.standard,
+                'classification': part_standard.classification
+            }
+        form = WorkOrderForm(part=part, initial=initial_data)
 
     return render(request, 'work_order/work_order_form.html', {
         'form': form,

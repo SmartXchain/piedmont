@@ -31,6 +31,14 @@ class WorkOrderForm(forms.ModelForm):
                 id__in=PartStandard.objects.filter(part=part).values_list('classification', flat=True)
             )
 
+            part_standards = part.standards.all()
+            if part_standards.count() == 1:
+                self.fields['standard'].initial = part_standards[0].standard
+                self.fields['standard'].widget = forms.HiddenInput()
+                self.fields['classification'].initial = part_standards[0].classification
+                self.fields['classification'].widget = forms.HiddenInput()
+
+
 
 class PartForm(forms.ModelForm):
     class Meta:
