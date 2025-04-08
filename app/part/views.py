@@ -11,6 +11,8 @@ from .forms import WorkOrderForm, PartForm, PartStandardForm
 from django.shortcuts import redirect
 from django.contrib import messages
 from standard.models import Classification
+from django.db import IntegrityError
+from django.db.models import Q
 
 
 # 📌 List all parts (Read-Only)
@@ -48,13 +50,21 @@ def part_create_view(request):
     if request.method == 'POST':
         form = PartForm(request.POST)
         if form.is_valid():
-            part = form.save()
-            messages.success(request, "✅ Part created. Now assign a standard to continue.")
-            return redirect('part_assign_standard', part_id=part.id)
+            part_number = form.cleaned_data['part_number']
+            part_revision = form.cleaned_data['part_revision']
+
+            # Check if part already exists
+            if Part.objects.filter(part_number=part_number, part_revision=part_revision).exists():
+                messages.warning(request, "⚠️ This part already exists. Use the Back button to return or check the part list.")
+            else:
+                part = form.save()
+                messages.success(request, "✅ Part created. Now assign a standard to continue.")
+                return redirect('part_assign_standard', part_id=part.id)
     else:
         form = PartForm()
 
     return render(request, 'part/part_form.html', {'form': form})
+
 
 def part_assign_standard_view(request, part_id):
     part = get_object_or_404(Part, id=part_id)
@@ -62,15 +72,22 @@ def part_assign_standard_view(request, part_id):
     if request.method == 'POST':
         form = PartStandardForm(request.POST)
         if form.is_valid():
+            standard = form.cleaned_data['standard']
+            classification = form.cleaned_data['classification']
+            existing = part.standards.filter(standard=standard, classification=classification).first()
+
+            if existing:
+                messages.warning(request, "⚠️ This standard/classification is already assigned. Redirecting.")
+                return redirect('work_order_create', part_id=part.id)
+
             part_standard = form.save(commit=False)
             part_standard.part = part
             part_standard.save()
-            messages.success(request, "✅ Standard assigned. You can now create the work order.")
+            messages.success(request, "✅ Standard assigned successfully.")
             return redirect('work_order_create', part_id=part.id)
     else:
         form = PartStandardForm()
 
-    # 🚨 Filter classifications to only those related to the selected standard (if selected)
     if form.data.get('standard'):
         selected_standard_id = form.data.get('standard')
         form.fields['classification'].queryset = Classification.objects.filter(standard_id=selected_standard_id)
@@ -95,25 +112,33 @@ def work_order_detail_view(request, work_order_id):
 
 def work_order_create_view(request, part_id):
     part = get_object_or_404(Part, id=part_id)
-
-    # Get assigned standards for this part
     assigned_standards = part.standards.all()
 
     if request.method == 'POST':
         form = WorkOrderForm(request.POST, part=part)
         if form.is_valid():
             work_order = form.save(commit=False)
-            work_order.part = part 
+            work_order.part = part
+
+            # Check for duplicates before save
+            existing = WorkOrder.objects.filter(
+                part=part,
+                work_order_number=work_order.work_order_number,
+                standard=work_order.standard,
+                classification=work_order.classification,
+                surface_repaired=work_order.surface_repaired
+            ).first()
+
+            if existing:
+                messages.warning(request, "⚠️ This work order already exists. Redirecting.")
+                return redirect('work_order_detail', work_order_id=existing.id)
+
             work_order.save()
             messages.success(request, "✅ Work order saved successfully.")
             return redirect('part_detail', part_id=part.id)
-        else:
-            print("🔴 FORM INVALID:", form.errors)  # 👈 DEBUG
-            messages.error(request, "❌ There was an error saving the work order. Please check the form.")
     else:
         initial_data = {}
         if assigned_standards.count() == 1:
-            # Prefill if only one standard is assigned
             part_standard = assigned_standards.first()
             initial_data = {
                 'standard': part_standard.standard,

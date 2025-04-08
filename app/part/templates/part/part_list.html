@@ -37,18 +37,27 @@
             <div class="card-body">
               <h5 class="card-title mb-1">{{ part.part_number }}</h5>
               <p class="text-muted small mb-2">{{ part.part_description }}</p>
-              <div class="d-flex justify-content-between">
+              <div class="mb-2 d-flex justify-content-between">
                 <span class="badge bg-secondary">Rev: {{ part.part_revision|default:"—" }}</span>
                 {% if part.standards.count %}
                   <span class="badge bg-success" title="Standards assigned">
-                    <i class="bi bi-check-circle-fill"></i> Standard Ready
+                    <i class="bi bi-check-circle-fill"></i> Ready
                   </span>
                 {% else %}
                   <span class="badge bg-warning text-dark" title="No standards assigned">
-                    <i class="bi bi-exclamation-triangle-fill"></i> Needs Standard
+                    <i class="bi bi-exclamation-triangle-fill"></i> No Standard
                   </span>
                 {% endif %}
               </div>
+              
+              {% if part.standards.count %}
+                <div class="text-center mb-2">
+                  <span class="badge bg-primary px-3 py-2 fs-6 shadow-sm">
+                    {{ part.standards.first.standard.get_process_display }}
+                  </span>
+                </div>
+              {% endif %}
+              
             </div>
             <div class="card-footer bg-light text-end">
               <a href="{% url 'part_detail' part.id %}" class="btn btn-outline-primary btn-sm">

@@ -34,10 +34,7 @@ class WorkOrderForm(forms.ModelForm):
             part_standards = part.standards.all()
             if part_standards.count() == 1:
                 self.fields['standard'].initial = part_standards[0].standard
-                self.fields['standard'].widget = forms.HiddenInput()
                 self.fields['classification'].initial = part_standards[0].classification
-                self.fields['classification'].widget = forms.HiddenInput()
-
 
 
 class PartForm(forms.ModelForm):
@@ -49,6 +46,18 @@ class PartForm(forms.ModelForm):
             'part_description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Description'}),
             'part_revision': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Revision'}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        part_number = cleaned_data.get('part_number')
+        part_revision = cleaned_data.get('part_revision')
+
+        if part_number and part_revision:
+            # Don't raise error here — we want the view to handle redirect
+            if Part.objects.filter(part_number=part_number, part_revision=part_revision).exists():
+                # Just return cleaned_data without error to avoid form error display
+                self._duplicate_exists = True  # Flag for the view
+        return cleaned_data
 
 
 class PartStandardForm(forms.ModelForm):
