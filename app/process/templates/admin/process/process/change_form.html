@@ -1,0 +1,40 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const standardSelect = document.getElementById("id_standard");
+    const classificationSelect = document.getElementById("id_classification");
+
+    function updateClassifications(standardId) {
+        if (!standardId) return;
+
+        fetch(`/standards/${standardId}/classifications/json/`)
+            .then(response => response.json())
+            .then(data => {
+                classificationSelect.innerHTML = '<option value="">---------</option>';
+                data.forEach(item => {
+                    const option = document.createElement("option");
+                    option.value = item.id;
+                    option.textContent = item.label;
+                    classificationSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error("Error fetching classifications:", error));
+    }
+
+    if (standardSelect) {
+        standardSelect.addEventListener("change", () => {
+            updateClassifications(standardSelect.value);
+        });
+
+        // Auto-load if standard already selected
+        if (standardSelect.value) {
+            updateClassifications(standardSelect.value);
+        }
+    }
+});
+</script>
+{% endblock %}
