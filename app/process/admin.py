@@ -15,6 +15,12 @@ class ProcessStepInline(admin.StackedInline):  # Change to Stacked for more fiel
     autocomplete_fields = ['method']
     readonly_fields = ['method_preview']
 
+    class Media:
+        js = [
+            'admin/js/jquery.init.js',
+            'process/js/method_overview.js',
+        ]
+
     def method_preview(self, obj):
         if obj.method:
             return format_html(
