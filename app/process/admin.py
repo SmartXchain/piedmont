@@ -1,13 +1,14 @@
 # process/admin.py
 from django.contrib import admin
 from .models import Process, ProcessStep
-from .forms import ProcessForm
+from .forms import ProcessForm, ProcessStepInlineForm
 from methods.models import Method
 from django.utils.html import format_html
 
 
 class ProcessStepInline(admin.StackedInline):  # Change to Stacked for more fields
     model = ProcessStep
+    form = ProcessStepInlineForm
     extra = 1
     ordering = ('step_number',)
     show_change_link = True
@@ -41,3 +42,8 @@ class ProcessAdmin(admin.ModelAdmin):
         unassigned = obj.steps.filter(method__isnull=True).exists()
         return "⚠️ Yes" if unassigned else "✅ All Assigned"
     has_unassigned_methods.short_description = "Unassigned Methods"
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # Editing
+            return ['classification']
+        return []

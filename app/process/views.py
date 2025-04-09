@@ -1,6 +1,7 @@
 # process/views.py
 from django.http import JsonResponse
 from standard.models import Classification
+from methods.models import Method
 
 
 def get_classifications(request):
@@ -12,3 +13,22 @@ def get_classifications(request):
         data = [{'id': c.id, 'text': str(c)} for c in classifications]
 
     return JsonResponse(data, safe=False)
+
+
+def get_method_info(request):
+    method_id = request.GET.get('method_id')
+    if not method_id:
+        return JsonResponse({'error': 'No method ID provided'}, status=400)
+
+    try:
+        method = Method.objects.get(id=method_id)
+        return JsonResponse({
+            'title': method.title,
+            'description': method.description,
+            'method_type': method.method_type,
+            'chemical': method.chemical,
+            'tank_name': method.tank_name,
+            'is_rectified': method.is_rectified,
+        })
+    except Method.DoesNotExist:
+        return JsonResponse({'error': 'Method not found'}, status=404)
