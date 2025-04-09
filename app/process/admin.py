@@ -1,11 +1,30 @@
+# process/admin.py
 from django.contrib import admin
 from .models import Process, ProcessStep
-from standard.models import Classification
+from .forms import ProcessForm
+from methods.models import Method
+from django.utils.html import format_html
 
-class ProcessStepInline(admin.TabularInline):
+
+class ProcessStepInline(admin.StackedInline):  # Change to Stacked for more fields
     model = ProcessStep
     extra = 1
     ordering = ('step_number',)
+    show_change_link = True
+    autocomplete_fields = ['method']
+    readonly_fields = ['method_preview']
+
+    def method_preview(self, obj):
+        if obj.method:
+            return format_html(
+                "<strong>{}</strong><br>{}<br><em>{}</em>",
+                obj.method.title,
+                obj.method.description[:100] + ("..." if len(obj.method.description) > 100 else ""),
+                obj.method.method_type,
+            )
+        return "—"
+    method_preview.short_description = "Method Overview"
+
 
 @admin.register(Process)
 class ProcessAdmin(admin.ModelAdmin):
@@ -15,8 +34,10 @@ class ProcessAdmin(admin.ModelAdmin):
     search_fields = ('standard__name',)
     inlines = [ProcessStepInline]
 
-@admin.register(ProcessStep)
-class ProcessStepAdmin(admin.ModelAdmin):
-    list_display = ('process', 'step_number', 'method')
-    list_filter = ('process',)
-    search_fields = ('process__standard__name', 'method__title')
+    def step_count(self, obj):
+        return obj.steps.count()
+
+    def has_unassigned_methods(self, obj):
+        unassigned = obj.steps.filter(method__isnull=True).exists()
+        return "⚠️ Yes" if unassigned else "✅ All Assigned"
+    has_unassigned_methods.short_description = "Unassigned Methods"

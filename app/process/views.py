@@ -2,6 +2,7 @@
 from django.http import JsonResponse
 from standard.models import Classification
 
+
 def get_classifications(request):
     standard_id = request.GET.get('standard_id')
     data = []
