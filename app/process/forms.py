@@ -13,13 +13,32 @@ class ProcessForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        standard = self.initial.get('standard') or getattr(self.instance, 'standard', None)
+        standard = None
+
+        # On POST, use submitted value
+        if self.data.get('standard'):
+            try:
+                standard_id = int(self.data.get('standard'))
+                standard = Standard.objects.get(pk=standard_id)
+            except (ValueError, Standard.DoesNotExist):
+                pass
+        # On GET, use initial or instance
+        elif self.initial.get('standard'):
+            standard = self.initial.get('standard')
+        elif hasattr(self.instance, 'standard'):
+            standard = self.instance.standard
 
         if 'classification' in self.fields:
             if standard:
                 self.fields['classification'].queryset = Classification.objects.filter(standard=standard)
             else:
                 self.fields['classification'].queryset = Classification.objects.none()
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # on edit
+            return ['classification']
+        return []
+
 
     class Media:
         js = ('admin/js/jquery.init.js', 'process/js/filter_classifications.js',)
@@ -35,8 +54,15 @@ class ProcessStepInlineForm(forms.ModelForm):
 
     class Meta:
         model = ProcessStep
-        fields = '__all__'
+        fields = ['step_number', 'method']
+        widgets = {
+            'step_number': forms.NumberInput(attrs={'style': 'width: 80px;'}),
+        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['method'].help_text = 'Select a method below. Overview will appear underneath.'
+
+class ProcessStepInline(admin.TabularInline):
+    model = ProcessStep
+    form = ProcessStepInlineForm
+    extra = 1
+    ordering = ('step_number',)
+    show_change_link = True
