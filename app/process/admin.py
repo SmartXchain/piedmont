@@ -6,7 +6,7 @@ from methods.models import Method
 from django.utils.html import format_html
 
 
-class ProcessStepInline(admin.StackedInline):  # Change to Stacked for more fields
+class ProcessStepInline(admin.TabularInline):  # Change to Stacked for more fields
     model = ProcessStep
     form = ProcessStepInlineForm
     extra = 1

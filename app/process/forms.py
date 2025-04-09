@@ -1,7 +1,7 @@
 # process/forms.py
 from django import forms
 from .models import Process, ProcessStep
-from standard.models import Classification
+from standard.models import Classification, Standard
 from methods.models import Method
 
 
@@ -39,7 +39,6 @@ class ProcessForm(forms.ModelForm):
             return ['classification']
         return []
 
-
     class Media:
         js = ('admin/js/jquery.init.js', 'process/js/filter_classifications.js',)
 
@@ -58,11 +57,3 @@ class ProcessStepInlineForm(forms.ModelForm):
         widgets = {
             'step_number': forms.NumberInput(attrs={'style': 'width: 80px;'}),
         }
-
-
-class ProcessStepInline(admin.TabularInline):
-    model = ProcessStep
-    form = ProcessStepInlineForm
-    extra = 1
-    ordering = ('step_number',)
-    show_change_link = True
