@@ -10,16 +10,17 @@ class ProcessForm(forms.ModelForm):
         model = Process
         fields = '__all__'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
 
-        # Avoid trying to access standard on an unsaved instance
-        standard = self.initial.get('standard') or getattr(self.instance, 'standard', None)
+    standard = self.initial.get('standard') or getattr(self.instance, 'standard', None)
 
+    if 'classification' in self.fields:
         if standard:
             self.fields['classification'].queryset = Classification.objects.filter(standard=standard)
         else:
             self.fields['classification'].queryset = Classification.objects.none()
+
 
     class Media:
         js = ('admin/js/jquery.init.js', 'process/js/filter_classifications.js',)
