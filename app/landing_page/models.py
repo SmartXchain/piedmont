@@ -53,13 +53,13 @@ class Capability(models.Model):
 
     def total_cost(self):
         return round(
-            self.cost_usd +
-            self.setup_cost +
-            self.size_adjustment +
-            self.material_surcharge +
-            self.testing_cert_cost +
-            self.post_process_cost +
-            self.env_fee,
+            self.cost_usd
+            + self.setup_cost
+            + self.size_adjustment
+            + self.material_surcharge
+            + self.testing_cert_cost
+            + self.post_process_cost
+            + self.env_fee,
             2
         )
 
