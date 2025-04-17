@@ -1,79 +1,85 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Piedmont Aviation - Special Processes{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <section class="bg-primary text-white text-center py-5">
     <div class="container">
         <h1 class="display-4 fw-bold">Piedmont Aviation - Special Processes</h1>
-        <p class="lead">Chrome, Nickel, and Cadmium Plating, Anodizing, and Metal Etching Services.</p>
+        <p class="lead">Precision Finishing for Aerospace and Industrial Components</p>
     </div>
 </section>
 
-<!-- Services Section -->
-<section id="services" class="py-5">
+<section id="capabilities" class="py-5">
     <div class="container">
-        <h2 class="text-center fw-bold mb-5">Our Services</h2>
-        <div class="row g-4">
+        <h2 class="text-center fw-bold mb-4">Current Capabilities</h2>
 
-            <!-- Chrome, Nickel, and Cadmium Plating -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow">
-                    <div class="card-body">
-                        <h3 class="card-title text-primary">Chrome, Nickel, and Cadmium Plating</h3>
-                        <p class="card-text">Ideal for industrial, automotive, and aerospace applications.</p>
-                        <ul class="list-unstyled">
-                            <li><strong>Chrome Plating:</strong> Known for its durability and mirror finish.</li>
-                            <li><strong>Nickel Plating:</strong> Corrosion-resistant, widely used in electronics and automotive.</li>
-                            <li><strong>Cadmium Plating:</strong> Ideal for marine and aerospace applications.</li>
-                        </ul>
-                    </div>
-                </div>
+        <!-- Search & Filter -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search capabilities...">
             </div>
-
-            <!-- Anodizing -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow">
-                    <div class="card-body">
-                        <h3 class="card-title text-primary">Anodizing</h3>
-                        <p class="card-text">Enhances aluminum’s natural oxide layer, increasing its corrosion resistance and offering a range of color options. Perfect for aerospace, medical, and electronic industries.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Passivation -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow">
-                    <div class="card-body">
-                        <h3 class="card-title text-primary">Passivation</h3>
-                        <p class="card-text">Essential for stainless steel parts, removing impurities and enhancing corrosion resistance. Meets ASTM standards to ensure maximum reliability.</p>
-                    </div>
-                </div>
+            <div class="col-md-6">
+                <select id="categoryFilter" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
 
-        <div class="row g-4 mt-4">
-            <!-- Prepen Etching -->
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow">
-                    <div class="card-body">
-                        <h3 class="card-title text-primary">Prepen Etching</h3>
-                        <p class="card-text">Prepen Etching prepares surfaces for NDT, adhesion, or plating by precisely etching the surface.</p>
-                    </div>
-                </div>
-            </div>
+<!-- Add Export Button -->
+<div class="text-end mb-3">
+    <a href="{% url 'export_capabilities_csv' %}" class="btn btn-outline-success">
+        Download CSV
+    </a>
+</div>
 
-            <!-- Nital Etch -->
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow">
-                    <div class="card-body">
-                        <h3 class="card-title text-primary">Nital Etch</h3>
-                        <p class="card-text">Nital Etch is essential for detecting surface defects in steel components, ensuring part integrity in critical applications.</p>
-                    </div>
+<!-- Capability Cards -->
+<div class="row g-4" id="capabilityGrid">
+    {% for capability in capabilities %}
+    <div class="col-md-4 capability-card" data-name="{{ capability.name }}" data-category="{{ capability.category.name }}">
+        <div class="card h-100 border-0 shadow">
+            <div class="card-body text-center">
+                <h5 class="card-title">{{ capability.name }}</h5>
+                <p class="card-text">Standard: {{ capability.standard }}</p>
+                <span class="badge bg-secondary">{{ capability.category.name }}</span>
+                <div class="mt-3">
+                    <a href="{% url 'capability_pricing_detail' capability.pk %}" class="btn btn-outline-primary btn-sm">
+                        View Pricing
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+    {% endfor %}
+</div>
+    </div>
 </section>
+
+<!-- Search Script -->
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const cards = document.querySelectorAll('.capability-card');
+
+    function filterCards() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
+
+        cards.forEach(card => {
+            const name = card.dataset.name.toLowerCase();
+            const category = card.dataset.category;
+            const matchesSearch = name.includes(searchTerm);
+            const matchesCategory = !selectedCategory || category === selectedCategory;
+
+            card.style.display = (matchesSearch && matchesCategory) ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', filterCards);
+    categoryFilter.addEventListener('change', filterCards);
+</script>
 {% endblock %}

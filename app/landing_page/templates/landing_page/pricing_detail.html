@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing for {{ capability.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="fw-bold text-center mb-4">Pricing Information</h2>
+
+    <div class="card shadow mx-auto" style="max-width: 800px;">
+        <div class="card-body">
+            <h4 class="card-title text-primary">{{ capability.name }}</h4>
+            <p><strong>Standard:</strong> {{ capability.standard }}</p>
+            <p><strong>Category:</strong> {{ capability.category.name }}</p>
+
+            <hr>
+            <h5>Cost Breakdown</h5>
+            <table class="table table-bordered">
+                <tr><th>Base Process Rate</th><td>${{ capability.cost_usd }}</td></tr>
+                <tr><th>Setup / Masking Labor</th><td>${{ capability.setup_cost }}</td></tr>
+                <tr><th>Size Adjustment</th><td>${{ capability.size_adjustment }}</td></tr>
+                <tr><th>Material Surcharge</th><td>${{ capability.material_surcharge }}</td></tr>
+                <tr><th>Certification & Testing</th><td>${{ capability.testing_cert_cost }}</td></tr>
+                <tr><th>Post-Processing</th><td>${{ capability.post_process_cost }}</td></tr>
+                <tr><th>Environmental Fee</th><td>${{ capability.env_fee }}</td></tr>
+            </table>
+
+            <hr>
+            <h5>Extended Pricing</h5>
+            <table class="table table-bordered">
+                <tr><th>Base Job Setup Fee</th><td>${{ capability.base_job_setup_fee }}</td></tr>
+                <tr><th>Minimum Per Part Price</th><td>${{ capability.min_per_part_price }}</td></tr>
+                <tr><th>Simple Part Price</th><td>${{ capability.simple_part_price }}</td></tr>
+                <tr><th>Complex Part Price</th><td>${{ capability.complex_part_price }}</td></tr>
+            </table>
+
+            {% if capability.optional_addons %}
+            <hr>
+            <h5>Optional Add-ons</h5>
+            <ul class="list-group list-group-flush mb-3">
+                {% for addon in capability.optional_addons.splitlines %}
+                <li class="list-group-item">{{ addon }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <div class="text-end">
+                <h5>Total Estimated Cost: <strong>${{ capability.total_cost }}</strong></h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'home' %}" class="btn btn-secondary">Back to Capabilities</a>
+    </div>
+</div>
+{% endblock %}
