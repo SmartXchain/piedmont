@@ -42,6 +42,9 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Chemical Composition</th>
+                                    <th>Tank Length (in)</th>
+                                    <th>Tank Width (in)</th>
+                                    <th>Tank Height (in)</th>
                                     <th>Surface Area (sq in)</th>
                                     <th>Max Amps</th>
                                     <th>Vented</th>
@@ -52,6 +55,9 @@
                                 <tr>
                                     <td>{{ tank.name }}</td>
                                     <td>{{ tank.chemical_composition }}</td>
+                                    <td>{{ tank.length }}</td>
+                                    <td>{{ tank.width }}</td>
+                                    <td>{{ tank.height }}</td>
                                     <td>{{ tank.surface_area }}</td>
                                     <td>{{ tank.max_amps|default:"N/A" }}</td>
                                     <td>{% if tank.is_vented %}Yes{% else %}No{% endif %}</td>
