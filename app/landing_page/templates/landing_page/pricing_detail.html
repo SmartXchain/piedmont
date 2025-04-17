@@ -3,54 +3,62 @@
 {% block title %}Pricing for {{ capability.name }}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="fw-bold text-center mb-4">Pricing Information</h2>
+<main class="container py-5" aria-labelledby="page-title">
+    <header class="text-center mb-4">
+        <h1 id="page-title" class="fw-bold">Pricing Information</h1>
+    </header>
 
-    <div class="card shadow mx-auto" style="max-width: 800px;">
-        <div class="card-body">
-            <h4 class="card-title text-primary">{{ capability.name }}</h4>
-            <p><strong>Standard:</strong> {{ capability.standard }}</p>
-            <p><strong>Category:</strong> {{ capability.category.name }}</p>
+    <article class="card shadow mx-auto" style="max-width: 800px;">
+        <section class="card-body">
+            <header class="mb-3">
+                <h2 class="card-title text-primary h4">{{ capability.name }}</h2>
+                <p><strong>Standard:</strong> {{ capability.standard }}</p>
+                <p><strong>Category:</strong> {{ capability.category.name }}</p>
+                {% if capability.tags.all %}
+                <p>
+                    <strong>Tags:</strong>
+                    {% for tag in capability.tags.all %}
+                        <span class="badge bg-info text-dark">{{ tag.name }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+            </header>
 
-            <hr>
-            <h5>Cost Breakdown</h5>
-            <table class="table table-bordered">
-                <tr><th>Base Process Rate</th><td>${{ capability.cost_usd }}</td></tr>
-                <tr><th>Setup / Masking Labor</th><td>${{ capability.setup_cost }}</td></tr>
-                <tr><th>Size Adjustment</th><td>${{ capability.size_adjustment }}</td></tr>
-                <tr><th>Material Surcharge</th><td>${{ capability.material_surcharge }}</td></tr>
-                <tr><th>Certification & Testing</th><td>${{ capability.testing_cert_cost }}</td></tr>
-                <tr><th>Post-Processing</th><td>${{ capability.post_process_cost }}</td></tr>
-                <tr><th>Environmental Fee</th><td>${{ capability.env_fee }}</td></tr>
-            </table>
+            <section aria-labelledby="cost-breakdown">
+                <h3 id="cost-breakdown" class="h5">Cost Breakdown</h3>
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th scope="row">Base Process Rate</th><td>${{ capability.cost_usd }}</td></tr>
+                        <tr><th scope="row">Setup / Masking Labor</th><td>${{ capability.setup_cost }}</td></tr>
+                        <tr><th scope="row">Size Adjustment</th><td>${{ capability.size_adjustment }}</td></tr>
+                        <tr><th scope="row">Material Surcharge</th><td>${{ capability.material_surcharge }}</td></tr>
+                        <tr><th scope="row">Certification & Testing</th><td>${{ capability.testing_cert_cost }}</td></tr>
+                        <tr><th scope="row">Post-Processing</th><td>${{ capability.post_process_cost }}</td></tr>
+                        <tr><th scope="row">Environmental Fee</th><td>${{ capability.env_fee }}</td></tr>
+                    </tbody>
+                </table>
+            </section>
 
-            <hr>
-            <h5>Extended Pricing</h5>
-            <table class="table table-bordered">
-                <tr><th>Base Job Setup Fee</th><td>${{ capability.base_job_setup_fee }}</td></tr>
-                <tr><th>Minimum Per Part Price</th><td>${{ capability.min_per_part_price }}</td></tr>
-                <tr><th>Simple Part Price</th><td>${{ capability.simple_part_price }}</td></tr>
-                <tr><th>Complex Part Price</th><td>${{ capability.complex_part_price }}</td></tr>
-            </table>
+            <section aria-labelledby="extended-pricing">
+                <h3 id="extended-pricing" class="h5 mt-4">Extended Pricing</h3>
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th scope="row">Base Job Setup Fee</th><td>${{ capability.base_job_setup_fee }}</td></tr>
+                        <tr><th scope="row">Minimum Per Part Price</th><td>${{ capability.min_per_part_price }}</td></tr>
+                        <tr><th scope="row">Simple Part Price</th><td>${{ capability.simple_part_price }}</td></tr>
+                        <tr><th scope="row">Complex Part Price</th><td>${{ capability.complex_part_price }}</td></tr>
+                    </tbody>
+                </table>
+            </section>
 
-            {% if capability.optional_addons %}
-            <hr>
-            <h5>Optional Add-ons</h5>
-            <ul class="list-group list-group-flush mb-3">
-                {% for addon in capability.optional_addons.splitlines %}
-                <li class="list-group-item">{{ addon }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-
-            <div class="text-end">
-                <h5>Total Estimated Cost: <strong>${{ capability.total_cost }}</strong></h5>
-            </div>
-        </div>
-    </div>
-
-    <div class="text-center mt-4">
-        <a href="{% url 'home' %}" class="btn btn-secondary">Back to Capabilities</a>
-    </div>
-</div>
-{% endblock %}
+            {% if capability.addons.all %}
+            <section aria-labelledby="structured-addons">
+                <h3 id="structured-addons" class="h5 mt-4">Optional Add-ons</h3>
+                <ul class="list-group list-group-flush mb-3">
+                    {% for addon in capability.addons.all %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>
+                                {{ addon.name }}
+                                {% if addon.tags.all %}
+                                <small class

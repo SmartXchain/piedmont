@@ -1,19 +1,57 @@
-# admin.py
 from django.contrib import admin
-from .models import Capability, CapabilityCategory
+
+from .models import (
+    Capability,
+    CapabilityCategory,
+    CapabilityTag,
+    AddOn,
+    AddOnTag
+)
+
 
 @admin.register(CapabilityCategory)
 class CapabilityCategoryAdmin(admin.ModelAdmin):
     list_display = ['name']
 
 
-# admin.py
+@admin.register(CapabilityTag)
+class CapabilityTagAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
+
+@admin.register(AddOnTag)
+class AddOnTagAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
+
+class AddOnTagInline(admin.TabularInline):
+    model = AddOn.tags.through
+    extra = 1
+    verbose_name = "Tag"
+    verbose_name_plural = "Tags"
+
+
+@admin.register(AddOn)
+class AddOnAdmin(admin.ModelAdmin):
+    list_display = ['name', 'price']
+    inlines = [AddOnTagInline]
+    exclude = ('tags',)
+
+
+class CapabilityTagInline(admin.TabularInline):
+    model = Capability.tags.through
+    extra = 1
+    verbose_name = "Tag"
+    verbose_name_plural = "Tags"
+
 
 @admin.register(Capability)
 class CapabilityAdmin(admin.ModelAdmin):
     list_display = ['name', 'standard', 'category', 'total_cost_display']
     list_filter = ['category']
     search_fields = ['name', 'standard']
+    inlines = [CapabilityTagInline]
+    exclude = ('tags',)
 
     fieldsets = (
         ("Basic Information", {
@@ -36,20 +74,12 @@ class CapabilityAdmin(admin.ModelAdmin):
                 'min_per_part_price',
                 'simple_part_price',
                 'complex_part_price',
-                'optional_addons',
+                'addons',
             )
         }),
     )
 
     def total_cost_display(self, obj):
-        return f"${obj.total_cost():.2f}"
-    total_cost_display.short_description = "Total Cost"
+        return f"${obj.total_with_addons():.2f}"
 
-    def has_change_permission(self, request, obj=None):
-        return request.user.groups.filter(name='Sales Leads').exists() or request.user.is_superuser
-
-    def has_add_permission(self, request):
-        return request.user.groups.filter(name='Sales Leads').exists() or request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.groups.filter(name='Sales Leads').exists() or request.user.is_superuser
+    total_cost_display.short_description = "Total with Add-ons"

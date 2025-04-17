@@ -1,18 +1,25 @@
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render
-from .models import Capability, CapabilityCategory
-from django.http import HttpResponse
 import csv
+from collections import defaultdict
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, render
+
+from .models import Capability, CapabilityCategory
 
 
 def landing_page(request):
-    capabilities = Capability.objects.all()
     categories = CapabilityCategory.objects.all()
-    return render(request,
-                  'landing_page/index.html',
-                  {'capabilities': capabilities,
-                   'categories': categories,
-                   })
+    capabilities = Capability.objects.select_related('category').all()
+
+    # Group capabilities by category
+    grouped_capabilities = defaultdict(list)
+    for cap in capabilities:
+        grouped_capabilities[cap.category].append(cap)
+
+    return render(request, 'landing_page/index.html', {
+        'categories': categories,
+        'grouped_capabilities': grouped_capabilities,
+    })
 
 
 def customer_pricing_view(request):
@@ -38,12 +45,10 @@ def customer_pricing_view(request):
 
 def capability_pricing_detail(request, pk):
     capability = get_object_or_404(Capability, pk=pk)
-    return render(request, 'landing_page/pricing_detail.html', {'capability': capability})
+    return render(request, 'landing_page/pricing_detail.html', {
+        'capability': capability,
+    })
 
-
-import csv
-from django.http import HttpResponse
-from .models import Capability
 
 def export_capabilities_csv(request):
     response = HttpResponse(content_type='text/csv')
@@ -59,6 +64,7 @@ def export_capabilities_csv(request):
     ])
 
     for cap in Capability.objects.all():
+        addons_str = ", ".join([f"{a.name} (${a.price})" for a in cap.addons.all()])
         writer.writerow([
             cap.name,
             cap.standard,
@@ -74,11 +80,8 @@ def export_capabilities_csv(request):
             cap.min_per_part_price,
             cap.simple_part_price,
             cap.complex_part_price,
-            cap.optional_addons,
-            cap.total_cost()
+            addons_str,
+            cap.total_with_addons()
         ])
 
     return response
-
-
-

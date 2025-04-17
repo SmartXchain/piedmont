@@ -1,85 +1,157 @@
 {% extends "base.html" %}
 {% load static %}
+{% load custom_tags %}
 
 {% block title %}Piedmont Aviation - Special Processes{% endblock %}
 
 {% block content %}
-<section class="bg-primary text-white text-center py-5">
+<main>
+  <section class="bg-primary text-white text-center py-5" aria-labelledby="main-title">
     <div class="container">
-        <h1 class="display-4 fw-bold">Piedmont Aviation - Special Processes</h1>
-        <p class="lead">Precision Finishing for Aerospace and Industrial Components</p>
+      <h1 id="main-title" class="display-4 fw-bold">
+        Piedmont Aviation - Special Processes
+      </h1>
+      <p class="lead">Precision Finishing for Aerospace and Industrial Components</p>
     </div>
-</section>
+  </section>
 
-<section id="capabilities" class="py-5">
+  <section id="capabilities" class="py-5" aria-labelledby="capabilities-title">
     <div class="container">
-        <h2 class="text-center fw-bold mb-4">Current Capabilities</h2>
+      <header class="mb-4 text-center">
+        <h2 id="capabilities-title" class="fw-bold">Current Capabilities</h2>
+      </header>
 
-        <!-- Search & Filter -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <input type="text" id="searchInput" class="form-control" placeholder="Search capabilities...">
-            </div>
-            <div class="col-md-6">
-                <select id="categoryFilter" class="form-select">
-                    <option value="">All Categories</option>
-                    {% for category in categories %}
-                    <option value="{{ category.name }}">{{ category.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+      <!-- Filter & Action Controls -->
+      <form
+        class="row mb-4 align-items-center"
+        role="search"
+        aria-label="Capability Filter"
+      >
+        <div class="col-md-4">
+          <label for="searchInput" class="visually-hidden">Search Capabilities</label>
+          <input
+            type="search"
+            id="searchInput"
+            class="form-control"
+            placeholder="Search capabilities..."
+            aria-label="Search Capabilities"
+          >
         </div>
-
-<!-- Add Export Button -->
-<div class="text-end mb-3">
-    <a href="{% url 'export_capabilities_csv' %}" class="btn btn-outline-success">
-        Download CSV
-    </a>
-</div>
-
-<!-- Capability Cards -->
-<div class="row g-4" id="capabilityGrid">
-    {% for capability in capabilities %}
-    <div class="col-md-4 capability-card" data-name="{{ capability.name }}" data-category="{{ capability.category.name }}">
-        <div class="card h-100 border-0 shadow">
-            <div class="card-body text-center">
-                <h5 class="card-title">{{ capability.name }}</h5>
-                <p class="card-text">Standard: {{ capability.standard }}</p>
-                <span class="badge bg-secondary">{{ capability.category.name }}</span>
-                <div class="mt-3">
-                    <a href="{% url 'capability_pricing_detail' capability.pk %}" class="btn btn-outline-primary btn-sm">
-                        View Pricing
-                    </a>
-                </div>
-            </div>
+        <div class="col-md-4 text-center">
+          <button id="toggleAllBtn" type="button" class="btn btn-outline-secondary">
+            Expand All
+          </button>
         </div>
-    </div>
-    {% endfor %}
-</div>
-    </div>
-</section>
+        <div class="col-md-4 text-end">
+          <a
+            href="{% url 'export_capabilities_csv' %}"
+            class="btn btn-outline-success"
+            role="button"
+            aria-label="Download capabilities CSV"
+          >
+            Download CSV
+          </a>
+        </div>
+      </form>
 
-<!-- Search Script -->
+      <!-- Accordion Grouped by Category -->
+      <div class="accordion" id="capabilityAccordion">
+        {% for category in categories %}
+        {% with category_caps=grouped_capabilities|get_item:category %}
+        <section class="accordion-item">
+          <h3 class="accordion-header" id="heading-{{ forloop.counter }}">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapse-{{ forloop.counter }}"
+              aria-expanded="false"
+              aria-controls="collapse-{{ forloop.counter }}"
+            >
+              {{ category.name }} ({{ category_caps|length }})
+            </button>
+          </h3>
+          <div
+            id="collapse-{{ forloop.counter }}"
+            class="accordion-collapse collapse"
+            aria-labelledby="heading-{{ forloop.counter }}"
+            data-bs-parent="#capabilityAccordion"
+          >
+            <div class="accordion-body">
+              <div class="row g-4">
+                {% for capability in category_caps %}
+                <article
+                  class="col-md-4 capability-card"
+                  data-name="{{ capability.name }}"
+                  data-category="{{ category.name }}"
+                  aria-label="{{ capability.name }}"
+                >
+                  <div class="card h-100 border-0 shadow">
+                    <div class="card-body text-center">
+                      <h4 class="h5 card-title capability-name">{{ capability.name }}</h4>
+                      <p class="card-text">
+                        <strong>Standard:</strong> {{ capability.standard }}
+                      </p>
+                      <span class="badge bg-secondary">{{ category.name }}</span>
+                      <div class="mt-3">
+                        <a
+                          href="{% url 'capability_pricing_detail' capability.pk %}"
+                          class="btn btn-outline-primary btn-sm"
+                          aria-label="View pricing for {{ capability.name }}"
+                        >
+                          View Pricing
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </section>
+        {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- JavaScript Enhancements -->
 <script>
-    const searchInput = document.getElementById('searchInput');
-    const categoryFilter = document.getElementById('categoryFilter');
-    const cards = document.querySelectorAll('.capability-card');
+  const searchInput = document.getElementById('searchInput');
+  const toggleAllBtn = document.getElementById('toggleAllBtn');
+  const accordionItems = document.querySelectorAll('.accordion-collapse');
+  const capabilityCards = document.querySelectorAll('.capability-card');
 
-    function filterCards() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value;
+  let expanded = false;
 
-        cards.forEach(card => {
-            const name = card.dataset.name.toLowerCase();
-            const category = card.dataset.category;
-            const matchesSearch = name.includes(searchTerm);
-            const matchesCategory = !selectedCategory || category === selectedCategory;
+  toggleAllBtn.addEventListener('click', () => {
+    accordionItems.forEach(item => {
+      const bsCollapse = new bootstrap.Collapse(item, { toggle: false });
+      expanded ? bsCollapse.hide() : bsCollapse.show();
+    });
+    expanded = !expanded;
+    toggleAllBtn.textContent = expanded ? 'Collapse All' : 'Expand All';
+  });
 
-            card.style.display = (matchesSearch && matchesCategory) ? '' : 'none';
-        });
-    }
+  searchInput.addEventListener('input', () => {
+    const term = searchInput.value.toLowerCase();
+    capabilityCards.forEach(card => {
+      const nameElem = card.querySelector('.capability-name');
+      const name = nameElem.textContent.toLowerCase();
+      const match = name.includes(term);
+      card.style.display = match ? '' : 'none';
 
-    searchInput.addEventListener('input', filterCards);
-    categoryFilter.addEventListener('change', filterCards);
+      // Highlight matches
+      const rawName = nameElem.textContent;
+      if (term && match) {
+        const regex = new RegExp(`(${term})`, 'gi');
+        nameElem.innerHTML = rawName.replace(regex, `<mark>$1</mark>`);
+      } else {
+        nameElem.innerHTML = rawName;
+      }
+    });
+  });
 </script>
 {% endblock %}

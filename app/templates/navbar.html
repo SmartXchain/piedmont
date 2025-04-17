@@ -1,84 +1,76 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-    <div class="container-fluid">
-      <!-- Brand Logo -->
-      <a class="navbar-brand fw-bold" href="{% url 'home' %}">
-        <i class="bi bi-gear-fill me-1"></i> Piedmont Aviation
-      </a>
-  
-      <!-- Toggle Button for Mobile -->
-      <button 
-        class="navbar-toggler" 
-        type="button" 
-        data-bs-toggle="collapse" 
-        data-bs-target="#navbarNav" 
-        aria-controls="navbarNav" 
-        aria-expanded="false" 
-        aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-  
-      <!-- Navbar Links -->
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          
-          <!-- Home -->
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}" title="Return to Dashboard">
-              <i class="bi bi-house-door-fill me-1"></i> Home
-            </a>
-          </li>
-  
-          <!-- Parts -->
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'part_list' %}active{% endif %}" href="{% url 'part_list' %}" title="View all parts">
-              <i class="bi bi-box-seam me-1"></i> Parts
-            </a>
-          </li>
-  
-          <!-- Standards -->
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'standard_list' %}active{% endif %}" href="{% url 'standard_list' %}" title="View standards">
-              <i class="bi bi-journals me-1"></i> Standards
-            </a>
-          </li>
-  
-          <!-- Tanks -->
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'tank_list' %}active{% endif %}" href="{% url 'tank_list' %}" title="View tanks">
-              <i class="bi bi-beaker me-1"></i> Tanks
-            </a>
-          </li>
-  
-          <!-- Fixtures -->
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'rack_list' %}active{% endif %}" href="{% url 'rack_list' %}" title="View racks and fixtures">
-              <i class="bi bi-tools me-1"></i> Fixtures
-            </a>
-          </li>
-  
-          <!-- Masking -->
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'masking_list' %}active{% endif %}" href="{% url 'masking_list' %}" title="View masking profiles">
-              <i class="bi bi-brush me-1"></i> Masking
-            </a>
-          </li>
-  
-          <!-- Maintenance -->
-          <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'pm_landing_page' %}active{% endif %}" href="{% url 'pm_landing_page' %}" title="Request or view PM tasks">
-              <i class="bi bi-clipboard-check me-1"></i> Maintenance
-            </a>
-          </li>
-  
-          <!-- Admin -->
-          <li class="nav-item">
-            <a class="nav-link" href="/admin/" target="_blank" title="Open Admin Dashboard">
-              <i class="bi bi-person-lock me-1"></i> Admin
-            </a>
-          </li>
-  
-        </ul>
-      </div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm" role="navigation" aria-label="Main navigation">
+  <div class="container-fluid">
+    <!-- Brand -->
+    <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+      <i class="bi bi-gear-fill me-1"></i> Piedmont Aviation
+    </a>
+
+    <!-- Toggler -->
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Nav Links -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}" title="Home">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'part_list' %}active{% endif %}" href="{% url 'part_list' %}" title="Parts">
+            <i class="bi bi-box-seam me-1"></i> Parts
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'standard_list' %}active{% endif %}" href="{% url 'standard_list' %}" title="Standards">
+            <i class="bi bi-journals me-1"></i> Standards
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'tank_list' %}active{% endif %}" href="{% url 'tank_list' %}" title="Tanks">
+            <i class="bi bi-beaker me-1"></i> Tanks
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'rack_list' %}active{% endif %}" href="{% url 'rack_list' %}" title="Fixtures">
+            <i class="bi bi-tools me-1"></i> Fixtures
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'masking_list' %}active{% endif %}" href="{% url 'masking_list' %}" title="Masking">
+            <i class="bi bi-brush me-1"></i> Masking
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'pm_landing_page' %}active{% endif %}" href="{% url 'pm_landing_page' %}" title="Maintenance">
+            <i class="bi bi-clipboard-check me-1"></i> Maintenance
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/" target="_blank" title="Admin Dashboard">
+            <i class="bi bi-person-lock me-1"></i> Admin
+          </a>
+        </li>
+
+      </ul>
     </div>
-  </nav>
-  
+  </div>
+</nav>
