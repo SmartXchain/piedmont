@@ -35,6 +35,7 @@ urlpatterns = [
     path('fixtures/', include('fixtures.urls')),
     path('tanks/', include('tanks.urls')),
     path('', include('process.urls')),
+    path('customer-links/', include('customer_links.urls')),
     path('admin/', admin.site.urls),
 ]
 if bool(settings.DEBUG):

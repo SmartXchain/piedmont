@@ -1,0 +1,22 @@
+<!-- customer_links/templates/customer_links/link_list.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <h2>Customer Links</h2>
+  <div class="row">
+    {% for link in links %}
+      <div class="col-md-6">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">{{ link.name }}</h5>
+            <p class="card-text">{{ link.description }}</p>
+            <a href="{{ link.url }}" class="btn btn-primary" target="_blank">Open</a>
+            <span class="badge bg-info text-dark float-end">{{ link.get_link_type_display }}</span>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
