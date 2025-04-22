@@ -15,6 +15,7 @@ class ProductionLine(models.Model):
             ('l6', 'Line 6'),
             ('l7', 'Line 7'),
             ('kl', 'Kernersville'),
+            ('hw', 'Honeywell'),
         ],
         help_text="Select the production line",
     )
