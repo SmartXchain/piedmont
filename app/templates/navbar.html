@@ -59,6 +59,12 @@
         </li>
 
         <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'customer_links_list' %}active{% endif %}" href="{% url 'customer_links_list' %}" title="Links">
+            <i class="bi bi-clipboard-check me-1"></i> Customer Links
+          </a>
+        </li>
+
+        <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'pm_landing_page' %}active{% endif %}" href="{% url 'pm_landing_page' %}" title="Maintenance">
             <i class="bi bi-clipboard-check me-1"></i> Maintenance
           </a>
