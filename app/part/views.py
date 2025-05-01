@@ -177,18 +177,48 @@ def work_order_print_steps_view(request, work_order_id):
     # Fetch the latest footer settings (or use defaults)
     pdf_settings = PDFSettings.objects.first()
 
+    # Calculate amps
     amps = None
+    strike_amps = None
+    strike_label = None
+
     if work_order.surface_area and work_order.current_density:
         if work_order.job_identity == 'chrome_plate':
             amps = work_order.surface_area * work_order.current_density
+            # strike amps not calculated for chrome per request
         elif work_order.job_identity == 'cadmium_plate':
-            amps = (work_order.surface_area / 144) * work_order.current_density
+            surface_area_ft2 = work_order.surface_area / 144
+            amps = surface_area_ft2 * work_order.current_density
+            strike_amps = surface_area_ft2 * 60  # 60 ASF
+            strike_label = "Strike Amps (60 ASF)"
+        elif work_order.job_identity == 'ni_plate':
+            surface_area_ft2 = work_order.surface_area / 144
+            amps = surface_area_ft2 * work_order.current_density
+            strike_amps = surface_area_ft2 * 100  # 100 ASF
+            strike_label = "Strike Amps (100 ASF)"
+        else:
+            # fallback if job identity is unknown
+            amps = None
+
+    # Optional normal plating amps (50 ASF Ni, 40 ASF Cd)
+    normal_plate_amps = None
+    normal_label = None
+    if work_order.job_identity == 'cadmium_plate':
+        normal_plate_amps = (work_order.surface_area / 144) * 40
+        normal_label = "Normal Plate Amps (40 ASF)"
+    elif work_order.job_identity == 'ni_plate':
+        normal_plate_amps = (work_order.surface_area / 144) * 50
+        normal_label = "Normal Plate Amps (50 ASF)"
 
     job_data = {
         'surface_area': work_order.surface_area,
         'current_density': work_order.current_density,
         'amps': amps,
-        'is_chrome_or_cadmium': work_order.job_identity in ['chrome_plate', 'cadmium_plate'],
+        'strike_amps': strike_amps,
+        'strike_label': strike_label,
+        'normal_plate_amps': normal_plate_amps,
+        'normal_label': normal_label,
+        'is_chrome_or_cadmium_or_nickel': work_order.job_identity in ['chrome_plate', 'cadmium_plate', 'ni_plate'],
         'is_chrome_plate': work_order.job_identity == 'chrome_plate',
         'instructions': ["Record amp, current density, Dim Thickness Started and Dim Thickness Finish"]
     }
