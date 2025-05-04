@@ -10,7 +10,6 @@ class ProcessStepInline(admin.TabularInline):
     form = ProcessStepInlineForm
     extra = 1
     ordering = ('step_number',)
-    show_change_link = True
     autocomplete_fields = ['method']
     readonly_fields = ['method_preview']
 
@@ -36,9 +35,5 @@ class ProcessStepInline(admin.TabularInline):
 class ProcessAdmin(admin.ModelAdmin):
     form = ProcessForm
     list_display = ('standard', 'classification', 'created_at')
-    list_filter = ('standard', 'classification')
+    list_filter = ('standard',)
     search_fields = ('standard__name',)
-    inlines = [ProcessStepInline]
-
-    def get_readonly_fields(self, request, obj=None):
-        return ['classification'] if obj else []

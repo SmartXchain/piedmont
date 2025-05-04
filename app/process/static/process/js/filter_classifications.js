@@ -10,25 +10,26 @@
             $.ajax({
                 url: '/admin/process/get_classifications/',
                 data: { standard_id: standardId },
+                dataType: 'json',
                 success: function(data) {
-                    data.forEach(item => {
-                        const option = $('<option>', {
-                            value: item.id,
-                            text: item.text
+                    for (let i = 0; i < data.length; i++) {
+                        let option = $('<option>', {
+                            value: data[i].id,
+                            text: data[i].text
                         });
-                        if (selectedId && item.id == selectedId) {
+                        if (selectedId && data[i].id == selectedId) {
                             option.prop('selected', true);
                         }
                         $classification.append(option);
-                    });
+                    }
                 },
-                error: function() {
-                    console.error("Failed to load classifications.");
+                error: function(xhr, status, error) {
+                    console.error("Classification AJAX error:", error);
                 }
             });
         }
 
-        $standard.change(function() {
+        $standard.on('change', function() {
             loadClassifications($(this).val());
         });
 

@@ -13,24 +13,32 @@ class ProcessForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        standard_id = (
-            self.data.get('standard') or
-            getattr(self.instance, 'standard_id', None) or
-            (self.initial.get('standard').id if isinstance(self.initial.get('standard'), Standard) else self.initial.get('standard'))
-        )
+        standard = None
 
+        # First: check submitted data (on POST)
+        if 'standard' in self.data:
+            try:
+                standard_id = int(self.data.get('standard'))
+                standard = Standard.objects.get(id=standard_id)
+            except (ValueError, Standard.DoesNotExist):
+                pass
+
+        # Second: check instance (edit mode)
+        elif self.instance and self.instance.standard:
+            standard = self.instance.standard
+
+        # Third: check initial form data
+        elif 'standard' in self.initial:
+            initial = self.initial.get('standard')
+            standard = initial if isinstance(initial, Standard) else Standard.objects.filter(id=initial).first()
+
+        # Set queryset
         if 'classification' in self.fields:
-            if standard_id:
-                self.fields['classification'].queryset = Classification.objects.filter(standard_id=standard_id)
+            if standard:
+                self.fields['classification'].queryset = Classification.objects.filter(standard=standard)
             else:
                 self.fields['classification'].queryset = Classification.objects.none()
-
-    class Media:
-        js = (
-            'admin/js/jquery.init.js',
-            'process/js/filter_classifications.js',
-        )
-
+                
 
 class MethodModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
