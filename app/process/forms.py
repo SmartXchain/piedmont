@@ -14,19 +14,17 @@ class ProcessForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        standard = (
+        standard_id = (
             self.data.get('standard') or
             getattr(self.instance, 'standard_id', None) or
-            self.initial.get('standard')
+            (self.initial.get('standard').id if isinstance(self.initial.get('standard'), Standard) else self.initial.get('standard'))
         )
 
-        try:
-            if standard:
-                self.fields['classification'].queryset = Classification.objects.filter(standard_id=standard)
+        if 'classification' in self.fields:
+            if standard_id:
+                self.fields['classification'].queryset = Classification.objects.filter(standard_id=standard_id)
             else:
                 self.fields['classification'].queryset = Classification.objects.none()
-        except Exception:
-            self.fields['classification'].queryset = Classification.objects.none()
 
     class Media:
         js = (
