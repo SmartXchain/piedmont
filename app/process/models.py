@@ -1,3 +1,4 @@
+# process/models.py
 from django.db import models
 from methods.models import Method
 from standard.models import Standard, Classification
@@ -30,7 +31,6 @@ class ProcessStep(models.Model):
         verbose_name_plural = "Process Steps"
 
     def save(self, *args, **kwargs):
-        """ Automatically assign step number if not provided. """
         if not self.step_number:
             last_step = ProcessStep.objects.filter(process=self.process).order_by('-step_number').first()
             self.step_number = (last_step.step_number + 1) if last_step else 1

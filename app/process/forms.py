@@ -5,7 +5,6 @@ from standard.models import Classification, Standard
 from methods.models import Method
 
 
-# process/forms.py
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
