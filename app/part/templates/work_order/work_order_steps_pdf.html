@@ -331,7 +331,7 @@
                 <div class="card-header">Rectified Process Details</div>
                 <p><strong>Surface Area:</strong> {{ job_data.surface_area|floatformat:2 }} in²</p>
                 <p><strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi (Cd or Ni - asf)</p>
-                <p><strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps</p>
+                <p><strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps/part</p>
                 {% if job_data.is_chrome_plate %}
                   <div class="step-section">
                     <div class="step-title">Step 1:</div>

@@ -31,45 +31,42 @@
     });
 })(django.jQuery);
 
+
+// static/process/js/filter_classifications.js
 (function($) {
     $(document).ready(function() {
-        function updateMethodOverview(methodId) {
-            if (!methodId) {
-                $('#method-overview').html('');
-                return;
-            }
+        const standardSelect = $('#id_standard');
+        const classificationSelect = $('#id_classification');
+
+        function loadClassifications(standardId) {
+            classificationSelect.empty().append('<option value="">---------</option>');
+
+            if (!standardId) return;
 
             $.ajax({
-                url: '/admin/process/get_method_info/',
-                data: { method_id: methodId },
+                url: '/admin/process/get_classifications/',
+                data: { standard_id: standardId },
                 success: function(data) {
-                    $('#method-overview').html(
-                        `<div style="border:1px solid #ccc; padding:10px; margin-top:10px;">
-                            <strong>${data.title}</strong> (${data.method_type})<br>
-                            <em>${data.description || 'No description'}</em><br>
-                            ${data.tank_name ? `<strong>Tank:</strong> ${data.tank_name}<br>` : ''}
-                            ${data.chemical ? `<strong>Chemical:</strong> ${data.chemical}<br>` : ''}
-                            ${data.is_rectified ? `<strong>Rectified</strong>` : ''}
-                        </div>`
-                    );
+                    data.forEach(item => {
+                        classificationSelect.append(
+                            $('<option>', { value: item.id, text: item.text })
+                        );
+                    });
                 },
                 error: function() {
-                    $('#method-overview').html('<div style="color:red;">Error loading method info.</div>');
+                    console.error("Failed to load classifications.");
                 }
             });
         }
 
-        $(document).on('change', 'select[name$="method"]', function() {
-            const methodId = $(this).val();
-            updateMethodOverview(methodId);
+        // Trigger on change
+        standardSelect.change(function() {
+            loadClassifications($(this).val());
         });
 
-        // Trigger on load (if editing)
-        $('select[name$="method"]').each(function() {
-            const methodId = $(this).val();
-            if (methodId) {
-                updateMethodOverview(methodId);
-            }
-        });
+        // Trigger on load (for edit mode)
+        if (standardSelect.val()) {
+            loadClassifications(standardSelect.val());
+        }
     });
 })(django.jQuery);

@@ -5,6 +5,7 @@ from standard.models import Classification, Standard
 from methods.models import Method
 
 
+# process/forms.py
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
@@ -13,34 +14,25 @@ class ProcessForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        standard = None
+        standard = (
+            self.data.get('standard') or
+            getattr(self.instance, 'standard_id', None) or
+            self.initial.get('standard')
+        )
 
-        # On POST, use submitted value
-        if self.data.get('standard'):
-            try:
-                standard_id = int(self.data.get('standard'))
-                standard = Standard.objects.get(pk=standard_id)
-            except (ValueError, Standard.DoesNotExist):
-                pass
-        # On GET, use initial or instance
-        elif self.initial.get('standard'):
-            standard = self.initial.get('standard')
-        elif hasattr(self.instance, 'standard'):
-            standard = self.instance.standard
-
-        if 'classification' in self.fields:
+        try:
             if standard:
-                self.fields['classification'].queryset = Classification.objects.filter(standard=standard)
+                self.fields['classification'].queryset = Classification.objects.filter(standard_id=standard)
             else:
                 self.fields['classification'].queryset = Classification.objects.none()
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:  # on edit
-            return ['classification']
-        return []
+        except Exception:
+            self.fields['classification'].queryset = Classification.objects.none()
 
     class Media:
-        js = ('admin/js/jquery.init.js', 'process/js/filter_classifications.js',)
+        js = (
+            'admin/js/jquery.init.js',
+            'process/js/filter_classifications.js',
+        )
 
 
 class MethodModelChoiceField(forms.ModelChoiceField):

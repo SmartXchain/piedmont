@@ -4,6 +4,8 @@ from .models import Process, ProcessStep
 from .forms import ProcessForm, ProcessStepInlineForm
 from methods.models import Method
 from django.utils.html import format_html
+from standard.models import Classification
+from django.http import JsonResponse
 
 
 class ProcessStepInline(admin.TabularInline):  # Change to Stacked for more fields
@@ -50,6 +52,15 @@ class ProcessAdmin(admin.ModelAdmin):
     has_unassigned_methods.short_description = "Unassigned Methods"
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:  # Editing
-            return ['classification']
-        return []
+        return ['classification'] if obj else []
+
+
+def classification_options(request):
+    standard_id = request.GET.get('standard_id')
+    data = []
+
+    if standard_id:
+        classifications = Classification.objects.filter(standard_id=standard_id)
+        data = [{'id': c.id, 'label': str(c)} for c in classifications]
+
+    return JsonResponse(data, safe=False)
