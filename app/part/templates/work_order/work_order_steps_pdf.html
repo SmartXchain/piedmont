@@ -434,6 +434,14 @@
               {% endfor %}
             </ul>
           {% endif %}
+
+          {% if step.method.is_rectified and step.method.rectifier_notes %}
+            <div class="description-box description-text">
+              <strong>Rectifier Notes:</strong><br>
+              {{ step.method.rectifier_notes|linebreaks }}
+            </div>
+          {% endif %}
+
         </td>
         <td class="tall-cell">
           {% if step.operator %}{{ step.operator }}{% else %}&nbsp;{% endif %}

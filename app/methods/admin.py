@@ -30,6 +30,10 @@ class MethodAdmin(admin.ModelAdmin):
             ),
             'classes': ('collapse', 'tank-details-section'),  # Collapsed by default for manual methods
         }),
+        ('Rectifier Notes', {
+            'fields': ('rectifier_notes',),
+            'classes': ('collapse',),
+        }),
     )
 
     class Media:

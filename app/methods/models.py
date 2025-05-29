@@ -64,6 +64,11 @@ class Method(models.Model):
     immersion_time_max = models.PositiveIntegerField(blank=True, null=True)
     chemical = models.CharField(max_length=255, blank=True, null=True)
     is_rectified = models.BooleanField(default=False)
+    rectifier_notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Notes about ramp rate, strike procedure, amperage control, etc. for rectified processing."
+    )
 
     class Meta:
         verbose_name = "Method"

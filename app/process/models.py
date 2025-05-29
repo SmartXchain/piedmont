@@ -16,8 +16,13 @@ class Process(models.Model):
         verbose_name_plural = "Processes"
 
     def __str__(self):
+        if self.standard_id:
+            standard_name = self.standard.name
+        else:
+            standard_name = "No Standard"
+
         classification_name = self.classification or "Unclassified"
-        return f"{self.standard.name} - {classification_name}"
+        return f"{standard_name} - {classification_name}"
 
 
 class ProcessStep(models.Model):
@@ -37,4 +42,6 @@ class ProcessStep(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Step {self.step_number} for {self.process} - {self.method.title}"
+        process_info = f"{getattr(self.process.standard, 'name', 'No Standard')}" if self.process_id else "Unsaved Process"
+        method_info = self.method.title if self.method_id else "No Method"
+        return f"Step {self.step_number} for {process_info} - {method_info}"

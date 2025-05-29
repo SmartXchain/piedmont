@@ -24,7 +24,7 @@ class ProcessForm(forms.ModelForm):
                 pass
 
         # Second: check instance (edit mode)
-        elif self.instance and self.instance.standard:
+        elif getattr(self.instance, 'standard_id', None):
             standard = self.instance.standard
 
         # Third: check initial form data
@@ -38,7 +38,7 @@ class ProcessForm(forms.ModelForm):
                 self.fields['classification'].queryset = Classification.objects.filter(standard=standard)
             else:
                 self.fields['classification'].queryset = Classification.objects.none()
-                
+
 
 class MethodModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
