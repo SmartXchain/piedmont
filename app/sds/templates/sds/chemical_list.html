@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h1 class="display-5 fw-bold text-primary">Safety Data Sheets (SDS)</h1>
+      <p class="lead">Access safety information for all chemicals used at Piedmont Aviation.</p>
+    </div>
+
+    <div class="alert alert-info text-center">
+      <strong>Note:</strong> All SDS information is maintained by EHS and available through the links below.
+      For help, contact <a href="mailto:mark.spence@piedmontaviation.com">EH&S Coordinator Mark Spence</a>.
+    </div>
+
+    <div class="table-responsive shadow-sm rounded bg-white p-3">
+      <table class="table table-striped align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">Chemical Name</th>
+            <th scope="col">SDS Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for chemical in chemicals %}
+          <tr>
+            <td class="fw-medium">{{ chemical.name }}</td>
+            <td>
+              <a href="{{ chemical.sds_url }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                View SDS
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-5 text-center">
+      <a href="https://tinyurl.com/ycytef74" class="btn btn-success me-2" target="_blank">
+        Piedmont Intranet SDS Database
+      </a>
+      <a href="https://www.msds.com/" class="btn btn-secondary" target="_blank">
+        Global SDS Lookup (MSDS.com)
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Accordion Section -->
+<section class="py-5">
+  <div class="container">
+    <h2 class="mb-4 text-primary">Piedmont Aviation Hazard Communication (HazCom) Plan</h2>
+    <div class="accordion" id="hazcomAccordion">
+      {% for section in hazcom_sections %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+          <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}">
+            {{ section.section_title }}
+          </button>
+        </h2>
+        <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#hazcomAccordion">
+          <div class="accordion-body">
+            {{ section.section_description|linebreaks }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
