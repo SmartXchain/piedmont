@@ -114,6 +114,11 @@ class Classification(models.Model):
     type = models.CharField(max_length=255, blank=True, null=True)
     type_description = models.TextField(blank=True, null=True)
 
+    # Fields for plating calculations
+    strike_asf = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="Strike ASF (Amps per Square Foot)")
+    plate_asf = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="Plating ASF (Amps per Square Foot)")
+    plating_time_minutes = models.PositiveIntegerField(blank=True, null=True, help_text="Plating Time in Mintutes")
+
     def __str__(self):
         return f"Method: {self.method or 'N/A'}, Class: {self.class_name or 'N/A'}, Type: {self.type or 'N/A'}"
 
