@@ -181,7 +181,7 @@ def work_order_print_steps_view(request, work_order_id):
     amps = None
     strike_amps = None
     strike_label = None
-    
+
     classification = Classification.objects.filter(
         standard=work_order.standard,
         class_name=work_order.classification.class_name,
@@ -196,10 +196,9 @@ def work_order_print_steps_view(request, work_order_id):
             surface_area_ft2 = work_order.surface_area / 144
             amps = surface_area_ft2 * float(classification.plate_asf or 0)
             strike_amps = surface_area_ft2 * float(classification.strike_asf or 0)
-            time_label = f"Plating Time" if classification.plating_time_minutes else None
+            time_label = f"Plating Time ({classification.plating_time_minutes} minutes)" if classification.plating_time_minutes else None
             plating_time = classification.plating_time_minutes
             strike_label = f"Strike Amps ({classification.strike_asf} ASF)" if classification.strike_asf else None
-            normal_plating_amps = amps
             normal_label = f"Normal Plate Amps ({classification.plate_asf} ASF)" if classification.plate_asf else None
         elif work_order.job_identity == 'ni_plate':
             surface_area_ft2 = work_order.surface_area / 144
