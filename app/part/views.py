@@ -26,7 +26,7 @@ def part_list_view(request):
 
     parts = parts.order_by(sort)
 
-    paginator = Paginator(parts, 20)  # Show 20 parts per page
+    paginator = Paginator(parts, 40)  # Show 20 parts per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
