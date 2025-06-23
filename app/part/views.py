@@ -181,6 +181,10 @@ def work_order_print_steps_view(request, work_order_id):
     amps = None
     strike_amps = None
     strike_label = None
+    time_label = None
+    plating_time = None
+    normal_plate_amps = None
+    normal_label = None
 
     classification = Classification.objects.filter(
         standard=work_order.standard,
@@ -210,12 +214,7 @@ def work_order_print_steps_view(request, work_order_id):
             amps = None
 
     # Optional normal plating amps (50 ASF Ni, 40 ASF Cd)
-    normal_plate_amps = None
-    normal_label = None
-    if work_order.job_identity == 'cadmium_plate':
-        normal_plate_amps = (work_order.surface_area / 144) * 40
-        normal_label = "Normal Plate Amps (40 ASF)"
-    elif work_order.job_identity == 'ni_plate':
+    if work_order.job_identity == 'ni_plate':
         normal_plate_amps = (work_order.surface_area / 144) * 50
         normal_label = "Normal Plate Amps (50 ASF)"
 
