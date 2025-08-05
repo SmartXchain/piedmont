@@ -271,7 +271,7 @@
         <td>{{ step.method.title }}</td>
         <td>
           <div class="description-box description-text">
-            {{ step.method.description|linebreaks }}
+            {{ step.method.description|safe }}
           </div>
           {# Special condition: Stress Relief or Hydrogen Embrittlement Relief #}
           {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' %}
