@@ -1,0 +1,20 @@
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link {% if request.path == '/periodic/daily/' %}active{% endif %}" href="{% url 'daily_view' %}">Daily</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.path == '/periodic/weekly/' %}active{% endif %}" href="{% url 'weekly_view' %}">Weekly</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.path == '/periodic/monthly/' %}active{% endif %}" href="{% url 'monthly_view' %}">Monthly</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.path == '/periodic/semi-annual/' %}active{% endif %}" href="{% url 'semi_annual_view' %}">Semi-Annually</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.path == '/periodic/annual/' %}active{% endif %}" href="{% url 'annual_view' %}">Annually</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.path == '/periodic/failure-log/' %}active{% endif %}" href="{% url 'failure_log_view' %}">Failure Log</a>
+  </li>
+</ul>

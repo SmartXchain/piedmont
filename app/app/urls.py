@@ -38,6 +38,7 @@ urlpatterns = [
     path('links/', include('customer_links.urls')),
     path('sds/', include('sds.urls')),
     path('admin/', admin.site.urls),
+    path('periodic/', include('periodic_testing.urls')),
 ]
 if bool(settings.DEBUG):
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -65,16 +65,23 @@
         </li>
 
         <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'chemical_list' %}active{% endif %}" href="{% url 'chemical_list' %}" title="Maintenance">
-            <i class="bi bi-clipboard-check me-1"></i> SDS
+          <a class="nav-link {% if request.resolver_match.url_name == 'chemical_list' %}active{% endif %}" href="{% url 'chemical_list' %}" title="SDS">
+            <i class="bi bi-radioactive me-1"></i> SDS
           </a>
         </li>
 
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'pm_landing_page' %}active{% endif %}" href="{% url 'pm_landing_page' %}" title="Maintenance">
-            <i class="bi bi-clipboard-check me-1"></i> Maintenance
+            <i class="bi bi-bug me-1"></i> Maintenance
           </a>
         </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'periodic_testing' %}active{% endif %}" href="{% url 'periodic_testing_landing' %}" title="Periodic Tests">
+            <i class="bi bi-substack me-1"></i> Periodic Tests
+          </a>
+        </li>
+
 
         <li class="nav-item">
           <a class="nav-link" href="/admin/" target="_blank" title="Admin Dashboard">

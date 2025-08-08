@@ -1,0 +1,47 @@
+<div class="container my-4">
+
+  <h3>Failure Log</h3>
+<div class="table-responsive">
+  <table class="table table-bordered table-striped table-hover align-middle">
+    <thead class="table-primary">
+      <tr>
+        <th>Test Report #</th>
+        <th>Test Date</th>
+        <th>Test Result</th>
+        <th>Original PO</th>
+        <th>Failure Reason & Investigation</th>
+        <th>Investigated By</th>
+        <th>Retest Report #</th>
+        <th>Retest Date</th>
+        <th>Retest Result</th>
+        <th>Retest PO</th>
+        <th>Evidence of Trend</th>
+        <th>Reviewed By</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.test_report_number }}</td>
+        <td>{{ log.test_date }}</td>
+        <td>{{ log.test_result }}</td>
+        <td>{{ log.original_po }}</td>
+        <td>{{ log.failure_reason }}</td>
+        <td>{{ log.investigated_by }}</td>
+        <td>{{ log.retest_report_number }}</td>
+        <td>{{ log.retest_date }}</td>
+        <td>{{ log.retest_result }}</td>
+        <td>{{ log.retest_po }}</td>
+        <td>{{ log.evidence_of_trend }}</td>
+        <td>{{ log.reviewed_by }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="10" class="text-center">No failure logs found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+</div>

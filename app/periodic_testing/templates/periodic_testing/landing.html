@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Periodic Testing{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h1 class="mb-4 text-center">🧪 Periodic Testing Dashboard</h1>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-tabs justify-content-center mb-4" id="testing-tabs">
+    <li class="nav-item">
+      <a class="nav-link active" href="#" data-url="{% url 'daily_view' %}">Daily</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" data-url="{% url 'weekly_view' %}">Weekly</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" data-url="{% url 'monthly_view' %}">Monthly</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" data-url="{% url 'semi_annual_view' %}">Semi-Annually</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" data-url="{% url 'annual_view' %}">Annually</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" data-url="{% url 'failure_log_view' %}">Failure Log</a>
+    </li>
+  </ul>
+
+  <!-- Dynamic Content Area -->
+  <div id="tab-content">
+    <div class="text-center alert alert-info">Loading Daily Tests...</div>
+  </div>
+</div>
+
+<!-- JavaScript for loading tabs via AJAX -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const tabs = document.querySelectorAll('#testing-tabs .nav-link');
+  const content = document.getElementById('tab-content');
+
+  function loadTab(url, clickedTab) {
+    fetch(url)
+      .then(response => response.text())
+      .then(html => {
+        content.innerHTML = html;
+        tabs.forEach(tab => tab.classList.remove('active'));
+        clickedTab.classList.add('active');
+      })
+      .catch(err => {
+        content.innerHTML = '<div class="alert alert-danger">Failed to load tab content.</div>';
+      });
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function (e) {
+      e.preventDefault();
+      const url = this.getAttribute('data-url');
+      loadTab(url, this);
+    });
+  });
+
+  // Load the default tab (Daily) on page load
+  loadTab(tabs[0].getAttribute('data-url'), tabs[0]);
+});
+</script>
+{% endblock %}
+

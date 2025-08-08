@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'tanks',
     'customer_links',
     'sds',
+    'periodic_testing',
 ]
 
 MIDDLEWARE = [
