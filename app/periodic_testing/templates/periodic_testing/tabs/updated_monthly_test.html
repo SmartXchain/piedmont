@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Record Result for: {{ test.name }}</h2>
+<form method="post" class="form">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-success">Save Result</button>
+  <a href="{% url 'monthly_tests' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
+

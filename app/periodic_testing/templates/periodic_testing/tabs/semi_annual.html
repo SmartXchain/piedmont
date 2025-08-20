@@ -1,4 +1,48 @@
 <div class="container my-5">
-  <h3>Semi-Annually Testing</h3>
-  <p>This is a placeholder for semi-annually test records.</p>
+  <h2 class="text-xl font-bold mb-4">📅 Semi-Annual Periodic Tests</h2>
+
+<table class="table-auto border-collapse border border-gray-400 w-full">
+  <thead>
+    <tr>
+      <th class="border px-2 py-1">Standard</th>
+      <th class="border px-2 py-1">Test</th>
+      <th class="border px-2 py-1">Specification</th>
+      <th class="border px-2 py-1">Material</th>
+      <th class="border px-2 py-1">Last Result</th>
+      <th class="border px-2 py-1">Last Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for test in tests %}
+      <tr>
+        <td class="border px-2 py-1">{{ test.standard.name }}</td>
+        <td class="border px-2 py-1">{{ test.name }}</td>
+        <td class="border px-2 py-1">{{ test.specification }}</td>
+        <td class="border px-2 py-1">{{ test.material }}</td>
+        <td class="border px-2 py-1">
+          {% with latest=test.results.first %}
+            {% if latest %}
+              {% if latest.passed %} ✅ Pass {% else %} ❌ Fail {% endif %}
+            {% else %}
+              No result yet
+            {% endif %}
+          {% endwith %}
+        </td>
+        <td class="border px-2 py-1">
+          {% with latest=test.results.first %}
+            {% if latest %}
+              {{ latest.performed_on }}
+            {% else %}
+              —
+            {% endif %}
+          {% endwith %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="6" class="text-center border px-2 py-1">No semi-annual periodic tests defined.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 </div>

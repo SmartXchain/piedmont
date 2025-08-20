@@ -104,6 +104,22 @@ class PeriodicTest(models.Model):
         return f"{self.name} ({self.get_time_period_display()})"
 
 
+class PeriodicTestResult(models.Model):
+    """Actual execution of a periodic test (monthly, quarterly, yearly, etc.)."""
+    test = models.ForeignKey(PeriodicTest, on_delete=models.CASCADE, related_name="results")
+    performed_on = models.DateField(auto_now_add=True)
+    performed_by = models.CharField(max_length=255, blank=True, null=True)
+    passed = models.BooleanField(default=True)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-performed_on"]
+
+    def __str__(self):
+        status = "Pass" if self.passed else "Fail"
+        return f"{self.test.name} on {self.performed_on} — {status}"
+
+
 class Classification(models.Model):
     """Classifications: method, class, type — optional per standard."""
     standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='classifications', null=True, blank=True)
