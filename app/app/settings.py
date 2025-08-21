@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'customer_links',
     'sds',
     'periodic_testing',
+    'tank_controls',
 ]
 
 MIDDLEWARE = [
