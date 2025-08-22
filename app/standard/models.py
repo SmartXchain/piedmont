@@ -2,7 +2,9 @@ from django.db import models
 
 
 class Standard(models.Model):
-    """Tracks standards with versioning and notifications when revised."""
+    """
+    Tracks standards with versioning and notifications when revised.
+    """
     PROCESS_CHOICES = [
         ('anodize', 'Anodizing'),
         ('brush plate', 'Brush Plating'),
@@ -79,6 +81,9 @@ class InspectionRequirement(models.Model):
     operator = models.CharField(max_length=255, blank=True, null=True)
     date = models.DateField(blank=True, null=True)
 
+    class Meta:
+        ordering = ['standard__name', 'name']
+
     def __str__(self):
         return self.name
 
@@ -118,6 +123,31 @@ class PeriodicTestResult(models.Model):
     def __str__(self):
         status = "Pass" if self.passed else "Fail"
         return f"{self.test.name} on {self.performed_on} — {status}"
+
+class StandardPeriodicRequirement(models.Model):
+    """
+    Mapping from a Standard to a PeriodicTestSpec defined in tank_controls.
+    One PeriodicTestSpec can satisfy multiple Standards.
+    """
+    standard = models.ForeignKey(
+        Standard,
+        on_delete=models.CASCADE,
+        related_name="periodic_requirements",
+    )
+    test_spec = models.ForeignKey(
+        "tank_controls.PeriodicTestSpec",
+        on_delete=models.CASCADE,
+        related_name="standard_links",
+    )
+    active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ("standard", "test_spec")
+        ordering = ["standard__name", "test_spec__name"]
+
+    def __str__(self) -> str:
+        return f"{self.standard.name} ⇄ {self.test_spec.name}"
 
 
 class Classification(models.Model):

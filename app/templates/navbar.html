@@ -81,6 +81,12 @@
             <i class="bi bi-substack me-1"></i> Periodic Tests
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'tank_controls' %}active{% endif %}" href="{% url 'tank_list' %}" title="Controls">
+            <i class="bi bi-controller me-1"></i> Controls
+          </a>
+        </li>
+
 
 
         <li class="nav-item">

@@ -1,10 +1,12 @@
 from django.contrib import admin
+from tank_controls.models import PeriodicTestSpec
 from .models import (
     Standard,
     StandardRevisionNotification,
     InspectionRequirement,
     PeriodicTest,
     Classification,
+    StandardPeriodicRequirement,
 )
 
 
@@ -37,12 +39,23 @@ class ClassificationInline(admin.TabularInline):
     show_change_link = True
 
 
+class StandardPeriodicRequirementInline(admin.TabularInline):
+    """
+    Link this Standard to one or more PeriodicTestSpec
+    defined in the tank_controls app.
+    """
+    model = StandardPeriodicRequirement
+    extra = 1
+    fields = ("test_spec", "active", "notes")
+    autocomplete_fields = ("test_spec",)
+    show_change_link = True
+
 @admin.register(Standard)
 class StandardAdmin(admin.ModelAdmin):
     list_display = ('name', 'revision', 'author', 'process', 'nadcap', 'requires_process_review')
     search_fields = ('name', 'revision', 'author', 'process')
     ordering = ('-name',)
-    inlines = [InspectionRequirementInline, PeriodicTestInline, ClassificationInline]
+    inlines = [InspectionRequirementInline, StandardPeriodicRequirementInline, ClassificationInline]
 
 
 @admin.register(StandardRevisionNotification)
@@ -77,3 +90,12 @@ class ClassificationAdmin(admin.ModelAdmin):
             }
         ),
     )
+
+
+@admin.register(StandardPeriodicRequirement)
+class StandardPeriodicRequirementAdmin(admin.ModelAdmin):
+    list_display = ("standard", "test_spec", "active")
+    list_filter = ("active", "standard__process")
+    search_fields = ("standard__name", "test_spec__name", "test_spec__control_set__name")
+    autocomplete_fields = ("standard", "test_spec")
+    ordering = ("standard__name", "test_spec__name")

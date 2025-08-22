@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Tank: {{ tank.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h3 class="mb-3">Tank: {{ tank.name }}</h3>
+  <p class="text-muted mb-4">
+    <strong>Process:</strong> {{ tank.process|default:"—" }}<br>
+    <strong>Description:</strong> {{ tank.description|default:"—" }}
+  </p>
+
+  {% for cs in tank.control_sets.all %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">{{ cs.name }}</h5>
+
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Chemical Specs</h6>
+            <ul class="mb-3">
+              {% for chem in cs.chemical_specs.all %}
+                <li>
+                  <strong>{{ chem.chemical_name }}</strong>
+                  {% if chem.target %} — Target: {{ chem.target }} {{ chem.units }}{% endif %}
+                  {% if chem.min_val or chem.max_val %}
+                    <small class="text-muted">
+                      ({{ chem.min_val|default:"-" }}–{{ chem.max_val|default:"-" }} {{ chem.units }})
+                    </small>
+                  {% endif %}
+                  <span class="badge text-bg-light ms-2">{{ chem.frequency|capfirst }}</span>
+                  {% if chem.method %}<div><small>{{ chem.method }}</small></div>{% endif %}
+                </li>
+              {% empty %}
+                <li class="text-muted">None</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <div class="col-md-6">
+            <h6>Temperature Specs</h6>
+            <ul class="mb-3">
+              {% for t in cs.temperature_specs.all %}
+                <li>
+                  {{ t.min_c }}&ndash;{{ t.max_c }} °C
+                  <span class="badge text-bg-light ms-2">{{ t.frequency|capfirst }}</span>
+                </li>
+              {% empty %}
+                <li class="text-muted">None</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+<hr class="my-4">
+
+<h5 class="mb-3">Periodic Tests (Specimens)</h5>
+
+{% for cs in tank.control_sets.all %}
+  {% if forloop.first %}
+    <p class="text-muted">
+      Showing periodic tests defined under this tank’s control sets.
+    </p>
+  {% endif %}
+
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <h6 class="card-title mb-3">{{ cs.name }}</h6>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Test</th>
+              <th>Frequency</th>
+              <th>Specification</th>
+              <th>Specimens</th>
+              <th>Material / Dimensions</th>
+              <th>Linked Standards</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pt in cs.periodic_tests.all %}
+              <tr>
+                <td class="fw-semibold">{{ pt.name }}</td>
+                <td>{{ pt.frequency|capfirst }}</td>
+                <td style="white-space:pre-wrap;">{{ pt.specification }}</td>
+                <td>{{ pt.number_of_specimens }}</td>
+                <td>
+                  {{ pt.material|default:"—" }}<br>
+                  <small class="text-muted">{{ pt.dimensions|default:"—" }}</small>
+                </td>
+                <td>
+                  {% with links=pt.standard_links.all %}
+                    {% if links %}
+                      {% for link in links %}
+                        {{ link.standard.name }}{% if not forloop.last %}, {% endif %}
+                      {% endfor %}
+                    {% else %}
+                      —
+                    {% endif %}
+                  {% endwith %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center">No periodic tests in this control set.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% empty %}
+  <div class="alert alert-info">No control sets for this tank.</div>
+{% endfor %}
+
+      </div>
+    </div>
+  {% empty %}
+    <div class="alert alert-info">No control sets for this tank.</div>
+  {% endfor %}
+
+  <a class="btn btn-outline-secondary" href="{% url 'tank_list' %}">Back to Tanks</a>
+</div>
+{% endblock %}
+
