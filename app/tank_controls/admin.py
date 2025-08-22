@@ -101,4 +101,3 @@ class PeriodicTestExecutionAdmin(admin.ModelAdmin):
     autocomplete_fields = ("test_spec", "performed_by")
     date_hierarchy = "performed_on"
     ordering = ("-performed_on",)
-

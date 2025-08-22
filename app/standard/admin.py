@@ -50,6 +50,7 @@ class StandardPeriodicRequirementInline(admin.TabularInline):
     autocomplete_fields = ("test_spec",)
     show_change_link = True
 
+
 @admin.register(Standard)
 class StandardAdmin(admin.ModelAdmin):
     list_display = ('name', 'revision', 'author', 'process', 'nadcap', 'requires_process_review')

@@ -124,6 +124,7 @@ class PeriodicTestResult(models.Model):
         status = "Pass" if self.passed else "Fail"
         return f"{self.test.name} on {self.performed_on} — {status}"
 
+
 class StandardPeriodicRequirement(models.Model):
     """
     Mapping from a Standard to a PeriodicTestSpec defined in tank_controls.

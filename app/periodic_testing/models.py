@@ -82,4 +82,3 @@ class DailyTask(models.Model):
 
     def __str__(self):
         return f"{self.template.name} — {self.scheduled_for}"
-

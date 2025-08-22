@@ -6,26 +6,27 @@ from standard.models import PeriodicTest, PeriodicTestResult
 from django.contrib.auth.decorators import login_required
 from django import forms
 
+
 # Landing page redirects to daily by default
 def periodic_testing_landing(request):
     tabs = ['Daily', 'Weekly', 'Monthly', 'Semi-Annually', 'Annually', 'Failure Log']
-    return render(request, 'periodic_testing/landing.html', {'tabs':tabs})
+    return render(request, 'periodic_testing/landing.html', {'tabs': tabs})
 
-# DAILY
-def daily_view(request):
-    return render(request, 'periodic_testing/tabs/daily.html')
 
 # WEEKLY
 def weekly_view(request):
     return render(request, 'periodic_testing/tabs/weekly.html')
 
+
 # MONTHLY
 def monthly_view(request):
     return render(request, 'periodic_testing/tabs/monthly.html')
 
+
 # SEMI-ANNUAL
 def semi_annual_view(request):
     return render(request, 'periodic_testing/tabs/semi_annual.html')
+
 
 # ANNUAL
 def annual_view(request):
@@ -40,6 +41,7 @@ def annual_view(request):
         "tests": tests,
     }
     return render(request, "periodic_testing/tabs/annual.html", context)
+
 
 # FAILURE LOG
 def failure_log_view(request):
@@ -70,4 +72,3 @@ def monthly_tests(request):
         "tests": tests,
     }
     return render(request, "periodic_testing/tabs/monthly.html", context)
-

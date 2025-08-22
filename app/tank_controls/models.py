@@ -211,4 +211,3 @@ class PeriodicTestExecution(models.Model):
     def __str__(self) -> str:
         status = "Pass" if self.passed else "Fail"
         return f"{self.test_spec.name} on {self.performed_on} — {status}"
-

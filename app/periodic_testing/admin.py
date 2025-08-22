@@ -2,13 +2,14 @@ from django.contrib import admin
 from django.utils import timezone
 from .models import FailureLog, DailyTask, DailyTaskTemplate
 
+
 @admin.register(FailureLog)
 class FailureLogAdmin(admin.ModelAdmin):
     list_display = (
         'test_report_number', 'test_date', 'test_result',
         'original_po', 'failure_reason', 'investigated_by',
-        'test_type', 'retest_report_number', 'retest_date', 
-            'retest_result', 'retest_po',
+        'test_type', 'retest_report_number', 'retest_date',
+        'retest_result', 'retest_po',
         'evidence_of_trend', 'reviewed_by'
     )
     readonly_fields = ()
@@ -18,8 +19,10 @@ class FailureLogAdmin(admin.ModelAdmin):
 
 ENGINEER_GROUPS = {"Engineers", "Quality"}
 
+
 def user_in_groups(user, groups):
     return user.is_superuser or user.groups.filter(name__in=groups).exists()
+
 
 @admin.register(DailyTaskTemplate)
 class DailyTaskTemplateAdmin(admin.ModelAdmin):

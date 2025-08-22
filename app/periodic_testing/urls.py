@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     path('', views.periodic_testing_landing, name='periodic_testing_landing'),
     path('failure-log', views.failure_log_view, name='failure_log_view'),
@@ -10,4 +11,3 @@ urlpatterns = [
     path('annual/', views.annual_view, name='annual_view'),
     path("monthly/", views.monthly_tests, name="monthly_tests"),
 ]
-
