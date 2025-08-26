@@ -17,7 +17,7 @@ class FailureLogAdmin(admin.ModelAdmin):
     list_filter = ('test_result', 'retest_result', 'test_date', 'retest_date')
 
 
-ENGINEER_GROUPS = {"Engineers", "Quality"}
+ENGINEER_GROUPS = {"Engineers", "Quality", "MPG Crew Chief"}
 
 
 def user_in_groups(user, groups):
