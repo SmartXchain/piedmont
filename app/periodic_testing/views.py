@@ -10,6 +10,7 @@ from datetime import timedelta, date
 from django.http import HttpRequest, HttpResponse, Http404
 from django.db import transaction
 
+
 # Landing page redirects to daily by default
 def periodic_testing_landing(request):
     tabs = ['Daily', 'Weekly', 'Monthly', 'Semi-Annually', 'Annually', 'Failure Log']
@@ -76,11 +77,13 @@ def monthly_tests(request):
     }
     return render(request, "periodic_testing/tabs/monthly.html", context)
 
+
 def _daterange(start: date, end: date):
     cur = start
     while cur <= end:
         yield cur
         cur += timedelta(days=1)
+
 
 def _ensure_instances_for_range(template: DailyTaskTemplate, start, end) -> None:
     """
