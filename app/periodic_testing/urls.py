@@ -10,4 +10,5 @@ urlpatterns = [
     path('semi-annual/', views.semi_annual_view, name='semi_annual_view'),
     path('annual/', views.annual_view, name='annual_view'),
     path("monthly/", views.monthly_tests, name="monthly_tests"),
+    path("daily/summary/<int:template_id>/", views.daily_task_summary, name="daily_task_summary"),
 ]

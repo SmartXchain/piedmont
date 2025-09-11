@@ -1,28 +1,31 @@
-<div>
+<div class="container my-4">
+
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h4 class="mb-0">Daily Tasks — {{ today }}</h4>
-    <span class="text-muted">These tasks recur every day.</span>
+    <span class="text-muted">These tasks recur every day. All edits are done in the Admin.</span>
   </div>
 
   <div class="table-responsive">
     <table class="table table-bordered table-striped table-hover align-middle">
       <thead class="table-primary">
         <tr>
-          <th>Task</th>
-          <th>Description</th>
+          <th style="min-width: 180px;">Task</th>
+          <th style="min-width: 260px;">Description</th>
           <th>Status</th>
           <th>Result</th>
           <th>Note</th>
           <th>Signed Off By</th>
           <th>Signed Off At</th>
-          <th>Admin</th>
+          <th style="min-width: 150px;">Admin</th>
+          <th style="min-width: 170px;">30-Day Summary</th>
         </tr>
       </thead>
       <tbody>
         {% for t in tasks %}
         <tr>
           <td class="fw-semibold">{{ t.template.name }}</td>
-          <td style="white-space:pre-wrap;">{{ t.template.description }}</td>
+          <td style="white-space: pre-wrap;">{{ t.template.description }}</td>
+
           <td>
             {% if t.completed %}
               <span class="badge text-bg-success">Completed</span>
@@ -30,6 +33,7 @@
               <span class="badge text-bg-warning">Not Completed</span>
             {% endif %}
           </td>
+
           <td>
             {% if t.result == 'pass' %}
               <span class="badge text-bg-success">Pass</span>
@@ -39,23 +43,40 @@
               —
             {% endif %}
           </td>
-          <td>{{ t.note|default:"—" }}</td>
+
+          <td style="white-space: pre-wrap;">{{ t.note|default:"—" }}</td>
           <td>{{ t.completed_by|default:"—" }}</td>
           <td>{{ t.completed_at|date:"Y-m-d H:i"|default:"—" }}</td>
+
           <td>
             <a
               class="btn btn-sm btn-outline-primary"
               href="{% url 'admin:periodic_testing_dailytask_change' t.id %}"
               target="_blank" rel="noopener"
-            >Open in Admin</a>
+            >
+              Open in Admin
+            </a>
+          </td>
+
+          <td>
+            <a
+              class="btn btn-sm btn-outline-info"
+              href="{% url 'daily_task_summary' t.template.id %}"
+            >
+              View 30-Day Summary
+            </a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="8" class="text-center">No tasks for today. (Check that at least one template is active.)</td>
+          <td colspan="9" class="text-center">
+            No tasks for today. Ensure at least one <em>Daily Task Template</em> is active in Admin.
+          </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+
 </div>
+
