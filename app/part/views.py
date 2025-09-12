@@ -215,7 +215,7 @@ def work_order_print_steps_view(request, work_order_id):
         else:
             # fallback if job identity is unknown
             amps = None
-       
+
     job_data = {
         'surface_area': work_order.surface_area,
         'current_density': work_order.current_density,
