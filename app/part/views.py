@@ -206,18 +206,16 @@ def work_order_print_steps_view(request, work_order_id):
             normal_label = f"Normal Plate Amps ({classification.plate_asf} ASF)" if classification.plate_asf else None
         elif work_order.job_identity == 'ni_plate':
             surface_area_ft2 = work_order.surface_area / 144
-            amps = surface_area_ft2 * work_order.current_density
-            strike_amps = surface_area_ft2 * 100  # 100 ASF
-            strike_label = "Strike Amps (100 ASF)"
+            amps = surface_area_ft2 * float(classification.plate_asf or 0)
+            strike_amps = surface_area_ft2 * float(classification.strike_asf or 0)
+            time_label = f"Plating Time ({classification.plating_time_minutes} minutes)" if classification.plating_time_minutes else None
+            plating_time = classification.plating_time_minutes
+            strike_label = f"Strike Amps ({classification.strike_asf} ASF)" if classification.strike_asf else None
+            normal_label = f"Normal Plate Amps ({classification.plate_asf} ASF)" if classification.plate_asf else None
         else:
             # fallback if job identity is unknown
             amps = None
-
-    # Optional normal plating amps (50 ASF Ni, 40 ASF Cd)
-    if work_order.job_identity == 'ni_plate':
-        normal_plate_amps = (work_order.surface_area / 144) * 50
-        normal_label = "Normal Plate Amps (50 ASF)"
-
+       
     job_data = {
         'surface_area': work_order.surface_area,
         'current_density': work_order.current_density,

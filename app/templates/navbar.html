@@ -41,26 +41,8 @@
         </li>
 
         <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'tank_list' %}active{% endif %}" href="{% url 'tank_list' %}" title="Tanks">
-            <i class="bi bi-beaker me-1"></i> Tanks
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'rack_list' %}active{% endif %}" href="{% url 'rack_list' %}" title="Fixtures">
-            <i class="bi bi-tools me-1"></i> Fixtures
-          </a>
-        </li>
-
-        <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'masking_list' %}active{% endif %}" href="{% url 'masking_list' %}" title="Masking">
             <i class="bi bi-brush me-1"></i> Masking
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'customer_links_list' %}active{% endif %}" href="{% url 'customer_links_list' %}" title="Links">
-            <i class="bi bi-clipboard-check me-1"></i> Customer Links
           </a>
         </li>
 
@@ -86,8 +68,6 @@
             <i class="bi bi-controller me-1"></i> Controls
           </a>
         </li>
-
-
 
         <li class="nav-item">
           <a class="nav-link" href="/admin/" target="_blank" title="Admin Dashboard">
