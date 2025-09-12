@@ -393,16 +393,17 @@
                         </div>
                       {% endif %}
 
-                      {% if job_data.normal_plate_amps %}
+                      {% if job_data.normal_label %}
                         <div class="input-row">
                           <div class="input-label">{{ job_data.normal_label }}:</div>
                           <div class="input-line">{{ job_data.normal_plate_amps|floatformat:2 }}</div>
                         </div>
                       {% endif %}
                 
-                        {% if job_data.plating_time %}
+                        {% if job_data.time_label %}
                         <div class="input-row">
-                          <div class="input-label">{{ job_data.time_label }}:</div>                                   <div class="input-line">{{ job_data.plating_time}} minutes</div>
+                          <div class="input-label">{{ job_data.time_label }}:</div>
+                          <div class="input-line">{{ job_data.plating_time}}:</div>
                         </div>
                         {% endif %}
                       

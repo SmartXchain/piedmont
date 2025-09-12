@@ -182,7 +182,7 @@ def work_order_print_steps_view(request, work_order_id):
     strike_amps = None
     strike_label = None
     time_label = None
-    plating_time = None
+    plating_time = ""
     normal_plate_amps = None
     normal_label = None
 
@@ -191,6 +191,10 @@ def work_order_print_steps_view(request, work_order_id):
         class_name=work_order.classification.class_name,
         type=work_order.classification.type
     ).first()
+
+    if classification and work_order.job_identity in ('cadmium_plate', 'ni_plate'):
+        time_label = "Plating Time (minutes):"
+        plating_time = classification.plating_time_minutes or ""
 
     if work_order.surface_area and work_order.current_density:
         if work_order.job_identity == 'chrome_plate':
@@ -201,17 +205,18 @@ def work_order_print_steps_view(request, work_order_id):
             amps = surface_area_ft2 * float(classification.plate_asf or 0)
             strike_amps = surface_area_ft2 * float(classification.strike_asf or 0)
             time_label = f"Plating Time ({classification.plating_time_minutes} minutes)" if classification.plating_time_minutes else None
+            normal_plate_amps = surface_area_ft2 * float(classification.plate_asf or 0)
             plating_time = classification.plating_time_minutes
-            strike_label = f"Strike Amps ({classification.strike_asf} ASF)" if classification.strike_asf else None
-            normal_label = f"Normal Plate Amps ({classification.plate_asf} ASF)" if classification.plate_asf else None
-        elif work_order.job_identity == 'ni_plate':
+            strike_label = f"Strike Amps / Part ({classification.strike_asf} ASF)" if classification.strike_asf else None
+            normal_label = f"Normal Plate Amps / Part ({classification.plate_asf} ASF)" if classification.plate_asf else None
+        elif classification and work_order.job_identity == 'ni_plate':
+            time_label = f"Plating Time ({classification.plating_time_minutes} minutes)" if classification.plating_time_minutes else "Plating Time: "
             surface_area_ft2 = work_order.surface_area / 144
             amps = surface_area_ft2 * float(classification.plate_asf or 0)
             strike_amps = surface_area_ft2 * float(classification.strike_asf or 0)
-            time_label = f"Plating Time ({classification.plating_time_minutes} minutes)" if classification.plating_time_minutes else None
-            plating_time = classification.plating_time_minutes
-            strike_label = f"Strike Amps ({classification.strike_asf} ASF)" if classification.strike_asf else None
-            normal_label = f"Normal Plate Amps ({classification.plate_asf} ASF)" if classification.plate_asf else None
+            normal_plate_amps = surface_area_ft2 * float(classification.plate_asf or 0)
+            strike_label = f"Strike Amps / Part ({classification.strike_asf} ASF)" if classification.strike_asf else None
+            normal_label = f"Normal Plate Amps / Part ({classification.plate_asf} ASF)" if classification.plate_asf else None
         else:
             # fallback if job identity is unknown
             amps = None
