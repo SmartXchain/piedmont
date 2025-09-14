@@ -166,7 +166,7 @@ def work_order_print_steps_view(request, work_order_id):
         return HttpResponse("No process steps found for this work order.", content_type="text/plain")
 
     # Fetch all process steps related to the process
-    process_steps = ProcessStep.objects.filter(process=process).order_by('step_number')
+    process_steps = ProcessStep.objects.filter(process=process).select_related('method').order_by('step_number')
 
     # If no steps are found, return an error message
     if not process_steps.exists():

@@ -28,6 +28,7 @@ def get_method_info(request):
             'chemical': method.chemical,
             'tank_name': method.tank_name,
             'is_rectified': method.is_rectified,
+            'is_strike_etch': method.is_strike_etch,
         })
     except Method.DoesNotExist:
         return JsonResponse({'error': 'Method not found'}, status=404)

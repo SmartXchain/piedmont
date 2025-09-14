@@ -10,7 +10,7 @@ class ParameterInline(admin.TabularInline):
 
 @admin.register(Method)
 class MethodAdmin(admin.ModelAdmin):
-    list_display = ('title', 'method_type', 'tank_name', 'chemical', 'is_rectified', 'has_parameters')
+    list_display = ('title', 'method_type', 'tank_name', 'chemical', 'is_rectified', 'is_strike_etch', 'has_parameters')
     list_filter = ('method_type', 'is_rectified')
     search_fields = ('title', 'description', 'tank_name', 'chemical')
     ordering = ('title',)
@@ -27,6 +27,7 @@ class MethodAdmin(admin.ModelAdmin):
                 ('immersion_time_min', 'immersion_time_max'),
                 'chemical',
                 'is_rectified',
+                'is_strike_etch',
             ),
             'classes': ('collapse', 'tank-details-section'),  # Collapsed by default for manual methods
         }),
