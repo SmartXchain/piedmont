@@ -188,6 +188,19 @@
             </ul>
           {% endif %}
 
+          {# === Strike/Etch details block (shown whenever the method is flagged) === #}
+          {% if step.method.is_strike_etch %}
+            <div class="card">
+              <div class="card-header">Strike / Etch Details</div>
+
+               {# If strike amps were computed, show them nicely with the label #}
+               {% if job_data.strike_amps %}
+                 <div class="input-row">
+                 <div class="input-label">{{ job_data.strike_label|default:"Strike Amps / Part" }}:</div>
+                 <div class="input-line">{{ job_data.strike_amps|floatformat:2 }}</div>
+           </div>
+         {% endif %}
+
           {% if step.method.is_rectified %}
             {# === Strike/Etch details block (shown whenever the method is flagged) === #}
             {% if step.method.is_strike_etch %}
