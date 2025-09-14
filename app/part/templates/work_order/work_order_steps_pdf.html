@@ -11,29 +11,11 @@
       margin-left: 2cm;
       margin-right: 2cm;
 
-      @top-left {
-        content: "Piedmont Aviation";
-        font-size: 0.6rem;
-      }
-      @top-center {
-        content: "Job Process Steps";
-        font-size: 0.9rem;
-        font-weight: bold;
-      }
-      @bottom-left {
-        content: "Doc ID: {{ doc_id }}\A Rev: {{ revision }}\A Date: {{ date }}";
-        font-size: 0.5rem;
-        white-space: pre;
-      }
-      @bottom-center {
-        content: "Page " counter(page) " of " counter(pages);
-        font-size: 0.5rem;
-      }
-      @bottom-right {
-        content: "Repair Station: {{ repair_station }}\A {{ footer_text }}";
-        font-size: 0.5rem;
-        white-space: pre;
-      }
+      @top-left { content: "Piedmont Aviation"; font-size: 0.6rem; }
+      @top-center { content: "Job Process Steps"; font-size: 0.9rem; font-weight: bold; }
+      @bottom-left { content: "Doc ID: {{ doc_id }}\A Rev: {{ revision }}\A Date: {{ date }}"; font-size: 0.5rem; white-space: pre; }
+      @bottom-center { content: "Page " counter(page) " of " counter(pages); font-size: 0.5rem; }
+      @bottom-right { content: "Repair Station: {{ repair_station }}\A {{ footer_text }}"; font-size: 0.5rem; white-space: pre; }
     }
 
     body { font-family: Arial, sans-serif; font-size: 0.65rem; color: #000; }
@@ -107,7 +89,8 @@
       <tr>
         <td><strong>Processing Standard:</strong> {{ work_order.standard|default_if_none:"" }}</td>
         <td><strong>Classification:</strong> {{ work_order.classification|default_if_none:"" }}</td>
-        <td></td><td></td>
+        <td></td>
+        <td></td>
       </tr>
     </tbody>
   </table>
@@ -127,13 +110,20 @@
       {% for step in process_steps %}
       <tr class="avoid-break">
         <td>{{ forloop.counter }}</td>
-        <td>{{ step.method.title }}</td>
+        <td>
+          {{ step.method.title }}
+          {# Debug helpers (optional):
+          {% comment %} 
+            {% if step.method.is_strike_etch %}(Strike/Etch){% endif %}
+            {% if step.method.is_rectified %}(Rectified){% endif %}
+          {% endcomment %} #}
+        </td>
         <td>
           <div class="description-box description-text">
             {{ step.method.description|safe }}
           </div>
 
-          {# Stress Relief / HE Relief extra fields #}
+          {# Stress Relief / HE Relief details #}
           {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' %}
             <div class="text-center"><strong>{{ step.method.title|upper }} DETAILS:</strong></div>
             <div class="input-row"><div class="input-label">Date and Time of Start of Baking:</div><div class="input-line"></div></div>
@@ -155,7 +145,7 @@
             </div>
           {% endif %}
 
-          {# Processing Tank Details #}
+          {# Processing tank details #}
           {% if step.method.method_type == 'processing_tank' %}
             <strong>Processing Tank Details:</strong>
             <ul>
@@ -166,7 +156,8 @@
             </ul>
           {% endif %}
 
-          {# Strike / Etch block shows whenever flagged, independent of is_rectified #}
+          {# ========= MUTUALLY EXCLUSIVE SECTIONS ========= #}
+          {# 1) STRIKE / ETCH (wins if both flags are set) #}
           {% if step.method.is_strike_etch %}
             <div class="card">
               <div class="card-header">Strike / Etch Details</div>
@@ -190,22 +181,21 @@
                 </div>
               {% endif %}
             </div>
-          {% endif %}
 
-          {# Rectified Process Details — always show some content when is_rectified #}
-          {% if step.method.is_rectified %}
+          {# 2) RECTIFIED PLATING (only if NOT a strike/etch step) #}
+          {% elif step.method.is_rectified %}
             {% if job_data.is_chrome_or_cadmium_or_nickel %}
               <div class="card">
                 <div class="card-header">Rectified Process Details</div>
 
-                <p><strong>Surface Area:</strong> {{ job_data.surface_area|default_if_none:"" |floatformat:2 }} in²</p>
-                <p><strong>Current Density:</strong> {{ job_data.current_density|default_if_none:"" |floatformat:2 }} asi (Cd or Ni - asf)</p>
-                <p><strong>Amps Required:</strong> {{ job_data.amps|default_if_none:"" |floatformat:2 }} amps/part</p>
+                <p><strong>Surface Area:</strong> {{ job_data.surface_area|default_if_none:""|floatformat:2 }} in²</p>
+                <p><strong>Current Density:</strong> {{ job_data.current_density|default_if_none:""|floatformat:2 }} asi (Cd or Ni - asf)</p>
+                <p><strong>Amps Required:</strong> {{ job_data.amps|default_if_none:""|floatformat:2 }} amps/part</p>
 
                 {% if job_data.is_chrome_plate %}
                   <div class="step-section">
                     <div class="step-title">Step 1:</div>
-                    <div class="step-text">Immerse the component; allow part to come to temperature (5–10 minutes).</div>
+                    <div class="step-text">Immerse; allow part to come to temperature (5–10 minutes).</div>
                   </div>
                   <div class="step-section">
                     <div class="step-title">Step 2:</div>
@@ -215,7 +205,7 @@
                   </div>
                   <div class="step-section">
                     <div class="step-title">Step 3:</div>
-                    <div class="step-text">Ramp current to plating current over 5–10 minutes; plate to thickness.</div>
+                    <div class="step-text">Ramp to plating current over 5–10 minutes; plate to thickness.</div>
                   </div>
                   <div class="step-section">
                     <div class="step-title">Step 4:</div>
@@ -263,7 +253,6 @@
                 <div class="input-row"><div class="input-label">Dim Thickness Required:</div><div class="input-line"></div></div>
               </div>
             {% else %}
-              {# Rectified but not one of chrome/cad/nickel — still show a generic card #}
               <div class="card">
                 <div class="card-header">Rectified Process Details</div>
                 <p>Enter rectifier settings and measurements below.</p>
@@ -274,6 +263,7 @@
               </div>
             {% endif %}
           {% endif %}
+          {# ========= END MUTUALLY EXCLUSIVE SECTIONS ========= #}
 
           {% if step.parameters %}
             <strong>Parameters to Record:</strong>
@@ -291,7 +281,6 @@
             </div>
           {% endif %}
         </td>
-
         <td class="tall-cell">{% if step.operator %}{{ step.operator }}{% else %}&nbsp;{% endif %}</td>
         <td class="tall-cell">{% if step.date %}{{ step.date }}{% else %}&nbsp;{% endif %}</td>
       </tr>
