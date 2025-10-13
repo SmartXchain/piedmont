@@ -1,23 +1,25 @@
-###########
 # BUILDER #
-###########
 
 # pull official base image
-FROM python:latest as builder
+FROM python:3.13-slim as builder
+
+# set environment variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 # set work directory
 WORKDIR /usr/src/app
 
-# set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
 # install system dependencies
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends gcc
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    build-essential \
+&& rm -rf /var/lib/apt/lists/*
 
-# lint
-RUN pip install --upgrade pip
+# Upgrade
+RUN pip install --upgrade pip setuptools wheel
 RUN pip install flake8==7.1.1
 COPY . /usr/src/app/
 RUN flake8 --ignore=E501,F401,W503,W504 .
@@ -27,12 +29,14 @@ COPY ./requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
 
 
-#########
-# FINAL #
-#########
+# FINAL STAGE
 
 # pull official base image
-FROM python:latest
+FROM python:3.13-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive
 
 # create directory for the app user
 RUN mkdir -p /home/app
@@ -44,13 +48,18 @@ RUN addgroup --system app && adduser --system --group app
 ENV HOME=/home/app
 ENV APP_HOME=/home/app/web
 RUN mkdir $APP_HOME
-RUN mkdir $APP_HOME/staticfiles
-RUN mkdir $APP_HOME/mediafiles
+RUN mkdir -p $APP_HOME/staticfiles
+RUN mkdir -p $APP_HOME/mediafiles
 WORKDIR $APP_HOME
 
+# WeasyPrint runtime deps + netcat
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 fonts-dejavu shared-mime-info netcat-traditional \
+ && rm -rf /var/lib/apt/lists/*
+
 # install dependencies
-RUN apt-get update 
-RUN apt-get install -y --no-install-recommends netcat-traditional
+RUN apt-get update && apt-get install -y --no-install-recommends netcat-traditional
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
 RUN pip install --upgrade pip

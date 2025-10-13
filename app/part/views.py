@@ -185,12 +185,18 @@ def work_order_print_steps_view(request, work_order_id):
     plating_time = ""
     normal_plate_amps = None
     normal_label = None
+    classification = None
 
-    classification = Classification.objects.filter(
-        standard=work_order.standard,
-        class_name=work_order.classification.class_name,
-        type=work_order.classification.type
-    ).first()
+    if work_order.classification:
+        classification = Classification.objects.filter(
+            standard=work_order.standard,
+            class_name=work_order.classification.class_name,
+            type=work_order.classification.type
+        ).first()
+    else:
+        classification = Classification.objects.filter(
+            standard=work_order.standard
+        ).first()
 
     if classification and work_order.job_identity in ('cadmium_plate', 'ni_plate'):
         time_label = "Plating Time (minutes):"

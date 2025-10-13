@@ -67,7 +67,7 @@
     }
 
     .instructions-column {
-      width: 50%;
+      width: 60%;
     }
 
     .blank-line {
@@ -142,10 +142,7 @@
     }
 
     .description-box {
-      background: #f8f8f8;
       padding: 0.4rem;
-      border-radius: 4px;
-      border: 1px solid #ddd;
     }
 
     .description-text strong {
@@ -229,10 +226,10 @@
   <table>
     <tbody>
       <tr>
-        <td><strong>Work Order Number:</strong> {{ work_order.work_order_number|default_if_none:"" }}</td>
-        <td><strong>Part Number:</strong> {{ work_order.part.part_number|default_if_none:"" }}</td>
-        <td><strong>Serial Number:</strong> {{ work_order.serial_or_lot_numbers|default_if_none:"" }}</td>
-        <td><strong>Customer:</strong> {{ work_order.customer|default_if_none:"" }}</td>
+        <td><strong>Work Order Number:</strong> {{ work_order.work_order_number|default_if_none:"-" }}</td>
+        <td><strong>Part Number:</strong> {{ work_order.part.part_number|default_if_none:"-" }}</td>
+        <td><strong>Serial Number:</strong> {{ work_order.serial_or_lot_numbers|default_if_none:"-" }}</td>
+        <td><strong>Customer:</strong> {{ work_order.customer|default_if_none:"-" }}</td>
       </tr>
       <tr>
         <td><strong>Part Revision:</strong> {{ work_order.part.part_revision|default_if_none:"" }}</td>
@@ -248,7 +245,7 @@
       </tr>
       <tr>
         <td><strong>Processing Standard:</strong> {{ work_order.standard|default_if_none:"" }}</td>
-        <td><strong>Classification:</strong> {{ work_order.classification|default_if_none:"" }}</td>
+        <td><strong>Classification:</strong> {{ work_order.classification|default_if_none:"N/A" }}</td>
         <td></td>
         <td></td>
       </tr>
