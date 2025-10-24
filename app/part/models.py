@@ -1,7 +1,8 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+
 from standard.models import Standard, Classification
 from process.models import Process
-from django.core.exceptions import ValidationError
 
 
 class Part(models.Model):
@@ -28,9 +29,23 @@ class PartStandard(models.Model):
     """
     This model keeps track of which standards/classifications are assigned to a part.
     """
-    part = models.ForeignKey(Part, on_delete=models.CASCADE, related_name='standards')
-    standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='part_standards')
-    classification = models.ForeignKey(Classification, on_delete=models.CASCADE, blank=True, null=True, related_name='part_standards')
+    part = models.ForeignKey(
+        Part,
+        on_delete=models.CASCADE,
+        related_name='standards'
+    )
+    standard = models.ForeignKey(
+        Standard,
+        on_delete=models.CASCADE,
+        related_name='part_standards'
+    )
+    classification = models.ForeignKey(
+        Classification,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='part_standards'
+    )
 
     class Meta:
         constraints = [
@@ -49,10 +64,16 @@ class PartStandard(models.Model):
 
 class WorkOrder(models.Model):
     """
-    Represents a work order for a part, associated with a specific standard/classification.
+    Represents a work order for a part, tied to a standard + classification.
+    Operators fill this out for each job.
     """
-    part = models.ForeignKey(Part, on_delete=models.CASCADE, related_name='work_orders')
+    part = models.ForeignKey(
+        Part,
+        on_delete=models.CASCADE,
+        related_name='work_orders'
+    )
     rework = models.BooleanField(default=False)
+
     job_identity = models.CharField(
         max_length=50,
         choices=[
@@ -70,24 +91,71 @@ class WorkOrder(models.Model):
             ('Strip', 'Strip')
         ]
     )
-    work_order_number = models.CharField(max_length=255)  # Allow duplicates with different standards/classifications/surface_repaired
-    standard = models.ForeignKey(Standard, on_delete=models.CASCADE, related_name='work_orders')
-    classification = models.ForeignKey(Classification, on_delete=models.CASCADE, blank=True, null=True, related_name='work_orders')
-    surface_repaired = models.CharField(max_length=255, blank=True, null=True)
 
-    customer = models.CharField(max_length=50, blank=True, null=True)
-    purchase_order_with_revision = models.CharField(max_length=255, blank=True, null=True)
-    part_quantity = models.PositiveIntegerField(blank=True, null=True)
-    serial_or_lot_numbers = models.TextField(blank=True, null=True)
-    surface_area = models.FloatField(blank=True, null=True, verbose_name="Surface Area (sq in)")
+    # NOTE: same WO number can appear multiple times for different surface areas,
+    # repairs, standards, etc.
+    work_order_number = models.CharField(max_length=255)
+
+    standard = models.ForeignKey(
+        Standard,
+        on_delete=models.CASCADE,
+        related_name='work_orders'
+    )
+    classification = models.ForeignKey(
+        Classification,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='work_orders'
+    )
+    
+    surface_repaired = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    customer = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True
+    )
+
+    purchase_order_with_revision = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    part_quantity = models.PositiveIntegerField(
+        blank=True,
+        null=True
+    )
+
+    serial_or_lot_numbers = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    # Operator-entered data for this WO run
+    surface_area = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name="Surface Area (sq in)"
+    )
+    
     date = models.DateField(blank=True, null=True)
-    current_density = models.FloatField(blank=True, null=True, verbose_name="Current Density (amps/sq in)")
-    amps = models.FloatField(blank=True, null=True, verbose_name="Amps Required")
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['part', 'work_order_number', 'standard', 'classification', 'surface_repaired'],
+                fields=[
+                    'part',
+                    'work_order_number',
+                    'standard',
+                    'classification',
+                    'surface_repaired',
+                ],
                 name='unique_work_order_details'
             )
         ]
@@ -95,30 +163,82 @@ class WorkOrder(models.Model):
         verbose_name = "Work Order"
         verbose_name_plural = "Work Orders"
 
+    #----------------------------------------------
+    # Business logic / helpers
+    #----------------------------------------------
+
     def get_process_steps(self):
-        """Retrieve process steps for the work order based on standard and classification."""
-        process = Process.objects.select_related('standard', 'classification').filter(
+        """
+        Retrieve process steps for the work order 
+        based on standard and classification.
+        """
+        process = Process.objects.select_related(
+            'standard', 'classification'
+        ).filter(
             standard=self.standard,
             classification=self.classification
         ).first()
+
         return process.steps.all() if process else []
 
+    def _get_current_density_for_job(self):
+        """
+        Pull the correct current density / ASF from the classifcation,
+        depending on the job_identity.
+        Returns (strike_asf, plate_asf)
+        """
+        if not self.classification:
+            return (None, None)
+
+        strike_asf = self.classification.strike_asf
+        plate_asf = self.classification.plate_asf
+
+        return (strike_asf, plate_asf)
+
+    def _calc_amps_required(self):
+        """
+        Calculate amps based on:
+            - surface_area (in2) from this work order
+            - plate_asf (amp/ft2) from the classification
+        This handles cad, ni, chrome, etc. because db is standardizing
+        on ASF. Returns a float or None.
+        """
+        if self.surface_area is None:
+            return None
+
+        strike_asf, plate_asf = self._get_current_density_for_job()
+
+        if self.job_identity in ["cadmium_plate", "ni_plate", "chrome_plate"]:
+            if plate_asf:
+                # Convert in2 to ft2
+                surface_area_ft2 = float(self.surface_area) / 144.0
+                self.amps = surface_area_ft2 * float(plate_asf)
+            return
+        return
+
     def clean(self):
-        """Ensure required fields are present for rectified processing tanks."""
+        """
+        Ensure required fields are present for rectified processing tanks.
+        """
         if not self.part_id:
             return
 
+        # Get process steps linked to this standard/classification
         process_steps = self.get_process_steps()
-        rectified_steps = [step for step in process_steps if step.method.method_type == 'processing_tank' and step.method.is_rectified]
+        rectified_steps = [
+            step for step in process_steps
+            if step.method.method_type == 'processing_tank' and step.method.is_rectified
+        ]
 
-        if rectified_steps:
-            if self.surface_area is None:
-                raise ValidationError("Surface Area is required for rectified processing tanks.")
-            if self.job_identity in ['cadmium_plate', 'chrome_plate']:
-                self.amps = self.surface_area * self.current_density if self.job_identity == 'chrome_plate' else self.surface_area / 144 * self.current_density
+        # If rectified, surface area is mandatory
+        if rectified_steps and self.surface_area is None:
+            raise ValidationError("Surface Area is required for rectified processing tanks.")
+
+        # Calulate amps using classification data
+        self._calc_amps()
 
     def save(self, *args, **kwargs):
-        """Ensure validation is applied before saving."""
+        """Ensure validation and amps calc are applied before saving."""
         self.clean()
         super().save(*args, **kwargs)
 

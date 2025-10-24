@@ -11,7 +11,7 @@ class WorkOrderForm(forms.ModelForm):
             'work_order_number', 'rework', 'job_identity', 'standard',
             'classification', 'surface_repaired', 'customer',
             'purchase_order_with_revision', 'part_quantity',
-            'serial_or_lot_numbers', 'surface_area', 'current_density'
+            'serial_or_lot_numbers', 'surface_area'
         ]
         widgets = {
             'serial_or_lot_numbers': forms.Textarea(attrs={'rows': 2}),
