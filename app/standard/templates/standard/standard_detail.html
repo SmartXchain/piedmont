@@ -1,79 +1,368 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ standard.name }} (Rev {{ standard.revision }}){% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <h2>{{ standard.name }} (Rev {{ standard.revision }})</h2>
-  <p><strong>Author:</strong> {{ standard.author }}</p>
-  <p><strong>Process:</strong> {{ standard.get_process_display }}</p>
-  <p><strong>Description:</strong><br>{{ standard.description }}</p>
+<div class="container py-4">
 
-  {% if standard.upload_file %}
-    <a href="{{ standard.upload_file.url }}" target="_blank" class="btn btn-outline-primary mb-3">View Standard File</a>
-  {% endif %}
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'standard_list' %}">Standards</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ standard.name }} (Rev {{ standard.revision }})</li>
+        </ol>
+    </nav>
 
-  <hr>
+    <!-- Header card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-start">
+                <div class="me-3">
+                    <h2 class="h4 mb-1">
+                        {{ standard.name }}
+                        <span class="badge bg-info text-dark ms-2">Rev {{ standard.revision }}</span>
+                        {% if standard.nadcap %}
+                            <span class="badge bg-dark ms-1">NADCAP</span>
+                        {% endif %}
+                    </h2>
 
-  <h4>Classifications</h4>
-  {% if classifications %}
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>Method</th>
-          <th>Method Description</th>
-          <th>Class</th>
-          <th>Class Description</th>
-          <th>Type</th>
-          <th>Type Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for classification in classifications %}
-          <tr>
-            <td>{{ classification.method }}</td>
-            <td>{{ classification.method_description }}</td>
-            <td>{{ classification.class_name }}</td>
-            <td>{{ classification.class_description }}</td>
-            <td>{{ classification.type }}</td>
-            <td>{{ classification.type_description }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No classifications available for this standard.</p>
-  {% endif %}
+                    <div class="text-muted small">
+                        <div><strong>Author:</strong> {{ standard.author }}</div>
+                        <div><strong>Primary Process:</strong> {{ standard.get_process_display }}</div>
+                        <div><strong>Last Updated:</strong> {{ standard.updated_at }}</div>
+                    </div>
+                </div>
 
-  <hr>
+                {% if standard.upload_file %}
+                    <div class="text-end">
+                        <a href="{{ standard.upload_file.url }}" target="_blank" class="btn btn-outline-primary btn-sm shadow-sm">
+                            <i class="bi bi-file-earmark-text"></i> View Standard File
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
 
-  <h4>Periodic Testing Requirements</h4>
-  {% if periodic_tests %}
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Time Period</th>
-          <th>Specification</th>
-          <th>Specimens</th>
-          <th>Material</th>
-          <th>Dimensions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for test in periodic_tests %}
-          <tr>
-            <td>{{ test.name }}</td>
-            <td>{{ test.get_time_period_display }}</td>
-            <td>{{ test.specification }}</td>
-            <td>{{ test.number_of_specimens }}</td>
-            <td>{{ test.material }}</td>
-            <td>{{ test.dimensions }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No periodic testing requirements for this standard.</p>
-  {% endif %}
+            {% if standard.description %}
+                <hr>
+                <div>
+                    <strong>Description:</strong>
+                    <div class="text-muted" style="white-space:pre-line;">
+                        {{ standard.description }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Process Blocks (Clean / Plate / Strip / etc.) -->
+    <div class="mb-4">
+        <h3 class="h5 d-flex align-items-center mb-3">
+            <i class="bi bi-gear-wide-connected me-2"></i>
+            Process Steps & Requirements
+        </h3>
+
+        {% if process_data %}
+            <div class="accordion" id="processAccordion">
+                {% for block in process_data %}
+                {% with p=block.process %}
+                <div class="accordion-item shadow-sm mb-2">
+                    <h2 class="accordion-header" id="procHeading{{ forloop.counter }}">
+                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#procCollapse{{ forloop.counter }}"
+                                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                                aria-controls="procCollapse{{ forloop.counter }}">
+                            <div class="d-flex flex-column">
+                                <span class="fw-semibold">{{ p.title }}</span>
+                                <small class="text-muted">
+                                    {{ p.get_process_type_display|default:p.process_type }}
+                                </small>
+                            </div>
+                        </button>
+                    </h2>
+
+                    <div id="procCollapse{{ forloop.counter }}"
+                         class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                         aria-labelledby="procHeading{{ forloop.counter }}"
+                         data-bs-parent="#processAccordion">
+                        <div class="accordion-body">
+
+                            {% if p.notes %}
+                                <div class="alert alert-info py-2 small">
+                                    <strong>Notes:</strong> {{ p.notes }}
+                                </div>
+                            {% endif %}
+
+                            <!-- Inspections for this process -->
+                            <div class="mb-4">
+                                <h4 class="h6 text-uppercase text-muted mb-2">Inspections</h4>
+
+                                {% if block.inspections %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width: 25%;">Inspection</th>
+                                                    <th style="width: 35%;">Description / Criteria</th>
+                                                    <th style="width: 15%;">Paragraph</th>
+                                                    <th style="width: 15%;">Sampling</th>
+                                                    <th style="width: 10%;">Operator</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for insp in block.inspections %}
+                                                <tr>
+                                                    <td class="fw-semibold">{{ insp.name }}</td>
+                                                    <td style="white-space:pre-line;">{{ insp.description }}</td>
+                                                    <td>{{ insp.paragraph_section }}</td>
+                                                    <td>{{ insp.sampling_plan }}</td>
+                                                    <td>{{ insp.operator }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted fst-italic small mb-0">No inspections defined for this process step.</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Classifications for this process -->
+                            <div class="mb-2">
+                                <h4 class="h6 text-uppercase text-muted mb-2">Classifications / Classes / Types</h4>
+
+                                {% if block.classifications %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Method</th>
+                                                    <th>Method Description</th>
+                                                    <th>Class</th>
+                                                    <th>Class Description</th>
+                                                    <th>Type</th>
+                                                    <th>Type Description</th>
+                                                    <th>ASF / Time</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for c in block.classifications %}
+                                                <tr>
+                                                    <td>{{ c.method }}</td>
+                                                    <td style="white-space:pre-line;">{{ c.method_description }}</td>
+                                                    <td class="fw-semibold">{{ c.class_name }}</td>
+                                                    <td style="white-space:pre-line;">{{ c.class_description }}</td>
+                                                    <td>{{ c.type }}</td>
+                                                    <td style="white-space:pre-line;">{{ c.type_description }}</td>
+                                                    <td class="text-nowrap">
+                                                        {% if c.strike_asf %}Strike ASF: {{ c.strike_asf }}<br>{% endif %}
+                                                        {% if c.plate_asf %}Plate ASF: {{ c.plate_asf }}<br>{% endif %}
+                                                        {% if c.plating_time_minutes %}Time: {{ c.plating_time_minutes }} min{% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted fst-italic small mb-0">No classifications defined for this process step.</p>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                {% endwith %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-secondary small">
+                No process steps are defined for this standard.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Global Requirements (apply to all steps in the spec) -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <strong>Global Inspections</strong>
+                    <small class="text-muted d-block">Apply to entire standard / all steps</small>
+                </div>
+                <div class="card-body">
+                    {% if global_inspections %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 25%;">Inspection</th>
+                                        <th style="width: 35%;">Description / Criteria</th>
+                                        <th style="width: 15%;">Paragraph</th>
+                                        <th style="width: 15%;">Sampling</th>
+                                        <th style="width: 10%;">Operator</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for insp in global_inspections %}
+                                    <tr>
+                                        <td class="fw-semibold">{{ insp.name }}</td>
+                                        <td style="white-space:pre-line;">{{ insp.description }}</td>
+                                        <td>{{ insp.paragraph_section }}</td>
+                                        <td>{{ insp.sampling_plan }}</td>
+                                        <td>{{ insp.operator }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted fst-italic small mb-0">No global inspections defined.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <strong>Global Classifications</strong>
+                    <small class="text-muted d-block">Classes / types that apply to the whole standard</small>
+                </div>
+                <div class="card-body">
+                    {% if global_classifications %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Method</th>
+                                        <th>Class</th>
+                                        <th>Type</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for c in global_classifications %}
+                                    <tr>
+                                        <td>{{ c.method }}</td>
+                                        <td class="fw-semibold">{{ c.class_name }}</td>
+                                        <td>{{ c.type }}</td>
+                                        <td style="white-space:pre-line;" class="small">
+                                            {% if c.method_description %}
+                                                <div><strong>Method Desc:</strong> {{ c.method_description }}</div>
+                                            {% endif %}
+                                            {% if c.class_description %}
+                                                <div><strong>Class Desc:</strong> {{ c.class_description }}</div>
+                                            {% endif %}
+                                            {% if c.type_description %}
+                                                <div><strong>Type Desc:</strong> {{ c.type_description }}</div>
+                                            {% endif %}
+                                            {% if c.strike_asf or c.plate_asf or c.plating_time_minutes %}
+                                                <div class="mt-2">
+                                                    {% if c.strike_asf %}Strike ASF: {{ c.strike_asf }}<br>{% endif %}
+                                                    {% if c.plate_asf %}Plate ASF: {{ c.plate_asf }}<br>{% endif %}
+                                                    {% if c.plating_time_minutes %}Time: {{ c.plating_time_minutes }} min{% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted fst-italic small mb-0">No global classifications defined.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Periodic Testing -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <strong>Periodic Testing Requirements</strong>
+            <small class="text-muted d-block">Solution control, salt spray, adhesion panels, etc.</small>
+        </div>
+        <div class="card-body">
+            {% if periodic_tests %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Interval</th>
+                                <th>Specification / Criteria</th>
+                                <th># Specimens</th>
+                                <th>Material</th>
+                                <th>Dimensions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for test in periodic_tests %}
+                            <tr>
+                                <td class="fw-semibold">{{ test.name }}</td>
+                                <td>{{ test.get_time_period_display }}</td>
+                                <td style="white-space:pre-line;">{{ test.specification }}</td>
+                                <td>{{ test.number_of_specimens }}</td>
+                                <td>{{ test.material }}</td>
+                                <td>{{ test.dimensions }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted fst-italic small mb-0">No periodic testing requirements for this standard.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notifications / Revision Alerts -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-light">
+            <strong>Revision / Change Notifications</strong>
+        </div>
+        <div class="card-body">
+            {% if notifications %}
+                <ul class="list-group list-group-flush">
+                    {% for note in notifications %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between flex-wrap">
+                                <div>
+                                    <div class="fw-semibold">{{ note.message }}</div>
+                                    <div class="small text-muted">
+                                        Acknowledged:
+                                        {% if note.is_acknowledged %}
+                                            <span class="text-success fw-semibold">Yes</span>
+                                        {% else %}
+                                            <span class="text-danger fw-semibold">No</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="text-muted small">
+                                    {{ note.notified_at }}
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted fst-italic small mb-0">No notifications for this standard.</p>
+            {% endif %}
+        </div>
+    </div>
 
 </div>
+
+<!-- Bootstrap tooltips -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
 {% endblock %}
+
