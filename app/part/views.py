@@ -13,6 +13,8 @@ from django.contrib import messages
 from standard.models import Classification
 from django.db import IntegrityError
 from django.db.models import Q
+from methods.models import ParameterToBeRecorded
+from django.db.models import Prefetch
 
 
 # 📌 List all parts (Read-Only)
@@ -166,7 +168,19 @@ def work_order_print_steps_view(request, work_order_id):
         return HttpResponse("No process steps found for this work order.", content_type="text/plain")
 
     # Fetch all process steps related to the process
-    process_steps = ProcessStep.objects.filter(process=process).select_related('method').order_by('step_number')
+    process_steps = (
+        ProcessStep.objects
+        .filter(process=process)
+        .select_related('method')
+        .prefetch_related(
+            Prefetch(
+                'method__recorded_parameters',
+                queryset=ParameterToBeRecorded.objects.order_by('id'),
+                to_attr='prefetched_recorded_paramteter',
+            )
+        )
+        .order_by('step_number')
+    )
 
     # If no steps are found, return an error message
     if not process_steps.exists():
@@ -177,7 +191,9 @@ def work_order_print_steps_view(request, work_order_id):
     # Fetch the latest footer settings (or use defaults)
     pdf_settings = PDFSettings.objects.first()
 
-    # Calculate amps
+    # ----------------------------------------------------------------------------
+    # Calculate amps (only from data we actually have)
+    # ----------------------------------------------------------------------------
     amps = None
     strike_amps = None
     strike_label = None
@@ -185,51 +201,53 @@ def work_order_print_steps_view(request, work_order_id):
     plating_time = ""
     normal_plate_amps = None
     normal_label = None
-    classification = None
 
+    # get the classification we care about
     if work_order.classification:
         classification = Classification.objects.filter(
             standard=work_order.standard,
             class_name=work_order.classification.class_name,
-            type=work_order.classification.type
+            type=work_order.classification.type,
         ).first()
     else:
         classification = Classification.objects.filter(
             standard=work_order.standard
         ).first()
 
-    if classification and work_order.job_identity in ('cadmium_plate', 'ni_plate'):
-        time_label = "Plating Time (minutes):"
-        plating_time = classification.plating_time_minutes or ""
+    # we'll reuse this in a couple places
+    surface_area_in2 = work_order.surface_area
+    surface_area_ft2 = None
+    if surface_area_in2:
+        surface_area_ft2 = float(surface_area_in2) / 144.0
 
-    if work_order.surface_area and work_order.current_density:
-        if work_order.job_identity == 'chrome_plate':
-            amps = work_order.surface_area * work_order.current_density
-            # strike amps not calculated for chrome per request
-        elif classification and work_order.job_identity == 'cadmium_plate':
-            surface_area_ft2 = work_order.surface_area / 144
-            amps = surface_area_ft2 * float(classification.plate_asf or 0)
-            strike_amps = surface_area_ft2 * float(classification.strike_asf or 0)
-            time_label = f"Plating Time ({classification.plating_time_minutes} minutes)" if classification.plating_time_minutes else None
-            normal_plate_amps = surface_area_ft2 * float(classification.plate_asf or 0)
+    # plating / rectified jobs that use ASF from classification
+    if classification and surface_area_ft2 and work_order.job_identity in ('cadmium_plate', 'ni_plate', 'chrome_plate'):
+        # common labels
+        if classification.plating_time_minutes:
+            time_label = f"Plating Time ({classification.plating_time_minutes} minutes)"
             plating_time = classification.plating_time_minutes
-            strike_label = f"Strike Amps / Part ({classification.strike_asf} ASF)" if classification.strike_asf else None
-            normal_label = f"Normal Plate Amps / Part ({classification.plate_asf} ASF)" if classification.plate_asf else None
-        elif classification and work_order.job_identity == 'ni_plate':
-            time_label = f"Plating Time ({classification.plating_time_minutes} minutes)" if classification.plating_time_minutes else "Plating Time: "
-            surface_area_ft2 = work_order.surface_area / 144
-            amps = surface_area_ft2 * float(classification.plate_asf or 0)
-            strike_amps = surface_area_ft2 * float(classification.strike_asf or 0)
-            normal_plate_amps = surface_area_ft2 * float(classification.plate_asf or 0)
-            strike_label = f"Strike Amps / Part ({classification.strike_asf} ASF)" if classification.strike_asf else None
-            normal_label = f"Normal Plate Amps / Part ({classification.plate_asf} ASF)" if classification.plate_asf else None
-        else:
-            # fallback if job identity is unknown
-            amps = None
 
+        # cad / ni: use plate_asf and maybe strike_asf
+        if work_order.job_identity in ('cadmium_plate', 'ni_plate'):
+            if classification.plate_asf:
+                normal_plate_amps = surface_area_ft2 * float(classification.plate_asf or 0)
+                normal_label = f"Normal Plate Amps / Part ({classification.plate_asf} ASF)"
+                amps = normal_plate_amps  # main amps value
+
+            if classification.strike_asf:
+                strike_amps = surface_area_ft2 * float(classification.strike_asf or 0)
+                strike_label = f"Strike Amps / Part ({classification.strike_asf} ASF)"
+
+        # chrome — often needs a different flow, but at minimum give operator amps/SA
+        if work_order.job_identity == 'chrome_plate':
+            # if you had a chrome ASF, you'd plug it here; leave as None if not
+            pass
+
+    # build job_data so the template doesn't explode
     job_data = {
-        'surface_area': work_order.surface_area,
-        'current_density': work_order.current_density,
+        'surface_area': surface_area_in2,
+        # we no longer have work_order.current_density, so just give None
+        'current_density': None,
         'amps': amps,
         'strike_amps': strike_amps,
         'strike_label': strike_label,
@@ -239,7 +257,7 @@ def work_order_print_steps_view(request, work_order_id):
         'plating_time': plating_time,
         'is_chrome_or_cadmium_or_nickel': work_order.job_identity in ['chrome_plate', 'cadmium_plate', 'ni_plate'],
         'is_chrome_plate': work_order.job_identity == 'chrome_plate',
-        'instructions': ["Record amp, current density, Dim Thickness Started and Dim Thickness Finish"]
+        'instructions': ["Record amps, ramp as required, record thickness start/finish"],
     }
 
     inspections = work_order.standard.inspections.all() if hasattr(work_order.standard, 'inspections') else []

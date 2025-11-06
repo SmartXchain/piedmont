@@ -70,14 +70,6 @@
       width: 60%;
     }
 
-    .blank-line {
-      display: block;
-      width: 100%;
-      height: 1.2rem;
-      border-bottom: 1px solid #000;
-      margin: 0.3rem 0;
-    }
-
     .signature-line {
       height: 1.2rem;
       border-bottom: 1px solid #000;
@@ -131,25 +123,8 @@
       color: #222;
     }
 
-    .description-text p {
-      margin: 0.3rem 0;
-    }
-
-    .description-text ul,
-    .description-text ol {
-      margin-left: 1.2rem;
-      padding-left: 0.5rem;
-    }
-
     .description-box {
       padding: 0.4rem;
-    }
-
-    .description-text strong {
-      font-weight: bold;
-      text-decoration: underline;
-      color: #000;
-      text-transform: uppercase;
     }
 
     .input-row {
@@ -169,31 +144,6 @@
       flex: 2;
       border-bottom: 1px solid #000;
       height: 1.5rem;
-    }
-
-    ol.step-list {
-      margin-left: 1.2rem;
-      padding-left: 0.5rem;
-      list-style-type: decimal;
-    }
-
-    ol.step-list li {
-      margin-bottom: 0.8rem;
-    }
-
-    .step-section {
-      margin-bottom: 1rem;
-    }
-
-    .step-title {
-      font-weight: bold;
-      text-transform: uppercase;
-      margin-bottom: 0.2rem;
-    }
-
-    .step-text {
-      margin-left: 1rem;
-      line-height: 1.4;
     }
 
     .step-input-row {
@@ -273,8 +223,8 @@
             {{ step.method.description|safe }}
           </div>
 
-          {# Special condition: Stress Relief or Hydrogen Embrittlement Relief #}
-          {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' %}
+          {# Stress Relief / HER bake block #}
+          {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' or step.method.is_hydrogen_relief_operation %}
             <div class="text-center"><strong>{{ step.method.title|upper }} DETAILS:</strong></div>
             <div class="input-row">
               <div class="input-label">Date and Time of Start of Baking:</div>
@@ -303,7 +253,7 @@
           {% endif %}
 
           {# Masking acknowledgement #}
-          {% if step.method.title == 'Masking' or step.method.title == 'Wax-Masking' or step.method.title == 'Demasking' %}
+          {% if step.method.title == 'Masking' or step.method.title == 'Wax-Masking' or step.method.title == 'Demasking' or step.method.is_masking_operation %}
             <div>
               <strong>Operator Acknowledgment of Masking Procedures</strong>
               <p>I confirm I have reviewed and understand the masking procedures for the assigned parts.</p>
@@ -313,6 +263,7 @@
             </div>
           {% endif %}
 
+          {# tank details #}
           {% if step.method.method_type == 'processing_tank' %}
             <strong>Processing Tank Details:</strong>
             <ul>
@@ -323,63 +274,65 @@
             </ul>
           {% endif %}
 
-{% if step.method.is_strike_etch %}
-  <div class="card">
-    <div class="card-header">Strike / Etch Details</div>
+          {# Strike / etch block #}
+          {% if step.method.is_strike_etch %}
+            <div class="card">
+              <div class="card-header">Strike / Etch Details</div>
 
-    {# If strike amps were computed, show them nicely with the label #}
-    {% if job_data.strike_amps %}
-      <div class="input-row">
-        <div class="input-label">{{ job_data.strike_label|default:"Strike Amps / Part" }}:</div>
-        <div class="input-line">{{ job_data.strike_amps|floatformat:2 }}</div>
-      </div>
-    {% endif %}
+              {% if job_data.strike_amps %}
+                <div class="input-row">
+                  <div class="input-label">{{ job_data.strike_label|default:"Strike Amps / Part" }}:</div>
+                  <div class="input-line">{{ job_data.strike_amps|floatformat:2 }}</div>
+                </div>
+              {% endif %}
 
-    {# Always give operator spaces to record actuals #}
-    <div class="step-input-row">
-      <div class="step-input-label">Amps Used:</div>
-      <div class="step-input-line"></div>
-    </div>
-    <div class="step-input-row">
-      <div class="step-input-label">Time:</div>
-      <div class="step-input-line"></div>
-    </div>
-    <div class="step-input-row">
-      <div class="step-input-label">Voltage (if applicable):</div>
-      <div class="step-input-line"></div>
-    </div>
-    <div class="step-input-row">
-      <div class="step-input-label">Notes:</div>
-      <div class="step-input-line"></div>
-    </div>
+              <div class="step-input-row">
+                <div class="step-input-label">Amps Used:</div>
+                <div class="step-input-line"></div>
+              </div>
+              <div class="step-input-row">
+                <div class="step-input-label">Time:</div>
+                <div class="step-input-line"></div>
+              </div>
+              <div class="step-input-row">
+                <div class="step-input-label">Voltage (if applicable):</div>
+                <div class="step-input-line"></div>
+              </div>
+              <div class="step-input-row">
+                <div class="step-input-label">Notes:</div>
+                <div class="step-input-line"></div>
+              </div>
 
-    {# If rectified and normal plating amps are relevant, remind the operator #}
-    {% if step.method.is_rectified and job_data.normal_plate_amps %}
-      <div class="input-row">
-        <div class="input-label">{{ job_data.normal_label|default:"Normal Plate Amps / Part" }}:</div>
-        <div class="input-line">{{ job_data.normal_plate_amps|floatformat:2 }}</div>
-      </div>
-    {% endif %}
-  </div>
-{% endif %}
+              {% if step.method.is_rectified and job_data.normal_plate_amps %}
+                <div class="input-row">
+                  <div class="input-label">{{ job_data.normal_label|default:"Normal Plate Amps / Part" }}:</div>
+                  <div class="input-line">{{ job_data.normal_plate_amps|floatformat:2 }}</div>
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
 
+          {# Rectified block #}
           {% if step.method.is_rectified %}
             {% if job_data.is_chrome_or_cadmium_or_nickel %}
               <div class="card">
                 <div class="card-header">Rectified Process Details</div>
-                <p><strong>Surface Area:</strong> {{ job_data.surface_area|floatformat:2 }} in²</p>
-                <p><strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi (Cd or Ni - asf)</p>
-                <p><strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps/part</p>
+                <p><strong>Surface Area:</strong> {{ job_data.surface_area|default:"" }} {% if job_data.surface_area %}in²{% endif %}</p>
+                {% if job_data.current_density %}
+                  <p><strong>Current Density:</strong> {{ job_data.current_density|floatformat:2 }} asi</p>
+                {% endif %}
+                {% if job_data.amps %}
+                  <p><strong>Amps Required:</strong> {{ job_data.amps|floatformat:2 }} amps/part</p>
+                {% endif %}
 
                 {% if job_data.is_chrome_plate %}
                   <div class="step-section">
                     <div class="step-title">Step 1:</div>
-                    <div class="step-text">Immerse the component in the plating solution and allow the part to come to temperature (5 - 10 minutes).</div>
+                    <div class="step-text">Immerse the component and allow to come to temperature (5–10 minutes).</div>
                   </div>
-
                   <div class="step-section">
                     <div class="step-title">Step 2:</div>
-                    <div class="step-text">Reverse etch (1 - 3 asi, 30 sec – 120 seconds).</div>
+                    <div class="step-text">Reverse etch (1–3 asi, 30–120 seconds).</div>
                     <div class="step-input-row">
                       <div class="step-input-label">Amps Used:</div>
                       <div class="step-input-line"></div>
@@ -389,97 +342,88 @@
                       <div class="step-input-line"></div>
                     </div>
                   </div>
-
-                  <div class="step-section">
-                    <div class="step-title">Step 3:</div>
-                    <div class="step-text">Slowly ramp the current from zero up to the required plating current over the course of five to ten minutes; plate until desired thickness is achieved.</div>
-                  </div>
-
-                  <div class="step-section">
-                    <div class="step-title">Step 4:</div>
-                    <div class="step-text">Strike (if base metal): Two or Three Times Amps for 30–60 seconds.</div>
-                    <div class="step-input-row">
-                      <div class="step-input-label">Amps Used:</div>
-                      <div class="step-input-line"></div>
-                    </div>
-                    <div class="step-input-row">
-                      <div class="step-input-label">Strike Time:</div>
-                      <div class="step-input-line"></div>
-                    </div>
-                  </div>
-
-                  <div class="step-section">
-                    <div class="step-title">Step 5:</div>
-                    <div class="step-text">Plate as required.</div>
-                  </div>
                 {% endif %}
 
                 <strong>Instructions:</strong>
                 <ul>
                   {% for instruction in job_data.instructions %}
                     <li>{{ instruction }}</li>
-
-                    {% if job_data.strike_amps %}
-                      <div class="input-row">
-                        <div class="input-label">{{ job_data.strike_label }}:</div>
-                        <div class="input-line">{{ job_data.strike_amps|floatformat:2 }}</div>
-                      </div>
-                    {% endif %}
-
-                    {% if job_data.normal_label %}
-                      <div class="input-row">
-                        <div class="input-label">{{ job_data.normal_label }}:</div>
-                        <div class="input-line">{{ job_data.normal_plate_amps|floatformat:2 }}</div>
-                      </div>
-                    {% endif %}
-
-                    {% if job_data.time_label %}
-                      <div class="input-row">
-                        <div class="input-label">{{ job_data.time_label }}:</div>
-                        <div class="input-line">{{ job_data.plating_time }}</div>
-                      </div>
-                    {% endif %}
-
-                    <div class="input-row">
-                      <div class="input-label">Amps:</div>
-                      <div class="input-line"></div>
-                    </div>
-                    <div class="input-row">
-                      <div class="input-label">Current Density:</div>
-                      <div class="input-line"></div>
-                    </div>
-                    <div class="input-row">
-                      <div class="input-label">Dim Thickness Start:</div>
-                      <div class="input-line"></div>
-                    </div>
-                    <div class="input-row">
-                      <div class="input-label">Dim Thickness Required:</div>
-                      <div class="input-line"></div>
-                    </div>
+                  {% empty %}
+                    <li>Record amps, current density (if applicable), and thickness start/finish.</li>
                   {% endfor %}
                 </ul>
+
+                {% if job_data.strike_amps %}
+                  <div class="input-row">
+                    <div class="input-label">{{ job_data.strike_label }}:</div>
+                    <div class="input-line">{{ job_data.strike_amps|floatformat:2 }}</div>
+                  </div>
+                {% endif %}
+                {% if job_data.normal_plate_amps %}
+                  <div class="input-row">
+                    <div class="input-label">{{ job_data.normal_label }}:</div>
+                    <div class="input-line">{{ job_data.normal_plate_amps|floatformat:2 }}</div>
+                  </div>
+                {% endif %}
+                {% if job_data.time_label %}
+                  <div class="input-row">
+                    <div class="input-label">{{ job_data.time_label }}:</div>
+                    <div class="input-line">{{ job_data.plating_time }}</div>
+                  </div>
+                {% endif %}
+
+                <div class="input-row">
+                  <div class="input-label">Amps (Actual):</div>
+                  <div class="input-line"></div>
+                </div>
+                <div class="input-row">
+                  <div class="input-label">Thickness Start:</div>
+                  <div class="input-line"></div>
+                </div>
+                <div class="input-row">
+                  <div class="input-label">Thickness Finish:</div>
+                  <div class="input-line"></div>
+                </div>
               </div>
             {% else %}
               <div class="alert-info">
                 <strong>Instructions:</strong>
-                {% if job_data.instructions %}
-                  {{ job_data.instructions.0 }}
-                {% else %}
-                  Record amps, current density, Dim Thickness Started and Dim Thickness Finish
-                {% endif %}
+                Record amps, time, and thickness start / finish.
               </div>
             {% endif %}
           {% endif %}
 
-          {% if step.parameters %}
-            <strong>Parameters to Record:</strong>
-            <ul>
-              {% for param in step.parameters %}
-                <li><strong>{{ param.title }}:</strong> {{ param.description }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-
+          {# PARAMETERS TO RECORD (from Method -> recorded_parameters) #}
+    {% with params=step.method.prefetched_recorded_parameters|default:step.method.recorded_parameters.all %}
+  {% if params %}
+    <div style="margin-top: 0.4rem;">
+      <strong>Parameters to Record:</strong>
+      {% for param in params %}
+        <div style="border: 1px solid #000; padding: 0.25rem 0.4rem; margin-top: 0.25rem;">
+          <div>
+            <strong>{{ param.description|default:param.title }}</strong>
+            {% if param.is_nadcap_required %}
+              <span style="font-size: 0.6rem; font-weight: bold;"> (NADCAP)</span>
+            {% endif %}
+          </div>
+          <div style="margin-top: 0.15rem;">
+            Unit: {% if param.unit %}{{ param.unit }}{% else %}N/A{% endif %}
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+            <div style="flex: 1; border-bottom: 1px solid #000; height: 1.1rem; font-size: 0.55rem;">
+              Operator
+            </div>
+            <div style="flex: 1; border-bottom: 1px solid #000; height: 1.1rem; font-size: 0.55rem;">
+              Date
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+           
+          
           {% if step.method.is_rectified and step.method.rectifier_notes %}
             <div class="description-box description-text">
               <strong>Rectifier Notes:</strong><br />
@@ -488,12 +432,8 @@
           {% endif %}
         </td>
 
-        <td class="tall-cell">
-          {% if step.operator %}{{ step.operator }}{% else %}&nbsp;{% endif %}
-        </td>
-        <td class="tall-cell">
-          {% if step.date %}{{ step.date }}{% else %}&nbsp;{% endif %}
-        </td>
+        <td class="tall-cell">&nbsp;</td>
+        <td class="tall-cell">&nbsp;</td>
       </tr>
       {% empty %}
       <tr>

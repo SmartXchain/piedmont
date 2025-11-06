@@ -181,6 +181,18 @@ class WorkOrder(models.Model):
 
         return process.steps.all() if process else []
 
+    def _has_rectified_step(self):
+        """
+        Return True if any step in this WO's process is a processing-tank
+        method that is marked rectified.
+        """
+        steps = self.get_process_steps()
+        for step in steps:
+            m = step.method
+            if m and m.method_type == "processing_tank" and m.is_rectified:
+                return True
+        return False
+
     def _get_current_density_for_job(self):
         """
         Pull the correct current density / ASF from the classifcation,
@@ -216,32 +228,68 @@ class WorkOrder(models.Model):
             return
         return
 
+    def _calc_amps(self):
+        """
+        Try to calculate amps when needed.
+
+        Priority:
+        1. If we have a classification with plate_asf / strike_asf, use that.
+        2. Otherwise, if the model ends up having a 'current_density' field later, use SA * CD.
+        3. Otherwise, just return None.
+
+        We don't persist this to the DB here — we just make it available
+        on the instance so views/templates can read it if they want.
+        """
+        if not self.surface_area:
+            return None
+
+        plate_amps = None
+        strike_amps = None
+
+        # 1) use classification ASF if available
+        if self.classification and (
+            self.classification.plate_asf or self.classification.strike_asf
+        ):
+            surface_area_ft2 = float(self.surface_area) / 144.0  # in² -> ft²
+            if self.classification.plate_asf:
+                plate_amps = surface_area_ft2 * float(self.classification.plate_asf)
+            if self.classification.strike_asf:
+                strike_amps = surface_area_ft2 * float(self.classification.strike_asf)
+
+        # 2) fallback: if you later add current_density to the model
+        elif hasattr(self, "current_density") and self.current_density:
+            # this assumes current_density is already "amps per in²"
+            plate_amps = float(self.surface_area) * float(self.current_density)
+
+        # stash on the instance so the view can read it later if it wants
+        self._plate_amps = plate_amps
+        self._strike_amps = strike_amps
+
+        return plate_amps
+
     def clean(self):
         """
-        Ensure required fields are present for rectified processing tanks.
+        Ensure required fields are present for rectified processing tanks,
+        and calculate amps only when it's actually needed.
         """
-        if not self.part_id:
+        # if WO isn't tied to a part/standard yet, skip checks
+        if not self.part_id or not self.standard_id:
             return
 
-        # Get process steps linked to this standard/classification
-        process_steps = self.get_process_steps()
-        rectified_steps = [
-            step for step in process_steps
-            if step.method.method_type == 'processing_tank' and step.method.is_rectified
-        ]
+        needs_rectified = self._has_rectified_step()
 
-        # If rectified, surface area is mandatory
-        if rectified_steps and self.surface_area is None:
+        # rectified steps require surface area
+        if needs_rectified and self.surface_area is None:
             raise ValidationError("Surface Area is required for rectified processing tanks.")
 
-        # Calulate amps using classification data
-        self._calc_amps()
+        # if rectified, try to calculate amps (won't error if data is missing)
+        if needs_rectified:
+            self._calc_amps()
 
     def save(self, *args, **kwargs):
-        """Ensure validation and amps calc are applied before saving."""
+        # run our validation / amps logic before save
         self.clean()
         super().save(*args, **kwargs)
-
     def __str__(self):
         return f"Work Order {self.work_order_number} for {self.part.part_number} - {self.standard.name}"
 

@@ -1,5 +1,6 @@
 from django.db import models
 
+# This is your common process dictionary
 TITLE_CHOICES = [
     ('Abrasive Blasting', 'Abrasive Blasting'),
     ('Acid Desmut', 'Acid Desmut'),
@@ -19,11 +20,6 @@ TITLE_CHOICES = [
     ('Electrolytic Clean', 'Electrolytic Clean'),
     ('Electroplating', 'Electroplating'),
     ('Etching', 'Etching'),
-    # NOTE:
-    # Your original had "FOD Inpsection".
-    # I'm using "FOD Inspection" here for clarity.
-    # If you ALREADY have production data that uses the misspelled string,
-    # keep the old spelling to avoid mapping/migration.
     ('FOD Inspection', 'FOD Inspection'),
     ('Hydrogen Embrittlement Relief', 'Hydrogen Embrittlement Relief'),
     ('Masking', 'Masking'),
@@ -57,11 +53,8 @@ METHOD_TYPE_CHOICES = [
 class Method(models.Model):
     """
     A single work step an operator will perform.
-    Examples:
-    - "Alkaline Clean – Tank 3"
-    - "Masking for Cad Plate"
-    - "Hydrogen Embrittlement Relief Bake"
-    This model defines how to run the step, not the measured results.
+    `title` stays free-form (prod-safe).
+    `category` is the normalized bucket (from TITLE_CHOICES) we can use to auto-fill parameters.
     """
 
     method_type = models.CharField(
@@ -75,6 +68,14 @@ class Method(models.Model):
         max_length=255,
         blank=True,
         help_text="Operation title. You can match one of the predefined titles or write your own."
+    )
+
+    category = models.CharField(
+        max_length=255,
+        choices=TITLE_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Select the process category to auto-attach required recorded parameters."
     )
 
     description = models.TextField(
@@ -167,51 +168,95 @@ class Method(models.Model):
         # ex: "Anodize (processing_tank)" or "Masking (manual_method)"
         return f"{self.title} ({self.method_type})"
 
+    def apply_default_parameters(self):
+        """
+        If a category is selected and this method currently has no parameters,
+        pull in all templates for that category.
+        """
+        if not self.category:
+            return
+
+        if self.recorded_parameters.exists():
+            # user already added custom parameters — don't overwrite
+            return
+
+        templates = ParameterTemplate.objects.filter(category=self.category)
+        for tpl in templates:
+            ParameterToBeRecorded.objects.create(
+                title=self.category,             # keep category as the "operation" column
+                description=tpl.description,
+                unit=tpl.unit,
+                is_nadcap_required=tpl.is_nadcap_required,
+                method=self,
+            )
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        # only auto-apply on first save so we don't duplicate
+        if is_new:
+            self.apply_default_parameters()
+
+
+class ParameterTemplate(models.Model):
+    """
+    Master list: for a given category (Anodize, Electroplating, Passivation...),
+    what should the operator be required to record?
+    """
+    category = models.CharField(
+        max_length=255,
+        choices=TITLE_CHOICES,
+        help_text="Category this template applies to."
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="What must be written on the traveler (e.g. 'Record immersion time (sec)')."
+    )
+    unit = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Unit to show next to blank (°F, amps, min, sec, etc.)."
+    )
+    is_nadcap_required = models.BooleanField(
+        default=False,
+        help_text="Check if this is Nadcap / customer required."
+    )
+
+    class Meta:
+        verbose_name = "Parameter Template"
+        verbose_name_plural = "Parameter Templates"
+        ordering = ['category']
+
+    def __str__(self):
+        label = self.description[:40] + "..." if self.description and len(self.description) > 40 else self.description
+        return f"{self.category} – {label or 'parameter'}"
+
 
 class ParameterToBeRecorded(models.Model):
     """
-    A required blank/checkpoint the operator must record by hand for this Method step.
-    These are driven by Nadcap / customer requirements. We are NOT storing
-    the actual measured values in the system — we're defining what must
-    appear on the printed instruction/traveler so the operator can fill it in.
-
-    Example rows for a plating step:
-    - "Plating current (amps)"
-    - "Surface area (in^2)"
-    - "Time in bath (minutes)"
-    - "Start bake time / End bake time"
-    - "Oven temperature"
+    Actual per-method rows that the traveler will print with blank lines.
+    Usually auto-created from ParameterTemplate, but can be edited per method.
     """
-
-    # Which general operation category this parameter is associated with.
-    # This helps you reuse patterns (e.g. 'Anodize', 'Electroplating', 'Hydrogen Embrittlement Relief').
     title = models.CharField(
         max_length=255,
         choices=TITLE_CHOICES,
-        help_text="Which type of operation this recordable applies to."
+        help_text="General operation this recordable is associated with."
     )
-
-    # What does the operator actually have to write down?
     description = models.TextField(
         blank=True,
         help_text="Instruction for the blank line, e.g. 'Record plating current (amps)'."
     )
-
-    # Unit label to show next to the blank on the traveler (amps, °F, minutes, etc.).
     unit = models.CharField(
         max_length=50,
         blank=True,
         null=True,
         help_text="Optional unit text to print next to the blank (°F, amps, min, etc.)."
     )
-
-    # Mark if this is explicitly a Nadcap-mandatory recorded parameter.
     is_nadcap_required = models.BooleanField(
         default=False,
         help_text="Required by Nadcap / customer audit? If yes, traveler can highlight it."
     )
-
-    # Link this parameter requirement to the specific Method step.
     method = models.ForeignKey(
         Method,
         on_delete=models.SET_NULL,
@@ -227,4 +272,3 @@ class ParameterToBeRecorded(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.method})"
-
