@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'sds',
     'periodic_testing',
     'tank_controls',
+    'logbook',
 ]
 
 MIDDLEWARE = [
