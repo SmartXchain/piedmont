@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+  <h1 class="h5 mb-4 text-center">Add Logbook Entry</h1>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- Section 1: Process Info -->
+    <div class="card mb-4">
+      <div class="card-header py-2 bg-light"><strong>1. Process Info</strong></div>
+      <div class="card-body p-2">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-secondary">
+            <tr class="text-center">
+              <th style="width: 20%">Date</th>
+              <th style="width: 25%">Process</th>
+              <th style="width: 30%">Part Number</th>
+              <th style="width: 25%">Work Order / Traveler</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ form.date_of_process }}</td>
+              <td>{{ form.process_name }}</td>
+              <td>{{ form.part_number }}</td>
+              <td>{{ form.work_order_number }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 2: Specification & Quantities -->
+    <div class="card mb-4">
+      <div class="card-header py-2 bg-light"><strong>2. Specification & Quantities</strong></div>
+      <div class="card-body p-2">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-secondary">
+            <tr class="text-center">
+              <th>Standard</th>
+              <th>Classification</th>
+              <th>Spec Rev</th>
+              <th>Quantity</th>
+              <th>Lot Number / Serial Number</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ form.standard_text }}</td>
+              <td>{{ form.classification_text }}</td>
+              <td>{{ form.spec_revision }}</td>
+              <td>{{ form.quantity_processed }}</td>
+              <td>{{ form.lot_number }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 3: Additional Details -->
+    <div class="card mb-4">
+      <div class="card-header py-2 bg-light"><strong>3. Additional Details</strong></div>
+      <div class="card-body p-2">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-secondary">
+            <tr class="text-center">
+              <th>Repaired Surface</th>
+              <th>End Time of Process (if applicable)</th>
+              <th>Failure Mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ form.repaired_surface }}</td>
+              <td>{{ form.process_end_time }}</td>
+              <td>{{ form.failure_mode }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Notes -->
+        <div class="mt-3">
+          <label class="form-label fw-bold" for="{{ form.notes.id_for_label }}">Notes:</label>
+          {{ form.notes }}
+        </div>
+      </div>
+    </div>  <!-- <-- close Section 3 card -->
+
+    <!-- 4. Inspection Results / Rework -->
+    <div class="card mb-4">
+      <div class="card-header py-2 bg-light"><strong>4. Inspection Results / Rework</strong></div>
+      <div class="card-body p-2">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-secondary text-center">
+            <tr>
+              <th style="width: 15%">Rework</th>
+              <th style="width: 35%">Rework Reason</th>
+              <th style="width: 20%">Inspection Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-center">{{ form.is_rework }}</td>
+              <td>{{ form.rework_reason }}</td>
+              <td>{{ form.inspection_result }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="text-end">
+      <button type="submit" class="btn btn-primary px-4">Save</button>
+      <a href="{% url 'logbook:list' %}" class="btn btn-secondary px-4">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

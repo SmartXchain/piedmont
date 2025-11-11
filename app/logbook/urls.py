@@ -1,7 +1,11 @@
+# logbook/urls.py
 from django.urls import path
-from .views import ProcessRunListView
+from .views import LogbookLandingView, logentry_create
+
+app_name = "logbook"
 
 urlpatterns = [
-    path("", ProcessRunListView.as_view(), name="processrun_list"),
+    path("", LogbookLandingView.as_view(), name="list"),
+    path("new/", logentry_create, name="create"),
 ]
 
