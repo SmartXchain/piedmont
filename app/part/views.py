@@ -176,7 +176,7 @@ def work_order_print_steps_view(request, work_order_id):
             Prefetch(
                 'method__recorded_parameters',
                 queryset=ParameterToBeRecorded.objects.order_by('id'),
-                to_attr='prefetched_recorded_paramteter',
+                to_attr='prefetched_recorded_parameters',
             )
         )
         .order_by('step_number')

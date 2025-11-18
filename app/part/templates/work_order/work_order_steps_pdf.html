@@ -394,34 +394,35 @@
           {% endif %}
 
           {# PARAMETERS TO RECORD (from Method -> recorded_parameters) #}
-    {% with params=step.method.prefetched_recorded_parameters|default:step.method.recorded_parameters.all %}
-  {% if params %}
-    <div style="margin-top: 0.4rem;">
-      <strong>Parameters to Record:</strong>
-      {% for param in params %}
-        <div style="border: 1px solid #000; padding: 0.25rem 0.4rem; margin-top: 0.25rem;">
-          <div>
-            <strong>{{ param.description|default:param.title }}</strong>
-            {% if param.is_nadcap_required %}
-              <span style="font-size: 0.6rem; font-weight: bold;"> (NADCAP)</span>
+          {% with params=step.method.prefetched_recorded_parameters %}
+            {% if params %}
+              <div style="margin-top: 0.4rem;">
+                <strong>Parameters to Record:</strong>
+                {% for param in params %}
+                  <div style="border: 1px solid #000; padding: 0.25rem 0.4rem; margin-top: 0.25rem;">
+                    <div>
+                      <strong>{{ step.method.category }}</strong>
+                      <p>{{ param.description }}</p>
+                      {% if param.is_nadcap_required %}
+                        <span style="font-size: 0.6rem; font-weight: bold;"> (NADCAP)</span>
+                      {% endif %}
+                    </div>
+                    <div style="margin-top: 0.15rem;">
+                      Unit: {% if param.unit %}{{ param.unit }}{% else %}N/A{% endif %}
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+                      <div style="flex: 1; border-bottom: 1px solid #000; height: 1.1rem; font-size: 0.55rem;">
+                        Operator
+                      </div>
+                      <div style="flex: 1; border-bottom: 1px solid #000; height: 1.1rem; font-size: 0.55rem;">
+                        Date
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
             {% endif %}
-          </div>
-          <div style="margin-top: 0.15rem;">
-            Unit: {% if param.unit %}{{ param.unit }}{% else %}N/A{% endif %}
-          </div>
-          <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
-            <div style="flex: 1; border-bottom: 1px solid #000; height: 1.1rem; font-size: 0.55rem;">
-              Operator
-            </div>
-            <div style="flex: 1; border-bottom: 1px solid #000; height: 1.1rem; font-size: 0.55rem;">
-              Date
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}
+          {% endwith %}
            
           
           {% if step.method.is_rectified and step.method.rectifier_notes %}

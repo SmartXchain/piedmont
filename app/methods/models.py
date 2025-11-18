@@ -168,22 +168,21 @@ class Method(models.Model):
         # ex: "Anodize (processing_tank)" or "Masking (manual_method)"
         return f"{self.title} ({self.method_type})"
 
-    def apply_default_parameters(self):
+    def create_required_parameters_from_template(self):
         """
-        If a category is selected and this method currently has no parameters,
-        pull in all templates for that category.
+        Creates instances of required ParameterToBeRecored from ParameterTemplate
+        based on the Method's Category.
         """
         if not self.category:
             return
 
         if self.recorded_parameters.exists():
-            # user already added custom parameters — don't overwrite
+            # do not duplicate if they alreay exist
             return
 
         templates = ParameterTemplate.objects.filter(category=self.category)
         for tpl in templates:
             ParameterToBeRecorded.objects.create(
-                title=self.category,             # keep category as the "operation" column
                 description=tpl.description,
                 unit=tpl.unit,
                 is_nadcap_required=tpl.is_nadcap_required,
@@ -195,7 +194,7 @@ class Method(models.Model):
         super().save(*args, **kwargs)
         # only auto-apply on first save so we don't duplicate
         if is_new:
-            self.apply_default_parameters()
+            self.create_required_parameters_from_template()
 
 
 class ParameterTemplate(models.Model):
@@ -238,11 +237,6 @@ class ParameterToBeRecorded(models.Model):
     Actual per-method rows that the traveler will print with blank lines.
     Usually auto-created from ParameterTemplate, but can be edited per method.
     """
-    title = models.CharField(
-        max_length=255,
-        choices=TITLE_CHOICES,
-        help_text="General operation this recordable is associated with."
-    )
     description = models.TextField(
         blank=True,
         help_text="Instruction for the blank line, e.g. 'Record plating current (amps)'."
@@ -259,7 +253,7 @@ class ParameterToBeRecorded(models.Model):
     )
     method = models.ForeignKey(
         Method,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
         related_name="recorded_parameters",
@@ -269,6 +263,14 @@ class ParameterToBeRecorded(models.Model):
     class Meta:
         verbose_name = "Recorded Parameter"
         verbose_name_plural = "Recorded Parameters"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['method', 'description'],
+                name='unique_param_per_method'
+            )
+        ]
 
     def __str__(self):
-        return f"{self.title} ({self.method})"
+        return f"{self.method.category} – {self.description[:20]}"
+
+
