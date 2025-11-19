@@ -1,48 +1,30 @@
 from django.db import models
 
-# This is your common process dictionary
+# These are NADCAP process parameters to be recorded
 TITLE_CHOICES = [
+    ('Pre-Cleaning', 'Pre-Cleaning'),
+    ('Masking', 'Masking'),
     ('Abrasive Blasting', 'Abrasive Blasting'),
+    ('Cleaning', 'Cleaning'),
+    ('Rinsing', 'Rinsing'),
+    ('De-Oxidize/Pickle', 'De-Oxidize/Pickle'),
+    ('Electrolytic Clean', 'Electrolytic Clean'),
     ('Acid Desmut', 'Acid Desmut'),
-    ('Air Dry', 'Air Dry'),
-    ('Alkaline Clean', 'Alkaline Clean'),
+    ('Etching', 'Etching'),
+    ('Chemical Milling', 'Chemical Milling'),
+    ('Conversion Coating', 'Conversion Coating'),
     ('Anodize', 'Anodize'),
+    ('Sealing/Dying', 'Sealing/Dying'),
     ('Barrel Plating', 'Barrel Plating'),
     ('Brush Plating', 'Brush Plating'),
-    ('Cad Strip', 'Cad Strip'),
-    ('Chemical Milling', 'Chemical Milling'),
-    ('Cleaning', 'Cleaning'),
-    ('Chrome Strip', 'Chrome Strip'),
-    ('Conversion Coating', 'Conversion Coating'),
-    ('De-Oxidize/Pickle', 'De-Oxidize/Pickle'),
-    ('Demasking', 'Demasking'),
-    ('Electroless Plating', 'Electroless Plating'),
-    ('Electrolytic Clean', 'Electrolytic Clean'),
     ('Electroplating', 'Electroplating'),
-    ('Etching', 'Etching'),
-    ('FOD Inspection', 'FOD Inspection'),
-    ('Hydrogen Embrittlement Relief', 'Hydrogen Embrittlement Relief'),
-    ('Masking', 'Masking'),
-    ('Nickel Strip', 'Nickel Strip'),
-    ('Oven Dry', 'Oven Dry'),
     ('Painting/Dry Film Coating', 'Painting/Dry Film Coating'),
-    ('Passivation', 'Passivation'),
-    ('Pre-Cleaning', 'Pre-Cleaning'),
-    ('Pre-Pen Etching', 'Pre-Pen Etching'),
-    ('Racking', 'Racking'),
-    ('Rinsing', 'Rinsing'),
-    ('Scrub Surface', 'Scrub Surface'),
-    ('Sealing', 'Sealing'),
-    ('Solvent Clean', 'Solvent Clean'),
-    ('Spray Rinse', 'Spray Rinse'),
-    ('Stress Relief', 'Stress Relief'),
-    ('Strip', 'Strip'),
     ('Thermal Treatment', 'Thermal Treatment'),
-    ('Unmasking', 'Unmasking'),
-    ('Unracking', 'Unracking'),
-    ('Vacuum Cadmium & Aluminum IVD', 'Vacuum Cadmium & Aluminum IVD'),
-    ('Water-Break Test', 'Water-Break Test'),
+    ('Vacuum Cadmium/Aluminum IVD', 'Vacuum Cadmium/Aluminum IVD'),
+    ('Stress Relieve', 'Stress Relieve'),
+    ('Hydrogen Embrittlement Relief', 'Hydrogen Embrittlement Relief'),
 ]
+
 
 METHOD_TYPE_CHOICES = [
     ('processing_tank', 'Processing Tank'),
@@ -83,9 +65,6 @@ class Method(models.Model):
         help_text="Operator-facing work instruction / narrative for how to do this step."
     )
 
-    # Helper list for UI use (not a DB field, just class-level metadata)
-    PREDEFINED_TITLES = [title for title, _ in TITLE_CHOICES]
-
     # --- Process / bath / tank parameters ---
     tank_name = models.CharField(
         max_length=255,
@@ -94,27 +73,27 @@ class Method(models.Model):
         help_text="Tank name / line position / station ID if applicable."
     )
 
-    temp_min = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
+    temp_min = models.PositiveIntegerField(
         blank=True,
         null=True,
-        help_text="Minimum bath or oven temperature (°F or °C per your standard)."
+        help_text="Minimum bath °F."
     )
-    temp_max = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
+    temp_max = models.PositiveIntegerField(
         blank=True,
         null=True,
-        help_text="Maximum bath or oven temperature."
+        help_text="Maximum bath °F."
     )
 
-    immersion_time_min = models.PositiveIntegerField(
+    immersion_time_min = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
         blank=True,
         null=True,
-        help_text="Minimum contact/immersion time. Units defined by your SOP."
+        help_text="Minimum contact/immersion time."
     )
-    immersion_time_max = models.PositiveIntegerField(
+    immersion_time_max = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
         blank=True,
         null=True,
         help_text="Maximum contact/immersion time."
@@ -124,7 +103,7 @@ class Method(models.Model):
         max_length=255,
         blank=True,
         null=True,
-        help_text="Bath chemistry / product / material callout (optional)."
+        help_text="Bath chemistry / product / material callout."
     )
 
     is_rectified = models.BooleanField(
@@ -149,7 +128,7 @@ class Method(models.Model):
         help_text="True if this is masking, demasking, tape, or stop-off application/removal."
     )
 
-    is_bake_operation = models.BooleanField(
+    is_stress_relief_operation = models.BooleanField(
         default=False,
         help_text="True if this step is an oven/bake/stress-relief/thermal soak."
     )
@@ -202,13 +181,13 @@ class ParameterTemplate(models.Model):
     what should the operator be required to record?
     """
     category = models.CharField(
-        max_length=255,
+        max_length=100,
         choices=TITLE_CHOICES,
         help_text="Category this template applies to."
     )
     description = models.TextField(
         blank=True,
-        help_text="What must be written on the traveler (e.g. 'Record immersion time (sec)')."
+        help_text="What must be written on the tech sheet (e.g. 'Record immersion time (sec)')."
     )
     is_nadcap_required = models.BooleanField(
         default=False,
@@ -259,5 +238,4 @@ class ParameterToBeRecorded(models.Model):
 
     def __str__(self):
         return f"{self.method.category} – {self.description[:20]}"
-
 
