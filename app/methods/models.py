@@ -184,7 +184,6 @@ class Method(models.Model):
         for tpl in templates:
             ParameterToBeRecorded.objects.create(
                 description=tpl.description,
-                unit=tpl.unit,
                 is_nadcap_required=tpl.is_nadcap_required,
                 method=self,
             )
@@ -211,12 +210,6 @@ class ParameterTemplate(models.Model):
         blank=True,
         help_text="What must be written on the traveler (e.g. 'Record immersion time (sec)')."
     )
-    unit = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        help_text="Unit to show next to blank (°F, amps, min, sec, etc.)."
-    )
     is_nadcap_required = models.BooleanField(
         default=False,
         help_text="Check if this is Nadcap / customer required."
@@ -240,12 +233,6 @@ class ParameterToBeRecorded(models.Model):
     description = models.TextField(
         blank=True,
         help_text="Instruction for the blank line, e.g. 'Record plating current (amps)'."
-    )
-    unit = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        help_text="Optional unit text to print next to the blank (°F, amps, min, etc.)."
     )
     is_nadcap_required = models.BooleanField(
         default=False,
