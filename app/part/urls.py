@@ -10,7 +10,6 @@ urlpatterns = [
 
     path('standards/<int:standard_id>/classifications/json/', views.standard_classifications_json, name='standard_classifications_json'),
 
-    path('work_orders/', views.work_order_list_view, name='work_order_list'),
     path('work_orders/<int:work_order_id>/', views.work_order_detail_view, name='work_order_detail'),
     path('parts/<int:part_id>/work_orders/add/', views.work_order_create_view, name='work_order_create'),
     path('work_orders/<int:work_order_id>/pdf/', views.work_order_print_steps_view, name='work_order_pdf'),

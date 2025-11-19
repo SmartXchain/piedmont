@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Part, WorkOrder, PDFSettings
+from .models import Part, WorkOrder, PDFSettings, PartStandard
 import tempfile
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
@@ -14,21 +14,32 @@ from standard.models import Classification
 from django.db import IntegrityError
 from django.db.models import Q
 from methods.models import ParameterToBeRecorded
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Count
 
 
 # 📌 List all parts (Read-Only)
 def part_list_view(request):
     query = request.GET.get('q', '')
-    sort = request.GET.get('sort', 'part_number')  # default sort
+    sort = request.GET.get('sort', 'part_number')
+
     parts = Part.objects.all()
+
+    parts = parts.annotate(
+        standards_count=Count('standards')
+    ).prefetch_related(
+        Prefetch(
+            'standards',
+            queryset=PartStandard.objects.select_related('standard').order_by('pk'),
+            to_attr='prefetched_standards'
+        )
+    )
 
     if query:
         parts = parts.filter(part_number__icontains=query)
 
     parts = parts.order_by(sort)
 
-    paginator = Paginator(parts, 40)  # Show 20 parts per page
+    paginator = Paginator(parts, 40)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -40,12 +51,25 @@ def part_list_view(request):
     return render(request, 'part/part_list.html', context)
 
 
-# 📌 View part details (Read-Only)
+# part/views.py (in part_detail_view)
 def part_detail_view(request, part_id):
+    # Fetch the Part
     part = get_object_or_404(Part, id=part_id)
-    standards = part.standards.all()
-    work_orders = part.work_orders.all()
-    return render(request, 'part/part_detail.html', {'part': part, 'standards': standards, 'work_orders': work_orders})
+    
+    # EFFICIENT QUERY 1: Fetch standards and prefetch the linked Standard and Classification models
+    # This avoids N+1 for the Standards Assignment Card
+    standards = part.standards.select_related('standard', 'classification')
+    
+    # EFFICIENT QUERY 2: Fetch work orders and prefetch the linked Standard and Classification models
+    # This avoids N+1 for the Work Orders Table
+    work_orders = part.work_orders.select_related('standard', 'classification')
+    
+    context = {
+        'part': part, 
+        'standards': standards, 
+        'work_orders': work_orders
+    }
+    return render(request, 'part/part_detail.html', context)
 
 
 def part_create_view(request):
@@ -98,19 +122,36 @@ def part_assign_standard_view(request, part_id):
 
     return render(request, 'part/part_assign_standard_form.html', {'form': form, 'part': part})
 
+# part/views.py (in work_order_detail_view)
 
-# 📌 List all work orders (Read-Only)
-def work_order_list_view(request):
-    work_orders = WorkOrder.objects.all()
-    return render(request, 'work_order/work_order_list.html', {'work_orders': work_orders})
-
-
-# 📌 View work order details (Read-Only)
 def work_order_detail_view(request, work_order_id):
-    work_order = get_object_or_404(WorkOrder, id=work_order_id)
-    process_steps = work_order.get_process_steps()
-    return render(request, 'work_order/work_order_detail.html', {'work_order': work_order, 'process_steps': process_steps})
+    # Fetch work order and related FKs (Part, Standard, Classification) in one go
+    work_order = get_object_or_404(
+        WorkOrder.objects.select_related('part', 'standard', 'classification'), 
+        id=work_order_id
+    )
+    
+    # Use the method from the WorkOrder model to find and fetch the steps
+    # We must explicitly use select_related('method') inside get_process_steps() 
+    # or chain it here for efficiency.
+    # Assuming get_process_steps() returns a ProcessStep QuerySet:
+    process_steps_qs = work_order.get_process_steps()
+    
+    # Ensure the query set includes select_related('method') if it doesn't already.
+    # If the method returns a QuerySet, we can chain:
+    process_steps = process_steps_qs.select_related('method') if process_steps_qs else []
+    
+    # Check the actual type returned by get_process_steps. If it returns steps.all(),
+    # then the view is correct, but let's confirm the efficiency in the view itself.
 
+    # NOTE: The definition of work_order.get_process_steps() is in your models.py.
+    # It must look like this to be efficient:
+    # return process.steps.select_related('method') if process else []
+    
+    # Assuming the underlying logic in get_process_steps is fixed:
+    process_steps = work_order.get_process_steps() 
+
+    return render(request, 'work_order/work_order_detail.html', {'work_order': work_order, 'process_steps': process_steps})
 
 def work_order_create_view(request, part_id):
     part = get_object_or_404(Part, id=part_id)
@@ -167,10 +208,31 @@ def work_order_print_steps_view(request, work_order_id):
     if not process:
         return HttpResponse("No process steps found for this work order.", content_type="text/plain")
 
+    # Define flags based on work order requirements
+    requires_masking = work_order.requires_masking
+    requires_stress_relief = work_order.requires_stress_relief
+    requires_hydrogen_relief = work_order.requires_hydrogen_relief
+
+    # Build the filter/exclusion logic
+    exclusion_query = Q()
+
+    # If masking is NOT required, exclude masking steps
+    if not requires_masking:
+        exclusion_query |= Q(method__is_masking_operation=True)
+
+    # If stress relief is NOT required, exclude stress relief steps
+    if not requires_stress_relief:
+        exclusion_query |= Q(method__is_stress_relief_operation=True)
+
+    # If hydrogen relief is NOT required, exclude H.E.R. steps
+    if not requires_hydrogen_relief:
+        exclusion_query |= Q(method__is_hydrogen_relief_operation=True)
+
     # Fetch all process steps related to the process
     process_steps = (
         ProcessStep.objects
         .filter(process=process)
+        .exclude(exclusion_query)
         .select_related('method')
         .prefetch_related(
             Prefetch(
@@ -202,17 +264,7 @@ def work_order_print_steps_view(request, work_order_id):
     normal_plate_amps = None
     normal_label = None
 
-    # get the classification we care about
-    if work_order.classification:
-        classification = Classification.objects.filter(
-            standard=work_order.standard,
-            class_name=work_order.classification.class_name,
-            type=work_order.classification.type,
-        ).first()
-    else:
-        classification = Classification.objects.filter(
-            standard=work_order.standard
-        ).first()
+    classification = work_order.classification
 
     # we'll reuse this in a couple places
     surface_area_in2 = work_order.surface_area
@@ -222,26 +274,26 @@ def work_order_print_steps_view(request, work_order_id):
 
     # plating / rectified jobs that use ASF from classification
     if classification and surface_area_ft2 and work_order.job_identity in ('cadmium_plate', 'ni_plate', 'chrome_plate'):
+
+        plate_asf = getattr(classification, 'plate_asf', None)
+        strike_asf = getattr(classification, 'strike_asf', None)
+        plating_time_minutes = getattr(classification, 'plating_time_minutes', None)
+
         # common labels
-        if classification.plating_time_minutes:
-            time_label = f"Plating Time ({classification.plating_time_minutes} minutes)"
-            plating_time = classification.plating_time_minutes
+        if plating_time_minutes:
+            time_label = f"Plating Time ({plating_time_minutes} minutes)"
+            plating_time = plating_time_minutes
 
         # cad / ni: use plate_asf and maybe strike_asf
-        if work_order.job_identity in ('cadmium_plate', 'ni_plate'):
-            if classification.plate_asf:
-                normal_plate_amps = surface_area_ft2 * float(classification.plate_asf or 0)
-                normal_label = f"Normal Plate Amps / Part ({classification.plate_asf} ASF)"
+        if work_order.job_identity in ('cadmium_plate', 'ni_plate', 'chrome_plate'):
+            if plate_asf:
+                normal_plate_amps = surface_area_ft2 * float(plate_asf)
+                normal_label = f"Normal Plate Amps / Part ({plate_asf} ASF)"
                 amps = normal_plate_amps  # main amps value
 
-            if classification.strike_asf:
-                strike_amps = surface_area_ft2 * float(classification.strike_asf or 0)
-                strike_label = f"Strike Amps / Part ({classification.strike_asf} ASF)"
-
-        # chrome — often needs a different flow, but at minimum give operator amps/SA
-        if work_order.job_identity == 'chrome_plate':
-            # if you had a chrome ASF, you'd plug it here; leave as None if not
-            pass
+            if strike_asf:
+                strike_amps = surface_area_ft2 * float(strike_asf)
+                strike_label = f"Strike Amps / Part ({strike_asf} ASF)"
 
     # build job_data so the template doesn't explode
     job_data = {
@@ -260,9 +312,9 @@ def work_order_print_steps_view(request, work_order_id):
         'instructions': ["Record amps, ramp as required, record thickness start/finish"],
     }
 
-    inspections = work_order.standard.inspections.all() if hasattr(work_order.standard, 'inspections') else []
-    print(inspections)
-
+    inspections_qs = getattr(work_order.standard, 'inspections', None)
+    inspections = inspections_qs.all() if inspections_qs else []
+    
     bake_labels = [
         "Date and Time of Start of Baking",
         "Date and Time of Start of Soak",

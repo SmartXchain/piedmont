@@ -56,28 +56,31 @@
       </a>
     </div>
   
-    <div class="card-body">
-      {% if standards %}
-        <ul class="list-group">
-          {% for standard in standards %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span>
-                <strong>{{ standard.standard.name }}</strong>
-                {% if standard.classification %}-
-                  Method: {{ standard.classification.method|default:"N/A" }} |
-                  Class: {{ standard.classification.class_name|default:"N/A" }} |
-                  Type: {{ standard.classification.type|default:"N/A" }}
-                {% endif %}
-              </span>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="text-muted">No standards assigned to this part.</p>
-      {% endif %}
+    <div class="card mb-4 shadow-sm">
+  <div class="card-header bg-light d-flex justify-content-between align-items-center">
     </div>
+  <div class="card-body">
+    {% if standards %}
+      <ul class="list-group">
+        {% for part_standard in standards %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>
+              <strong>{{ part_standard.standard.name }}</strong>
+              {% if part_standard.classification %}
+                - Class: {{ part_standard.classification.class_name|default:"N/A" }} 
+                | Type: {{ part_standard.classification.type|default:"N/A" }}
+              {% else %}
+                - <em class="text-muted">No Classification Assigned</em>
+              {% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">No standards assigned to this part.</p>
+    {% endif %}
   </div>
-
+</div>
   <!-- Work Orders Table -->
   <div class="card shadow-sm">
     <div class="card-header bg-light">

@@ -11,10 +11,15 @@ class WorkOrderForm(forms.ModelForm):
             'work_order_number', 'rework', 'job_identity', 'standard',
             'classification', 'surface_repaired', 'customer',
             'purchase_order_with_revision', 'part_quantity',
-            'serial_or_lot_numbers', 'surface_area'
+            'serial_or_lot_numbers', 'surface_area',
+            'requires_masking', 'requires_stress_relief',
+            'requires_hydrogen_relief',
         ]
         widgets = {
             'serial_or_lot_numbers': forms.Textarea(attrs={'rows': 2}),
+            'requires_masking': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'requires_stress_relief': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'requires_hydrogen_relief': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -22,20 +27,29 @@ class WorkOrderForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if part:
-            # ✅ Use actual model instances
-            self.fields['standard'].queryset = Standard.objects.filter(
-                id__in=PartStandard.objects.filter(part=part).values_list('standard', flat=True)
-            )
+            # 1. Fetch the PartStandard records once for efficiency
+            part_standards = PartStandard.objects.filter(part=part).select_related('standard', 'classification')
 
-            self.fields['classification'].queryset = Classification.objects.filter(
-                id__in=PartStandard.objects.filter(part=part).values_list('classification', flat=True)
-            )
+            # 2. Collect unique Standard IDs and Classification IDs
+            standard_ids = part_standards.values_list('standard_id', flat=True).distinct()
+            classification_ids = part_standards.values_list('classification_id', flat=True).distinct()
 
-            part_standards = part.standards.all()
+            # 3. Apply the filtered querysets
+            self.fields['standard'].queryset = Standard.objects.filter(id__in=standard_ids)
+            
+            # IMPROVEMENT: Filter classifications including NULLs if the PartStandard model allows it
+            # The current classification IDs list contains the PKs of assigned classifications, 
+            # but if a PartStandard has a NULL classification, this list won't include it. 
+            # However, since Django automatically handles the NULL choice for nullable FKs, 
+            # this is okay as long as you intend for the user to ONLY pick from assigned non-null classifications.
+            self.fields['classification'].queryset = Classification.objects.filter(id__in=classification_ids)
+
+            # 4. Set initial values if only one PartStandard exists
             if part_standards.count() == 1:
-                self.fields['standard'].initial = part_standards[0].standard
-                self.fields['classification'].initial = part_standards[0].classification
-
+                # Use the prefetched/selected instance from the initial queryset
+                single_part_standard = part_standards.first()
+                self.fields['standard'].initial = single_part_standard.standard
+                self.fields['classification'].initial = single_part_standard.classification
 
 class PartForm(forms.ModelForm):
     class Meta:

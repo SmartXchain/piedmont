@@ -1,190 +1,228 @@
 {% extends "base.html" %}
-{% load form_tags %}
+{% load form_utils %} 
 {% block title %}Add Work Order{% endblock %}
 
 {% block content %}
 <div class="container my-5">
 
-  <!-- Flash Messages -->
-  {% if messages %}
-    <div class="mb-3">
-      {% for message in messages %}
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-          <i class="bi bi-check-circle me-2"></i> {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    {# Flash Messages #}
+    {% if messages %}
+        <div class="mb-3">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
         </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <!-- Page Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 text-primary">
-      <i class="bi bi-plus-circle-fill me-2"></i>
-      New Work Order for Part <span class="fw-bold">{{ part.part_number }}</span>
-    </h2>
-    <a href="{% url 'part_detail' part.id %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Back to Part
-    </a>
-  </div>
-
-  <!-- Work Order Form -->
-  <form method="post" novalidate>
-    {% csrf_token %}
-    {% if form.errors %}
-      <div class="alert alert-danger">
-        <strong>There were errors in your form:</strong>
-        <ul class="mb-0">
-          {% for field in form %}
-            {% for error in field.errors %}
-              <li><strong>{{ field.label }}:</strong> {{ error }}</li>
-            {% endfor %}
-          {% endfor %}
-          {% for error in form.non_field_errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-      </div>
     {% endif %}
 
-    <!-- Basic Info -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-light fw-semibold">
-        <i class="bi bi-file-earmark-text me-1"></i> Work Order Info
-      </div>
-      <div class="card-body row g-3">
-        <div class="col-md-6">
-          <label class="form-label required">{{ form.work_order_number.label }}</label>
-          {{ form.work_order_number|add_class:"form-control" }}
-        </div>
-
-        <div class="col-md-6 d-flex align-items-center">
-          <div class="form-check mt-4">
-            {{ form.rework|add_class:"form-check-input me-2" }}
-            <label class="form-check-label">{{ form.rework.label }}</label>
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label required">{{ form.job_identity.label }}</label>
-          {{ form.job_identity|add_class:"form-select" }}
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label">{{ form.surface_repaired.label }}</label>
-          {{ form.surface_repaired|add_class:"form-control" }}
-        </div>
-      </div>
+    {# Page Header #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 text-primary">
+            <i class="bi bi-plus-circle-fill me-2"></i>
+            New Work Order for Part <span class="fw-bold">{{ part.part_number }}</span>
+        </h2>
+        <a href="{% url 'part_detail' part.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Part
+        </a>
     </div>
 
-    <!-- Process Standard -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-light fw-semibold">
-        <i class="bi bi-journals me-1"></i> Process Standard
-      </div>
-      <div class="card-body row g-3">
-        <div class="col-md-6">
-          <label class="form-label required">{{ form.standard.label }}</label>
-          {{ form.standard|add_class:"form-select" }}
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        {# Consolidated Error Display #}
+        {% if form.errors %}
+        <div class="alert alert-danger mb-4">
+            <strong><i class="bi bi-exclamation-triangle-fill me-1"></i> Please correct the following errors:</strong>
+            <ul class="mb-0">
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                {% for field in form.visible_fields %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light fw-semibold">
+                <i class="bi bi-file-earmark-text me-1"></i> Work Order Info
+            </div>
+            <div class="card-body row g-3">
+                
+                {# Fields: work_order_number, job_identity, surface_repaired #}
+                {% for field_name in "work_order_number,job_identity,surface_repaired"|split:"," %}
+                    {% with field=form|get_field:field_name %}
+                        <div class="col-md-6">
+                            <label for="{{ field.id_for_label }}" class="form-label {% if field.field.required %}required{% endif %}">{{ field.label }}</label>
+                            
+                            {% if field.field.widget.input_type == 'select' %}
+                                {{ field|add_class:"form-select" }}
+                            {% else %}
+                                {{ field|add_class:"form-control" }}
+                            {% endif %}
+                            
+                            {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+                
+                {# rework checkbox #}
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check mt-4">
+                        {{ form.rework }}
+                        <label class="form-check-label">{{ form.rework.label }}</label>
+                    </div>
+                    {% for error in form.rework.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label">{{ form.classification.label }}</label>
-          {{ form.classification|add_class:"form-select" }}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light fw-semibold">
+                <i class="bi bi-journals me-1"></i> Process Standard
+            </div>
+            <div class="card-body row g-3">
+                
+                {# Fields: standard, classification #}
+                {% for field_name in "standard,classification"|split:"," %}
+                    {% with field=form|get_field:field_name %}
+                        <div class="col-md-6">
+                            <label for="{{ field.id_for_label }}" class="form-label {% if field.field.required %}required{% endif %}">{{ field.label }}</label>
+                            {{ field|add_class:"form-select" }}
+                            {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
         </div>
-      </div>
-    </div>
+        
+        <div class="card mb-4 shadow-sm border-secondary">
+            <div class="card-header bg-light fw-semibold text-secondary">
+                <i class="bi bi-toggles me-1"></i> Process Inclusion Toggles 
+                <small class="text-muted">(Uncheck to remove steps from Traveler)</small>
+            </div>
+            <div class="card-body row g-3">
+                
+                {# Fields: requires_masking, requires_stress_relief, requires_hydrogen_relief #}
+                {% for field_name in "requires_masking,requires_stress_relief,requires_hydrogen_relief"|split:"," %}
+                    {% with field=form|get_field:field_name %}
+                        <div class="col-md-4">
+                            <div class="form-check form-switch fs-5">
+                                {# No |add_class here, let the widget handle switch styling #}
+                                {{ field }} 
+                                <label class="form-check-label text-dark">{{ field.label }}</label>
+                            </div>
+                            {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endwith %}
+                {% endfor %}
 
-    <!-- Customer Info -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-light fw-semibold">
-        <i class="bi bi-people me-1"></i> Customer Information
-      </div>
-      <div class="card-body row g-3">
-        <div class="col-md-6">
-          <label class="form-label">{{ form.customer.label }}</label>
-          {{ form.customer|add_class:"form-control" }}
+            </div>
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label">{{ form.purchase_order_with_revision.label }}</label>
-          {{ form.purchase_order_with_revision|add_class:"form-control" }}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light fw-semibold">
+                <i class="bi bi-people me-1"></i> Customer Information
+            </div>
+            <div class="card-body row g-3">
+                
+                {# Fields: customer, purchase_order_with_revision, part_quantity, serial_or_lot_numbers #}
+                {% for field_name in "customer,purchase_order_with_revision,part_quantity,serial_or_lot_numbers"|split:"," %}
+                    {% with field=form|get_field:field_name %}
+                        <div class="col-md-6">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {% if field.field.widget.input_type == 'textarea' %}
+                                {{ field|add_class:"form-control" }}
+                            {% else %}
+                                {{ field|add_class:"form-control" }}
+                            {% endif %}
+                            {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label">{{ form.part_quantity.label }}</label>
-          {{ form.part_quantity|add_class:"form-control" }}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light fw-semibold">
+                <i class="bi bi-lightning-charge me-1"></i> Rectified Process Values <small class="text-muted">(Optional)</small>
+            </div>
+            <div class="card-body row g-3">
+                
+                {# surface_area #}
+                {% with field=form|get_field:"surface_area" %}
+                    <div class="col-md-6">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field|add_class:"form-control" }}
+                        {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                        <small class="form-text text-muted">Required for rectified tanks (sq in)</small>
+                    </div>
+                {% endwith %}
+            </div>
         </div>
 
-        <div class="col-md-6">
-          <label class="form-label">{{ form.serial_or_lot_numbers.label }}</label>
-          {{ form.serial_or_lot_numbers|add_class:"form-control" }}
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success px-4 shadow-sm">
+                <i class="bi bi-check2-circle me-1"></i> Save Work Order
+            </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Rectified Tank Values -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-light fw-semibold">
-        <i class="bi bi-lightning-charge me-1"></i> Rectified Process Values <small class="text-muted">(Optional)</small>
-      </div>
-      <div class="card-body row g-3">
-        <div class="col-md-6">
-          <label class="form-label">{{ form.surface_area.label }}</label>
-          {{ form.surface_area|add_class:"form-control" }}
-          <small class="form-text text-muted">Required for rectified tanks (sq in)</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- Submit Button -->
-    <div class="d-flex justify-content-end">
-      <button type="submit" class="btn btn-success px-4 shadow-sm">
-        <i class="bi bi-check2-circle me-1"></i> Save Work Order
-      </button>
-    </div>
-  </form>
+    </form>
 </div>
 
+{# JAVASCRIPT FOR DEPENDENT DROPDOWNS #}
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-      const standardSelect = document.getElementById("id_standard");
-      const classificationSelect = document.getElementById("id_classification");
-  
-      function updateClassifications(standardId) {
-          if (!standardId) return;
-          fetch("{% url 'standard_classifications_json' 0 %}".replace("0", standardId))
-              .then(response => response.json())
-              .then(data => {
-                  classificationSelect.innerHTML = '<option value="">Select classification</option>';
-                  data.forEach(item => {
-                      const option = document.createElement("option");
-                      option.value = item.id;
-                      option.textContent = item.label;
-                      classificationSelect.appendChild(option);
-                  });
-  
-                  // If a classification was previously selected, re-select it
-                  const currentValue = "{{ form.classification.value|default_if_none:'' }}";
-                  if (currentValue) {
-                      classificationSelect.value = currentValue;
-                  }
-              })
-              .catch(error => {
-                  console.error("Error fetching classifications:", error);
-              });
-      }
-  
-      // Listen for changes
-      standardSelect.addEventListener("change", function () {
-          updateClassifications(this.value);
-      });
-  
-      // Auto-trigger on page load (for pre-filled standard)
-      if (standardSelect.value) {
-          updateClassifications(standardSelect.value);
-      }
-  });
-  </script>
-  
+    document.addEventListener("DOMContentLoaded", function () {
+        const standardSelect = document.getElementById("id_standard");
+        const classificationSelect = document.getElementById("id_classification");
+    
+        function updateClassifications(standardId) {
+            if (!standardId) {
+                classificationSelect.innerHTML = '<option value="">Select standard first</option>';
+                return;
+            }
+            
+            // Replaced hardcoded URL with the correct dynamic reverse lookup via Django's JS utility
+            const url = standardSelect.dataset.url.replace("0", standardId);
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    classificationSelect.innerHTML = '<option value="">Select classification</option>';
+                    const currentValue = "{{ form.classification.value|default_if_none:'' }}";
+                    
+                    data.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = item.id;
+                        option.textContent = item.label;
+                        if (String(item.id) === String(currentValue)) {
+                            option.selected = true;
+                        }
+                        classificationSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching classifications:", error);
+                    classificationSelect.innerHTML = '<option value="">Error loading</option>';
+                });
+        }
+    
+        // Add data attribute for cleaner JS URL resolution (Requires view change)
+        standardSelect.setAttribute('data-url', "{% url 'standard_classifications_json' 0 %}");
+
+        // Listen for changes
+        standardSelect.addEventListener("change", function () {
+            updateClassifications(this.value);
+        });
+    
+        // Auto-trigger on page load
+        if (standardSelect.value) {
+            updateClassifications(standardSelect.value);
+        }
+    });
+</script>
 {% endblock %}

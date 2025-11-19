@@ -1,47 +1,105 @@
 {% extends "base.html" %}
+{% block title %}Work Order {{ work_order.work_order_number }}{% endblock %}
+
 {% block content %}
-<h2>Work Order Details</h2>
+<div class="container py-5">
+    
+    {# Breadcrumbs and Header #}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'part_detail' work_order.part.id %}">Part {{ work_order.part.part_number }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">WO {{ work_order.work_order_number }}</li>
+        </ol>
+    </nav>
 
-<div class="card">
-    <div class="card-header"><strong>Work Order Information</strong></div>
-    <div class="card-body">
-        <p><strong>Work Order Number:</strong> {{ work_order.work_order_number }}</p>
-        <p><strong>Part Number:</strong> <a href="{% url 'part_detail' work_order.part.id %}">{{ work_order.part.part_number }}</a></p>
-        <p><strong>Standard:</strong> {{ work_order.standard.name }}</p>
-        <p><strong>Classification:</strong> {{ work_order.classification|default:"-" }}</p>
-        <p><strong>Surface Repaired:</strong> {{ work_order.surface_repaired|default:"-" }}</p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 text-primary">
+            <i class="bi bi-list-task me-2"></i> Work Order: <span class="fw-bold">{{ work_order.work_order_number }}</span>
+        </h2>
+        <div>
+            <a href="{% url 'work_order_pdf' work_order.id %}" class="btn btn-primary me-2" target="_blank">
+                <i class="bi bi-printer"></i> Print Traveler
+            </a>
+            <a href="{% url 'part_detail' work_order.part.id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Part
+            </a>
+        </div>
     </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <strong><i class="bi bi-info-circle me-1"></i> Job Details</strong>
+        </div>
+        <div class="card-body row g-3">
+            <div class="col-md-4">
+                <p class="mb-1"><strong>Part:</strong> <a href="{% url 'part_detail' work_order.part.id %}">{{ work_order.part.part_number }} / Rev {{ work_order.part.part_revision|default:'—' }}</a></p>
+                <p class="mb-1"><strong>Process:</strong> {{ work_order.standard.name }} / {{ work_order.classification|default:"Unclassified" }}</p>
+                <p class="mb-0"><strong>Job Type:</strong> {{ work_order.job_identity|capfirst }} {% if work_order.rework %}<span class="badge bg-danger">REWORK</span>{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-1"><strong>Surface Repaired:</strong> {{ work_order.surface_repaired|default:"—" }}</p>
+                <p class="mb-1"><strong>Customer PO:</strong> {{ work_order.purchase_order_with_revision|default:"—" }}</p>
+                <p class="mb-0"><strong>Quantity:</strong> {{ work_order.part_quantity|default:"—" }}</p>
+            </div>
+            <div class="col-md-4">
+                <p class="mb-1"><strong>Surface Area:</strong> {{ work_order.surface_area|default:"—" }} in²</p>
+                <p class="mb-1"><strong>Lot/Serial:</strong> {{ work_order.serial_or_lot_numbers|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+<div class="card mb-4 shadow-sm border-secondary">
+        <div class="card-header bg-light">
+            <strong><i class="bi bi-toggles me-1"></i> Traveler Inclusions</strong>
+        </div>
+        <div class="card-body d-flex gap-4">
+            
+            {# Define the toggles as individual variables for simpler rendering #}
+            {% with masking_req=work_order.requires_masking stress_req=work_order.requires_stress_relief her_req=work_order.requires_hydrogen_relief %}
+
+                <span class="badge bg-{% if masking_req %}success{% else %}warning{% endif %}">
+                    <i class="bi bi-{% if masking_req %}check-circle-fill{% else %}x-circle-fill{% endif %} me-1"></i> Masking
+                </span>
+
+                <span class="badge bg-{% if stress_req %}success{% else %}warning{% endif %}">
+                    <i class="bi bi-{% if stress_req %}check-circle-fill{% else %}x-circle-fill{% endif %} me-1"></i> Stress Relief
+                </span>
+
+                <span class="badge bg-{% if her_req %}success{% else %}warning{% endif %}">
+                    <i class="bi bi-{% if her_req %}check-circle-fill{% else %}x-circle-fill{% endif %} me-1"></i> H.E.R.
+                </span>
+
+            {% endwith %}
+        </div>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-header bg-light"><strong>Process Steps ({{ process_steps|length }} Total)</strong></div>
+        <div class="card-body">
+            {% if process_steps %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%;">Step #</th>
+                                <th style="width: 20%;">Method</th>
+                                <th style="width: 70%;">Instructions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for step in process_steps %}
+                            <tr>
+                                <td class="fw-bold">{{ step.step_number }}</td>
+                                <td>{{ step.method.title }}</td>
+                                <td>{{ step.method.description|safe|default:"No Description" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No process steps available for this Work Order, likely because the associated Process ({{ work_order.standard.name }} / {{ work_order.classification|default:'Unclassified' }}) has no steps defined or the inclusion toggles were disabled.</p>
+            {% endif %}
+        </div>
+    </div>	
 </div>
-
-	<div class="card mt-3">
-    <div class="card-header"><strong>Process Steps</strong></div>
-    <div class="card-body">
-        {% if process_steps %}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Step Number</th>
-                        <th>Method</th>
-                        <th>Instructions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for step in process_steps %}
-                    <tr>
-                        <td>{{ step.step_number }}</td>
-                        <td>{{ step.method.title }}</td>
-                        <td>{{ step.method.description|safe|default:"No Description" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No process steps available.</p>
-        {% endif %}
-    </div>
-</div>	
-
-<!-- Back to Part Details Button -->
-<a href="{% url 'part_detail' work_order.part.id %}" class="btn btn-secondary mt-3">Back to Part Details</a>
 
 {% endblock %}

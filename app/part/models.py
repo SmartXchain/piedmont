@@ -1,8 +1,9 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-
+from django.db.models import UniqueConstraint, Q
 from standard.models import Standard, Classification
 from process.models import Process
+from django.utils import timezone
 
 
 class Part(models.Model):
@@ -22,6 +23,8 @@ class Part(models.Model):
         ordering = ['part_number']
 
     def __str__(self):
+        if self.part_revision:
+            return f"{self.part_number} Rev {self.part_revision}"
         return f"{self.part_number}"
 
 
@@ -51,7 +54,13 @@ class PartStandard(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['part', 'standard', 'classification'],
-                name='unique_part_standard_classification'
+                condition=Q(classification__isnull=True),
+                name='unique_part_standard_with_classification'
+            ),
+            models.UniqueConstraint(
+                fields=['part', 'standard'],
+                condition=Q(classification__isnull=True),
+                name='unique_part_standard_unclassified'
             )
         ]
         verbose_name = "Part Standard"
@@ -59,7 +68,8 @@ class PartStandard(models.Model):
         ordering = ['part']
 
     def __str__(self):
-        return f"{self.part.part_number} - {self.standard.name} - {self.classification or 'No Classification'}"
+        classification_name = self.classification.class_name if self.classifications else 'No Classification'
+        return f"{self.part.part_number} - {self.standard.name} - {self.classification}"
 
 
 class WorkOrder(models.Model):
@@ -77,10 +87,10 @@ class WorkOrder(models.Model):
     job_identity = models.CharField(
         max_length=50,
         choices=[
-            ('alkaline clean', 'Alkaline Clean'),
+            ('alkaline_clean', 'Alkaline Clean'),
             ('anodize', 'Anodize'),
             ('cadmium_plate', 'Cadmium Plate'),
-            ('chemical conversion', 'Chemical Conversion'),
+            ('chemical_conversion', 'Chemical Conversion'),
             ('chrome_plate', 'Chrome Plate'),
             ('cleaning', 'Cleaning'),
             ('etch', 'Etch'),
@@ -88,7 +98,7 @@ class WorkOrder(models.Model):
             ('paint', 'Paint'),
             ('passivation', 'Passivation'),
             ('solvent_clean', 'Solvent Clean'),
-            ('Strip', 'Strip')
+            ('strip', 'Strip')
         ]
     )
 
@@ -98,12 +108,12 @@ class WorkOrder(models.Model):
 
     standard = models.ForeignKey(
         Standard,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='work_orders'
     )
     classification = models.ForeignKey(
         Classification,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
         related_name='work_orders'
@@ -145,6 +155,21 @@ class WorkOrder(models.Model):
     )
     
     date = models.DateField(blank=True, null=True)
+
+    requires_masking = models.BooleanField(
+        default=True,
+        verbose_name="Masking Required"
+    )
+
+    requires_stress_relief = models.BooleanField(
+        default=True,
+        verbose_name="Stress Relief Required"
+    )
+
+    requires_hydrogen_relief = models.BooleanField(
+        default=True,
+        verbose_name="Hydrogen Embrittlement Relief Required"
+    )
 
     class Meta:
         constraints = [
@@ -207,64 +232,34 @@ class WorkOrder(models.Model):
 
         return (strike_asf, plate_asf)
 
-    def _calc_amps_required(self):
-        """
-        Calculate amps based on:
-            - surface_area (in2) from this work order
-            - plate_asf (amp/ft2) from the classification
-        This handles cad, ni, chrome, etc. because db is standardizing
-        on ASF. Returns a float or None.
-        """
-        if self.surface_area is None:
-            return None
-
-        strike_asf, plate_asf = self._get_current_density_for_job()
-
-        if self.job_identity in ["cadmium_plate", "ni_plate", "chrome_plate"]:
-            if plate_asf:
-                # Convert in2 to ft2
-                surface_area_ft2 = float(self.surface_area) / 144.0
-                self.amps = surface_area_ft2 * float(plate_asf)
-            return
-        return
-
     def _calc_amps(self):
         """
-        Try to calculate amps when needed.
-
-        Priority:
-        1. If we have a classification with plate_asf / strike_asf, use that.
-        2. Otherwise, if the model ends up having a 'current_density' field later, use SA * CD.
-        3. Otherwise, just return None.
-
-        We don't persist this to the DB here — we just make it available
-        on the instance so views/templates can read it if they want.
+        Calculate strike and plate amps required based on Classification ASF and
+        surface area. Results are stashed on the instance (_plate_amps, _strike amps).
         """
-        if not self.surface_area:
+        if self.surface_area is None or not self.classification:
+            self._plate_amps = None
+            self._strike_amps = None
             return None
 
         plate_amps = None
         strike_amps = None
 
         # 1) use classification ASF if available
-        if self.classification and (
-            self.classification.plate_asf or self.classification.strike_asf
-        ):
-            surface_area_ft2 = float(self.surface_area) / 144.0  # in² -> ft²
-            if self.classification.plate_asf:
-                plate_amps = surface_area_ft2 * float(self.classification.plate_asf)
-            if self.classification.strike_asf:
-                strike_amps = surface_area_ft2 * float(self.classification.strike_asf)
 
-        # 2) fallback: if you later add current_density to the model
-        elif hasattr(self, "current_density") and self.current_density:
-            # this assumes current_density is already "amps per in²"
-            plate_amps = float(self.surface_area) * float(self.current_density)
+        # convert in2 to ft2
+        surface_area_ft2 = float(self.surface_area) / 144.0
 
-        # stash on the instance so the view can read it later if it wants
+        if self.classification.plate_asf:
+            plate_amps = surface_area_ft2 * float(self.classification.plate_asf)
+
+        if self.classification.strike_asf:
+            strike_amps = surface_area_ft2 * float(self.classification.strike_asf)
+
+        # stash on the instance so the view can read it later
         self._plate_amps = plate_amps
         self._strike_amps = strike_amps
-
+        
         return plate_amps
 
     def clean(self):
@@ -298,9 +293,12 @@ class PDFSettings(models.Model):
     """Model to store dynamic footer content for PDF generation."""
     doc_id = models.CharField(max_length=255, default="CPTS")
     revision = models.CharField(max_length=50, default="0")
-    date = models.DateField()
+    date = models.DateField(default=timezone.now)
     repair_station = models.CharField(max_length=255, default="QKPR504X")
     footer_text = models.TextField(blank=True, help_text="Additional footer content")
 
+    class Meta:
+        verbose_name_plural = "PDF Settings"
+        
     def __str__(self):
         return f"PDF Settings (Rev {self.revision})"

@@ -142,7 +142,13 @@ class Method(models.Model):
         verbose_name = "Method"
         verbose_name_plural = "Methods"
         ordering = ['title']
-
+        # making the title field unique and prevent duplicate title definitions
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title'],
+                name='unique_method_title'
+            )
+        ]
     def __str__(self):
         # ex: "Anodize (processing_tank)" or "Masking (manual_method)"
         return f"{self.title} ({self.method_type})"
@@ -198,6 +204,13 @@ class ParameterTemplate(models.Model):
         verbose_name = "Parameter Template"
         verbose_name_plural = "Parameter Templates"
         ordering = ['category']
+        # making the category field unique and prevent duplicate template definitions
+        constraints = [
+            models.UniqueConstraint(
+                fields=['category'],
+                name='unique_parameter_template_category'
+                )
+        ]
 
     def __str__(self):
         label = self.description[:40] + "..." if self.description and len(self.description) > 40 else self.description

@@ -4,90 +4,89 @@
 
 {% block content %}
 <div class="container my-5">
-
-  <!-- Page Header -->
-  <div class="text-center mb-4">
-    <h1 class="display-6 text-primary fw-bold">
-      <i class="bi bi-tools me-2"></i> Start a Work Order
-    </h1>
-    <p class="text-muted">1. Search for your part → 2. Check standard → 3. Start work order.</p>
-  </div>
-
-<!-- Search Bar -->
-<form method="get" class="d-flex justify-content-center mb-5">
-  <div class="input-group input-group-lg w-75 shadow-sm">
-    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Enter part number...">
-    <button type="submit" class="btn btn-primary">
-      <i class="bi bi-search"></i> Search
-    </button>
-  </div>
-</form>
-
-<!-- Script for smart auto-focus -->
-<script>
-  if (!window.location.search.includes('page=')) {
-    document.querySelector('input[name="q"]').focus();
-  }
-</script>
-
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    {% if query %}
-      <h5 class="text-muted">Results for: <span class="fw-bold text-dark">"{{ query }}"</span></h5>
-    {% else %}
-      <h5 class="text-muted">Showing all parts</h5>
-    {% endif %}
-    <a href="{% url 'part_create' %}" class="btn btn-success btn-sm">
-      <i class="bi bi-plus-circle-fill me-1"></i> Add New Part
-    </a>
-  </div>
-
-  {% if page_obj.object_list %}
-  <div class="table-responsive shadow-sm">
-    <table class="table table-hover align-middle">
-      <thead class="table-light">
-        <tr>
-          <th scope="col">Part Number</th>
-          <th scope="col">Description</th>
-          <th scope="col">Revision</th>
-          <th scope="col">Status</th>
-          <th scope="col">Process</th>
-          <th scope="col" class="text-end">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for part in page_obj.object_list %}
-          <tr>
-            <td class="fw-bold">{{ part.part_number }}</td>
-            <td>{{ part.part_description }}</td>
-            <td>{{ part.part_revision|default:"—" }}</td>
-            <td>
-              {% if part.standards.count %}
-                <span class="badge bg-success" title="Standards assigned">
-                  <i class="bi bi-check-circle-fill"></i> Ready
-                </span>
-              {% else %}
-                <span class="badge bg-warning text-dark" title="No standards assigned">
-                  <i class="bi bi-exclamation-triangle-fill"></i> No Standard
-                </span>
-              {% endif %}
-            </td>
-            <td>
-              {% if part.standards.count %}
-                <span class="badge bg-primary">
-                  {{ part.standards.first.standard.get_process_display }}
-                </span>
-              {% else %}
-                —
-              {% endif %}
-            </td>
-            <td class="text-end">
-              <a href="{% url 'part_detail' part.id %}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-chevron-right"></i> Select
-              </a>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
+    <!-- Page Header -->
+    <div class="text-center mb-4">
+        <h1 class="display-6 text-primary fw-bold">
+            <i class="bi bi-tools me-2"></i> Start a Work Order
+        </h1>
+        <p class="text-muted">1. Search for your part → 2. Check standard → 3. Start work order.</p>
+    </div>
+    <!-- Search Bar -->
+    <form method="get" class="d-flex justify-content-center mb-5">
+        <div class="input-group input-group-lg w-75 shadow-sm">
+            <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Enter part number...">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+        </div>
+    </form>
+    <!-- Script for smart auto-focus -->
+    <script>
+    if (!window.location.search.includes('page=')) {
+    document.querySelector('input[name="q"]').focus();}
+    </script>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        {% if query %}
+            <h5 class="text-muted">Results for: <span class="fw-bold text-dark">"{{ query }}"</span></h5>
+        {% else %}
+            <h5 class="text-muted">Showing all parts</h5>
+        {% endif %}
+        <a href="{% url 'part_create' %}" class="btn btn-success btn-sm">
+            <i class="bi bi-plus-circle-fill me-1"></i> Add New Part
+        </a>
+    </div>
+    {% if page_obj.object_list %}
+        <div class="table-responsive shadow-sm">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th scope="col">Part Number</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Revision</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Process</th>
+                    <th scope="col" class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for part in page_obj.object_list %}
+                <tr>
+                    <td class="fw-bold">{{ part.part_number }}</td>
+                    <td>{{ part.part_description }}</td>
+                    <td>{{ part.part_revision|default:"—" }}</td>
+                    <td>
+                        {% with assigned_count=part.standards_count %}
+                        {% if assigned_count %}
+                        <span class="badge bg-success" title="{{ assigned_count }} Standards assigned">
+                            <i class="bi bi-check-circle-fill"></i> Ready ({{ assigned_count }})
+                        </span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark" title="No standards assigned">
+                            <i class="bi bi-exclamation-triangle-fill"></i> No Standard
+                        </span>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td>
+                        {% if part.prefetched_standards %}
+                            {% with first_standard=part.prefetched_standards.0 %}
+                    <span class="badge bg-primary">
+            {{ first_standard.standard.name }}
+            {% if first_standard.classification %}
+               / {{ first_standard.classification }}
+            {% endif %}
+          </span>
+        {% endwith %}
+      {% else %}
+        —
+      {% endif %}
+    </td>
+    <td class="text-end">
+      <a href="{% url 'part_detail' part.id %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-chevron-right"></i> Select
+      </a>
+    </td>
+  </tr>
+{% endfor %}
+    </tbody>
     </table>
   </div>
 <!-- Pagination -->
