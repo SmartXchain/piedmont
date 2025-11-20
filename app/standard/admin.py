@@ -17,6 +17,7 @@ from .models import (
 # Custom inline formsets for process-scoped editing
 ########################################
 
+
 class _ProcessScopedInlineFormSet(BaseInlineFormSet):
     """
     Used for inlines under StandardProcessAdmin.
@@ -231,6 +232,7 @@ class StandardPeriodicRequirementInline(admin.TabularInline):
 ########################################
 # Parent admins
 ########################################
+
 
 @admin.register(Standard)
 class StandardAdmin(admin.ModelAdmin):
@@ -518,4 +520,3 @@ class StandardRevisionNotificationAdmin(admin.ModelAdmin):
     search_fields = ('standard__name', 'message')
     list_filter = ('is_acknowledged', 'notified_at')
     ordering = ('-notified_at',)
-

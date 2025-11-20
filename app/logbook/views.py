@@ -2,9 +2,7 @@
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
 from django.utils import timezone
-
 from .models import LogEntry, PROCESS_NAME_CHOICES
-
 from .forms import LogEntryForm
 
 
@@ -33,7 +31,6 @@ def logentry_create(request):
         form = LogEntryForm()
 
     return render(request, "logbook/logentry_form.html", {"form": form})
-
 
 
 class LogbookLandingView(ListView):
@@ -75,4 +72,3 @@ class LogbookLandingView(ListView):
         ctx["current_process"] = self.request.GET.get("process", "")
         ctx["process_choices"] = PROCESS_NAME_CHOICES
         return ctx
-

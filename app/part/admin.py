@@ -1,13 +1,13 @@
 from django.contrib import admin
-from django.shortcuts import redirect # <-- ADDED: Necessary for changelist_view redirect
+from django.shortcuts import redirect
 from .models import Part, PartStandard, WorkOrder, PDFSettings
-from .forms import PartStandardForm 
+from .forms import PartStandardForm
 
 
 class PartStandardInline(admin.TabularInline):
     model = PartStandard
     # Note: Using PartStandardForm here might be better if you need custom form logic/queries on the inline
-    # form = PartStandardForm 
+    # form = PartStandardForm
     fields = ('standard', 'classification')
     extra = 0
     verbose_name_plural = "Assigned Standards & Classifications"
@@ -81,20 +81,20 @@ class WorkOrderAdmin(admin.ModelAdmin):
 class PDFSettingsAdmin(admin.ModelAdmin):
     list_display = ('doc_id', 'revision', 'date', 'repair_station')
     fields = ('doc_id', 'revision', 'date', 'repair_station', 'footer_text')
-    
+
     def has_add_permission(self, request):
         # Prevent addition if a record already exists
         if self.model.objects.exists() and self.model.objects.count() >= 1:
             return False
         return True
-    
+
     def changelist_view(self, request, extra_context=None):
         # Redirect directly to the change page if only one record exists
         if self.model.objects.count() == 1:
             obj = self.model.objects.first()
             # Ensure the URL name is correct (appname_modelname_change)
-            return redirect('admin:part_pdfsettings_change', obj.pk) 
+            return redirect('admin:part_pdfsettings_change', obj.pk)
         return super().changelist_view(request, extra_context)
 
-# NOTE: Since PartStandard is managed via PartAdmin inline, 
+# NOTE: Since PartStandard is managed via PartAdmin inline,
 # you do not need to register a standalone admin class for it.

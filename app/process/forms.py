@@ -85,4 +85,3 @@ class ProcessStepInlineFormSet(BaseInlineFormSet):
             expected = set(range(1, len(numbers) + 1))
             if set(numbers) != expected:
                 raise ValidationError("Step numbers must be contiguous starting at 1 (no gaps).")
-

@@ -43,7 +43,7 @@ INSPECTION_RESULT_CHOICES = [
     ('NOT_OK', 'Not Ok'),
 ]
 
- 
+
 class LogEntry(models.Model):
     # minimum identification
     date_of_process = models.DateField()
@@ -96,4 +96,3 @@ class LogEntry(models.Model):
 
     def __str__(self):
         return f"{self.date_of_process} - {self.process_name} - {self.part_number}"
-

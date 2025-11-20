@@ -149,6 +149,7 @@ class Method(models.Model):
                 name='unique_method_title'
             )
         ]
+
     def __str__(self):
         # ex: "Anodize (processing_tank)" or "Masking (manual_method)"
         return f"{self.title} ({self.method_type})"
@@ -209,7 +210,7 @@ class ParameterTemplate(models.Model):
             models.UniqueConstraint(
                 fields=['category'],
                 name='unique_parameter_template_category'
-                )
+            )
         ]
 
     def __str__(self):
@@ -251,4 +252,3 @@ class ParameterToBeRecorded(models.Model):
 
     def __str__(self):
         return f"{self.method.category} – {self.description[:20]}"
-

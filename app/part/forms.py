@@ -33,7 +33,7 @@ class WorkOrderForm(forms.ModelForm):
 
             # 2. Collect unique Standard IDs and Classification IDs
             standard_ids = part_standards.values_list('standard_id', flat=True).distinct()
-            
+
             # Filter out NULL classification IDs before filtering the Classification model
             classification_ids = part_standards.values_list('classification_id', flat=True).filter(classification_id__isnull=False).distinct()
 
@@ -84,7 +84,7 @@ class PartStandardForm(forms.ModelForm):
         self.fields['classification'].queryset = Classification.objects.none()
 
         standard_id = None
-        
+
         # Determine standard ID from POST data or existing instance
         if 'standard' in self.data:
             try:
@@ -99,5 +99,5 @@ class PartStandardForm(forms.ModelForm):
 
         # Corrected: Use safer getattr and removed the incorrect 'method' reference
         self.fields['classification'].label_from_instance = lambda obj: (
-             f"Class: {getattr(obj, 'class_name', '—')}, Type: {getattr(obj, 'type', '—')}"
+            f"Class: {getattr(obj, 'class_name', '—')}, Type: {getattr(obj, 'type', '—')}"
         )

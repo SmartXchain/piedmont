@@ -1,11 +1,13 @@
 from django.contrib import admin
 from .models import Method, ParameterToBeRecorded, ParameterTemplate
 
+
 # --- Method Admin ---
+
 
 @admin.register(Method)
 class MethodAdmin(admin.ModelAdmin):
-    
+
     list_display = (
         "title",
         "category",
@@ -14,6 +16,7 @@ class MethodAdmin(admin.ModelAdmin):
     ordering = ("title",)
 
 # --- Parameter Template Admin ---
+
 
 @admin.register(ParameterTemplate)
 class ParameterTemplateAdmin(admin.ModelAdmin):

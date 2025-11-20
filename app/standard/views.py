@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Max, OuterRef, Subquery, F
 from collections import OrderedDict
-
 from .models import (
     Standard,
     StandardRevisionNotification,
@@ -175,4 +174,3 @@ def process_review_view(request):
             "standards_to_review": standards_to_review,
         },
     )
-

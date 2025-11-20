@@ -8,4 +8,3 @@ urlpatterns = [
     path("", LogbookLandingView.as_view(), name="list"),
     path("new/", logentry_create, name="create"),
 ]
-

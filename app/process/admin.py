@@ -17,15 +17,15 @@ class ProcessStepInline(admin.TabularInline):
     def method_details(self, obj):
         if obj.method:
             return format_html(
-                    "<strong>Category:</strong>{}<br/>"
-                    "<strong>Type:</strong>{}<br/>"
-                    "Time: {}–{} min, Temp: {}–{}°F",
-                    obj.method.category or 'N/A',
-                    obj.method.method_type,
-                    obj.method.immersion_time_min or '-',
-                    obj.method.immersion_time_max or '-',
-                    obj.method.temp_min or '-',
-                    obj.method.temp_max or '-'
+                "<strong>Category:</strong>{}<br/>"
+                "<strong>Type:</strong>{}<br/>"
+                "Time: {}–{} min, Temp: {}–{}°F",
+                obj.method.category or 'N/A',
+                obj.method.method_type,
+                obj.method.immersion_time_min or '-',
+                obj.method.immersion_time_max or '-',
+                obj.method.temp_min or '-',
+                obj.method.temp_max or '-'
             )
         return "-"
 

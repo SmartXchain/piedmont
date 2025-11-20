@@ -99,4 +99,3 @@ class ProcessStep(models.Model):
         process_info = self.process.standard.name if self.process_id and self.process.standard else "Unsaved Process"
         method_info = self.method.title if self.method_id else "No Method"
         return f"Step {self.step_number} for {process_info} - {method_info}"
-

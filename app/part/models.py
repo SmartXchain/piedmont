@@ -72,7 +72,7 @@ class PartStandard(models.Model):
             classification_info = f"{self.classification.class_name} - {self.classification.type}"
         else:
             classification_info = 'No Classification'
-        return f"{self.part.part_number} - {self.standard.name} - {self.classification_info}"
+        return f"{self.part.part_number} - {self.standard.name} - {classification_info}"
 
 
 class WorkOrder(models.Model):
@@ -121,7 +121,7 @@ class WorkOrder(models.Model):
         null=True,
         related_name='work_orders'
     )
-    
+
     surface_repaired = models.CharField(
         max_length=255,
         blank=True,
@@ -156,7 +156,7 @@ class WorkOrder(models.Model):
         null=True,
         verbose_name="Surface Area (sq in)"
     )
-    
+
     date = models.DateField(blank=True, null=True)
 
     requires_masking = models.BooleanField(
@@ -191,9 +191,7 @@ class WorkOrder(models.Model):
         verbose_name = "Work Order"
         verbose_name_plural = "Work Orders"
 
-    #----------------------------------------------
     # Business logic / helpers
-    #----------------------------------------------
 
     def get_process_steps(self):
         """
@@ -267,7 +265,7 @@ class WorkOrder(models.Model):
         # stash on the instance so the view can read it later
         self._plate_amps = plate_amps
         self._strike_amps = strike_amps
-        
+
         return plate_amps
 
     def clean(self):
@@ -293,6 +291,7 @@ class WorkOrder(models.Model):
         # run our validation / amps logic before save
         self.clean()
         super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Work Order {self.work_order_number} for {self.part.part_number} - {self.standard.name}"
 
@@ -307,6 +306,6 @@ class PDFSettings(models.Model):
 
     class Meta:
         verbose_name_plural = "PDF Settings"
-        
+
     def __str__(self):
         return f"PDF Settings (Rev {self.revision})"

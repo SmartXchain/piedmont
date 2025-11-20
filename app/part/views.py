@@ -13,11 +13,12 @@ from standard.models import Classification
 from django.db import IntegrityError
 from django.db.models import Q, Prefetch, Count
 from methods.models import ParameterToBeRecorded
-from django.db import transaction # Needed for AJAX handler
+# Needed for AJAX handler
+from django.db import transaction
 
-# ----------------------------------------------------------------------
+
 # PART MANAGEMENT VIEWS
-# ----------------------------------------------------------------------
+
 
 # 📌 List all parts (Read-Only)
 def part_list_view(request):
@@ -58,13 +59,13 @@ def part_list_view(request):
 def part_detail_view(request, part_id):
     # Fetch the Part
     part = get_object_or_404(Part, id=part_id)
-    
+
     # EFFICIENT QUERY 1: Fetch standards and prefetch the linked Standard and Classification models
     standards = part.standards.select_related('standard', 'classification')
-    
+
     # EFFICIENT QUERY 2: Fetch work orders and prefetch the linked Standard and Classification models
     work_orders = part.work_orders.select_related('standard', 'classification')
-    
+
     context = {
         'part': part,
         'standards': standards,
@@ -103,7 +104,7 @@ def part_assign_standard_view(request, part_id):
         if form.is_valid():
             standard = form.cleaned_data['standard']
             classification = form.cleaned_data['classification']
-            
+
             # Use Part.standards manager to check for existence
             existing = part.standards.filter(standard=standard, classification=classification).first()
 
@@ -113,15 +114,15 @@ def part_assign_standard_view(request, part_id):
 
             part_standard = form.save(commit=False)
             part_standard.part = part
-            
+
             try:
                 part_standard.save()
                 messages.success(request, "✅ Standard assigned successfully.")
                 return redirect('work_order_create', part_id=part.id)
             except IntegrityError:
-                 # Catch database constraint violation if the form check was bypassed (e.g., race condition)
-                 messages.error(request, "A duplicate entry was blocked by the database constraint.")
-                 # Fall through to re-render form
+                # Catch database constraint violation if the form check was bypassed (e.g., race condition)
+                messages.error(request, "A duplicate entry was blocked by the database constraint.")
+                # Fall through to re-render form
 
     else:
         form = PartStandardForm()
@@ -136,23 +137,22 @@ def part_assign_standard_view(request, part_id):
     return render(request, 'part/part_assign_standard_form.html', {'form': form, 'part': part})
 
 
-# ----------------------------------------------------------------------
 # WORK ORDER (TRACKED) VIEWS
-# ----------------------------------------------------------------------
+
 
 # 📌 View work order details (Read-Only) + AJAX Toggle Handler
 def work_order_detail_view(request, work_order_id):
     work_order = get_object_or_404(
-        WorkOrder.objects.select_related('part', 'standard', 'classification'), 
+        WorkOrder.objects.select_related('part', 'standard', 'classification'),
         id=work_order_id
     )
 
     # --- AJAX POST Handler for Toggling ---
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        
+
         field_name = request.POST.get('field_name')
         new_value_str = request.POST.get('new_value')
-        
+
         allowed_fields = [
             'requires_masking', 'requires_stress_relief', 'requires_hydrogen_relief'
         ]
@@ -163,24 +163,24 @@ def work_order_detail_view(request, work_order_id):
         try:
             # Convert 'True'/'False' strings to actual booleans
             new_value = True if new_value_str == 'True' else False
-            
+
             with transaction.atomic():
                 setattr(work_order, field_name, new_value)
                 # Use update_fields for efficiency
-                work_order.save(update_fields=[field_name, 'date']) # Add date to update_fields if date represents last modification
-            
+                work_order.save(update_fields=[field_name, 'date'])  # Add date to update_fields if date represents last modification
+
             return JsonResponse({'success': True})
-            
+
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
+
     # --- Standard GET Request ---
-    
+
     # Assuming work_order.get_process_steps() is optimized in models.py to fetch Method
-    process_steps = work_order.get_process_steps() 
+    process_steps = work_order.get_process_steps()
 
     context = {
-        'work_order': work_order, 
+        'work_order': work_order,
         'process_steps': process_steps
     }
     return render(request, 'work_order/work_order_detail.html', context)
@@ -279,10 +279,10 @@ def work_order_print_steps_view(request, work_order_id):
     # --- Calculation Logic ---
     amps, strike_amps, normal_plate_amps, strike_label, normal_label = [None] * 5
     time_label, plating_time = [None] * 2
-    
+
     surface_area_in2 = work_order.surface_area
     surface_area_ft2 = float(surface_area_in2) / 144.0 if surface_area_in2 else None
-    
+
     if classification and surface_area_ft2 and work_order.job_identity in ('cadmium_plate', 'ni_plate', 'chrome_plate'):
 
         plate_asf = getattr(classification, 'plate_asf', None)
@@ -320,9 +320,9 @@ def work_order_print_steps_view(request, work_order_id):
 
     inspections_qs = getattr(work_order.standard, 'inspections', None)
     inspections = inspections_qs.all() if inspections_qs else []
-    
+
     bake_labels = [
-        "Date and Time of Start of Baking", "Date and Time of Start of Soak", "Date and Time of Completion of Baking", 
+        "Date and Time of Start of Baking", "Date and Time of Start of Soak", "Date and Time of Completion of Baking",
         "Furnace Control Instrument Set Temperature", "Furnace Identification", "Graph Number"
     ]
 
@@ -356,7 +356,7 @@ def work_order_print_steps_view(request, work_order_id):
 # 📌 1. List all Processes marked as templates
 def global_template_list_view(request):
     """Lists all Process objects where is_template=True."""
-    
+
     templates = Process.objects.filter(is_template=True).select_related(
         'standard',
         'classification'
@@ -373,21 +373,21 @@ def template_selection_view(request, process_id):
     # Fetch the Process and prefetch its steps for review.
     process = get_object_or_404(
         Process.objects
-            .select_related('standard', 'classification')
-            .prefetch_related(
-                Prefetch(
-                    'steps',
-                    queryset=ProcessStep.objects.select_related('method').order_by('step_number'),
-                    to_attr='prefetched_steps'
-                )
-            ),
+        .select_related('standard', 'classification')
+        .prefetch_related(
+            Prefetch(
+                'steps',
+                queryset=ProcessStep.objects.select_related('method').order_by('step_number'),
+                to_attr='prefetched_steps'
+            )
+        ),
         id=process_id,
         is_template=True
     )
-    
+
     context = {
         'process': process,
-        'process_steps': process.prefetched_steps 
+        'process_steps': process.prefetched_steps
     }
     return render(request, 'part/template_selection.html', context)
 
@@ -398,15 +398,13 @@ def template_process_print_view(request, process_id):
     Generates an untracked (no WorkOrder record) PDF traveler based on a Process ID
     and the masking GET toggle.
     """
-    
     process = get_object_or_404(
         Process.objects.select_related('standard', 'classification'),
         id=process_id,
         is_template=True
     )
-    
+
     requires_masking = request.GET.get('masking') != 'False'
-    
     exclusion_query = Q()
     if not requires_masking:
         exclusion_query |= Q(method__is_masking_operation=True)
@@ -431,13 +429,13 @@ def template_process_print_view(request, process_id):
 
     pdf_settings = PDFSettings.objects.first()
     current_date = timezone.now().strftime("%m-%d-%Y")
-    
+
     job_data = {
         'surface_area': 'N/A (Template)',
         'amps': 'N/A (Template)',
         'instructions': ["TEMPLATE ONLY: Manually record all required data."],
     }
-    
+
     inspections_qs = getattr(process.standard, 'inspections', None)
     inspections = inspections_qs.all() if inspections_qs else []
 
@@ -448,10 +446,8 @@ def template_process_print_view(request, process_id):
         'process_steps': process_steps,
         'inspections': inspections,
         'untracked_mode': True,
-        
         'job_data': job_data,
         'bake_labels': ["Date and Time of Start of Baking", "Date and Time of Start of Soak", "Furnace Control Instrument Set Temperature", "Furnace Identification", "Graph Number"],
-
         'current_date': current_date,
         'doc_id': pdf_settings.doc_id if pdf_settings else 'CPTS',
         'revision': pdf_settings.revision if pdf_settings else '0',
@@ -467,7 +463,7 @@ def template_process_print_view(request, process_id):
         HTML(string=html_content).write_pdf(temp_file.name)
         temp_file.seek(0)
         pdf_file = temp_file.read()
-    
+
     # Return HTTP Response
     response = HttpResponse(pdf_file, content_type='application/pdf')
     filename = f"Process_{process.standard.name}_{process.classification.class_name if process.classification else 'Unclassified'}_Template.pdf"

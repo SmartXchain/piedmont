@@ -42,4 +42,3 @@ class LogEntryForm(forms.ModelForm):
         # default today
         if not self.initial.get("date_of_process"):
             self.initial["date_of_process"] = date.today()
-

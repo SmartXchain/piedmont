@@ -394,4 +394,3 @@ def list_standards():
 
 def get_standard_by_id(standard_id):
     return Standard.objects.get(id=standard_id)
-
