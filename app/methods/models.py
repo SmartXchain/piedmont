@@ -85,14 +85,14 @@ class Method(models.Model):
     )
 
     immersion_time_min = models.DecimalField(
-        max_digits=5,
+        max_digits=7,
         decimal_places=2,
         blank=True,
         null=True,
         help_text="Minimum contact/immersion time."
     )
     immersion_time_max = models.DecimalField(
-        max_digits=5,
+        max_digits=7,
         decimal_places=2,
         blank=True,
         null=True,
