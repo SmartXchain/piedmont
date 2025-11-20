@@ -21,6 +21,19 @@ services:
     restart: always
     env_file:
       - ./.env.prod.db
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: mysecretpassword
+    ports:
+      - "80:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+
   nginx:
     build: ./nginx
     volumes:
@@ -36,3 +49,4 @@ volumes:
   postgres_data:
   static_volume:
   media_volume:
+  pgadmin_data:
