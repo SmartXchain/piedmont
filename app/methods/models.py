@@ -84,16 +84,12 @@ class Method(models.Model):
         help_text="Maximum bath °F."
     )
 
-    immersion_time_min = models.DecimalField(
-        max_digits=7,
-        decimal_places=2,
+    immersion_time_min = models.PositiveIntegerField(
         blank=True,
         null=True,
         help_text="Minimum contact/immersion time."
     )
-    immersion_time_max = models.DecimalField(
-        max_digits=7,
-        decimal_places=2,
+    immersion_time_max = models.PositiveIntegerField(
         blank=True,
         null=True,
         help_text="Maximum contact/immersion time."
