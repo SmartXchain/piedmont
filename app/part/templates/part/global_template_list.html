@@ -15,7 +15,6 @@
                 <tr>
                     <th>Specification</th>
                     <th>Classification</th>
-                    <th>Process ID</th>
                     <th class="text-end">Action</th>
                 </tr>
             </thead>
@@ -24,10 +23,9 @@
                 <tr>
                     <td class="fw-bold">{{ process.standard.name }}</td>
                     <td>{{ process.classification|default:"Unclassified" }}</td>
-                    <td class="text-muted">{{ process.id }}</td>
                     <td class="text-end">
                         <a href="{% url 'template_selection' process.id %}" class="btn btn-sm btn-info">
-                            <i class="bi bi-file-text"></i> Select Toggles
+                            <i class="bi bi-file-text"></i> Review Chemical Process Template
                         </a>
                     </td>
                 </tr>

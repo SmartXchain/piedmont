@@ -1,12 +1,15 @@
 from django.contrib import admin
+from django.shortcuts import redirect # <-- ADDED: Necessary for changelist_view redirect
 from .models import Part, PartStandard, WorkOrder, PDFSettings
-from .forms import PartStandardForm  # 👈 import your new form
+from .forms import PartStandardForm 
 
 
 class PartStandardInline(admin.TabularInline):
     model = PartStandard
+    # Note: Using PartStandardForm here might be better if you need custom form logic/queries on the inline
+    # form = PartStandardForm 
     fields = ('standard', 'classification')
-    extra = 0 # Prevent creation of empty placeholder rows by default
+    extra = 0
     verbose_name_plural = "Assigned Standards & Classifications"
 
 
@@ -14,44 +17,59 @@ class PartStandardInline(admin.TabularInline):
 class PartAdmin(admin.ModelAdmin):
     list_display = ('part_number', 'part_description', 'part_revision')
     search_fields = ('part_number', 'part_description')
-    # IMPROVEMENT: Add inline to manage PartStandards directly
     inlines = [PartStandardInline]
 
 
 @admin.register(WorkOrder)
 class WorkOrderAdmin(admin.ModelAdmin):
     list_display = (
-        'work_order_number', 
-        'part', 
-        'standard', 
-        'classification', 
-        'job_identity', # CRITICAL: Add the job type here
-        'rework',       # CRITICAL: Add rework status
-        'surface_repaired'
+        'work_order_number',
+        'part',
+        'standard',
+        'classification',
+        'job_identity',
+        'rework',
+        # ⭐ ADDED TOGGLES TO LIST DISPLAY ⭐
+        'requires_masking',
+        'requires_stress_relief',
+        'requires_hydrogen_relief',
     )
     list_filter = (
-        'standard', 
-        'classification', 
-        'job_identity', # IMPROVEMENT: Filter by operation type
-        'rework'        # IMPROVEMENT: Filter by rework status
+        'standard',
+        'classification',
+        'job_identity',
+        'rework',
+        # ⭐ ADDED TOGGLES TO LIST FILTER ⭐
+        'requires_masking',
+        'requires_stress_relief',
+        'requires_hydrogen_relief',
     )
     search_fields = (
-        'work_order_number', 
-        'part__part_number', 
-        'standard__name', 
+        'work_order_number',
+        'part__part_number',
+        'standard__name',
         'classification__name',
-        'customer' # IMPROVEMENT: Allow searching by customer
+        'customer'
     )
-    # Fields to display when viewing/editing a WO instance
     fieldsets = (
         ("Work Order Details", {
             "fields": (
-                'part', 'work_order_number', 'job_identity', 'rework', 
+                'part', 'work_order_number', 'job_identity', 'rework',
                 'surface_repaired', 'date'
             ),
         }),
         ("Processing Requirements", {
             "fields": ('standard', 'classification', 'surface_area'),
+        }),
+        # ⭐ ADDED NEW FIELDSET FOR TOGGLES ⭐
+        ("Optional Process Inclusions (PDF Control)", {
+            "fields": (
+                'requires_masking',
+                'requires_stress_relief',
+                'requires_hydrogen_relief',
+            ),
+            "classes": ("collapse",),
+            "description": "These flags control which steps are excluded from the printed traveler. Uncheck if the step is NOT required for this job.",
         }),
         ("Customer/Tracking Info", {
             "fields": ('customer', 'purchase_order_with_revision', 'part_quantity', 'serial_or_lot_numbers'),
@@ -64,16 +82,19 @@ class PDFSettingsAdmin(admin.ModelAdmin):
     list_display = ('doc_id', 'revision', 'date', 'repair_station')
     fields = ('doc_id', 'revision', 'date', 'repair_station', 'footer_text')
     
-    # IMPROVEMENT: Prevent creation and only allow editing of existing records
     def has_add_permission(self, request):
-        # Allow adding if the table is empty, otherwise disallow
-        if self.model.objects.exists():
+        # Prevent addition if a record already exists
+        if self.model.objects.exists() and self.model.objects.count() >= 1:
             return False
         return True
     
-    # Optional: If you need to make the single existing object easy to find:
     def changelist_view(self, request, extra_context=None):
+        # Redirect directly to the change page if only one record exists
         if self.model.objects.count() == 1:
             obj = self.model.objects.first()
-            return redirect('admin:part_pdfsettings_change', obj.pk)
+            # Ensure the URL name is correct (appname_modelname_change)
+            return redirect('admin:part_pdfsettings_change', obj.pk) 
         return super().changelist_view(request, extra_context)
+
+# NOTE: Since PartStandard is managed via PartAdmin inline, 
+# you do not need to register a standalone admin class for it.

@@ -3,6 +3,8 @@
 
 {% block content %}
 <div class="container my-5">
+    
+    {# Breadcrumbs #}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'global_template_list' %}">Templates</a></li>
@@ -10,12 +12,14 @@
         </ol>
     </nav>
 
+    {# Header #}
     <h2 class="h4 text-primary mb-4">
         <i class="bi bi-gear me-2"></i> Configure Template: 
         <span class="fw-bold">{{ process.standard.name }} / {{ process.classification|default:"Unclassified" }}</span>
     </h2>
 
-    <div class="card shadow-sm border-info">
+    {# Print Options Card #}
+    <div class="card shadow-sm border-info mb-4">
         <div class="card-header bg-light">
             <strong>Print Options</strong>
         </div>
@@ -26,7 +30,14 @@
                 <div class="mb-4 p-3 border rounded">
                     <label class="form-label fw-bold">Step Inclusion:</label>
                     <div class="form-check form-switch fs-5">
-                        <input class="form-check-input" type="checkbox" id="masking_toggle" name="masking" value="True" checked>
+                        <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="masking_toggle" 
+                            name="masking" 
+                            value="True" 
+                            checked
+                        >
                         <label class="form-check-label" for="masking_toggle">Include Masking Steps</label>
                     </div>
                     <small class="form-text text-muted">Toggle OFF to remove **Masking** steps from this printout.</small>
@@ -43,20 +54,81 @@
             </form>
         </div>
     </div>
+    
+    <hr/>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <strong><i class="bi bi-list-ol me-1"></i> Review Full Process Steps ({{ process_steps|length }} Total)</strong>
+        </div>
+        <div class="card-body p-0">
+            {% if process_steps %}
+            <div class="table-responsive">
+                <table class="table table-striped table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 20%;">Operation Title</th>
+                            <th style="width: 75%;">Summary / Key Parameters</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for step in process_steps %}
+                        <tr>
+                            <td class="fw-bold">{{ step.step_number }}</td>
+                            <td>
+                                {{ step.method.title }}
+                                {% if step.method.is_masking_operation %}
+                                    <span class="badge bg-primary ms-1">MASKING</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% with m=step.method %}
+                                    {% if m.method_type == 'processing_tank' %}
+                                        <i class="bi bi-droplet-fill me-1"></i> Tank: {{ m.tank_name|default:"—" }} | 
+                                        Temp: {{ m.temp_min|default:"—" }}–{{ m.temp_max|default:"—" }}°F | 
+                                        Time: {{ m.immersion_time_min|default:"—" }}–{{ m.immersion_time_max|default:"—" }} mins
+                                    {% else %}
+                                        <span class="text-muted">{{ m.description|striptags|truncatechars:100|default:"No description summary." }}</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="p-3 text-muted">No steps are defined for this Process.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <script>
-    document.getElementById('print-button').addEventListener('click', function() {
-        const maskingStatus = document.getElementById('masking_toggle').checked ? 'True' : 'False';
-        
-        // Construct the target URL using the Django URL pattern
-        let url = "{% url 'template_process_print' process.id %}";
-        
-        // Append the masking status as a GET parameter
-        url += `?masking=${maskingStatus}`;
+    document.addEventListener('DOMContentLoaded', function() {
+        const printButton = document.getElementById('print-button');
+        const maskingToggle = document.getElementById('masking_toggle');
 
-        // Open the new PDF in a new window/tab
-        window.open(url, '_blank');
+        // Event listener for the print button
+        printButton.addEventListener('click', function() {
+            // Determine the masking status based on the toggle's checked state
+            const maskingStatus = maskingToggle.checked ? 'True' : 'False';
+            
+            // Construct the target URL using the Django URL pattern
+            let url = "{% url 'template_process_print' process.id %}";
+            
+            // Append the masking status as a GET parameter
+            url += `?masking=${maskingStatus}`;
+
+            // Open the new PDF in a new window/tab
+            window.open(url, '_blank');
+        });
+
+        // Optional: Ensure the toggle's value attribute reflects the checked state for submission logic
+        maskingToggle.addEventListener('change', function() {
+            this.value = this.checked ? 'True' : 'False';
+        });
     });
 </script>
 {% endblock %}

@@ -4,119 +4,134 @@
 
 {% block content %}
 <div class="container my-5">
-    <!-- Page Header -->
+    
     <div class="text-center mb-4">
         <h1 class="display-6 text-primary fw-bold">
-            <i class="bi bi-tools me-2"></i> Start a Work Order
+            <i class="bi bi-tools me-2"></i> Start Work Process
         </h1>
-        <p class="text-muted">1. Search for your part → 2. Check standard → 3. Start work order.</p>
+        <p class="text-muted">Choose to start a **Tracked Work Order** or print an **Untracked Template**.</p>
     </div>
-    <!-- Search Bar -->
+
     <form method="get" class="d-flex justify-content-center mb-5">
         <div class="input-group input-group-lg w-75 shadow-sm">
-            <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Enter part number...">
+            <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Enter part number to start a Work Order...">
             <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
         </div>
     </form>
-    <!-- Script for smart auto-focus -->
+
     <script>
     if (!window.location.search.includes('page=')) {
-    document.querySelector('input[name="q"]').focus();}
+        document.querySelector('input[name="q"]').focus();}
     </script>
-    <div class="d-flex gap-2">
-        <a href="{% url 'global_template_list' %}" class="btn btn-info btn-sm shadow">
-            <i class="bi bi-archive-fill me-1"></i>Chemical Process Templates
-        </a>
-        <a href="{% url 'part_create' %}" class="btn btn-success btn-sm">
-            <i class="bi bi-plus-circle-fill me-1"></i> Add New Part
-        </a>
+    
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        
+        {# Display Search Results Status #}
+        {% if query %}
+            <h5 class="text-muted">Results for: <span class="fw-bold text-dark">"{{ query }}"</span></h5>
+        {% else %}
+            <h5 class="text-muted">Showing all parts (For Work Orders)</h5>
+        {% endif %}
+        
+        {# Action Buttons Group #}
+        <div class="d-flex gap-2">
+            
+            {# Link to the global template selection page #}
+            <a href="{% url 'global_template_list' %}" class="btn btn-dark btn-sm shadow">
+                <i class="bi bi-file-earmark me-1"></i> Print Chemical Process Template
+            </a>
+            
+            <a href="{% url 'part_create' %}" class="btn btn-success btn-sm">
+                <i class="bi bi-plus-circle-fill me-1"></i> Add New Part
+            </a>
+        </div>
     </div>
+
     {% if page_obj.object_list %}
         <div class="table-responsive shadow-sm">
             <table class="table table-hover align-middle">
                 <thead class="table-light">
-                <tr>
-                    <th scope="col">Part Number</th>
-                    <th scope="col">Description</th>
-                    <th scope="col">Revision</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Process</th>
-                    <th scope="col" class="text-end">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for part in page_obj.object_list %}
-                <tr>
-                    <td class="fw-bold">{{ part.part_number }}</td>
-                    <td>{{ part.part_description }}</td>
-                    <td>{{ part.part_revision|default:"—" }}</td>
-                    <td>
-                        {% with assigned_count=part.standards_count %}
-                        {% if assigned_count %}
-                        <span class="badge bg-success" title="{{ assigned_count }} Standards assigned">
-                            <i class="bi bi-check-circle-fill"></i> Ready ({{ assigned_count }})
-                        </span>
-                        {% else %}
-                        <span class="badge bg-warning text-dark" title="No standards assigned">
-                            <i class="bi bi-exclamation-triangle-fill"></i> No Standard
-                        </span>
-                        {% endif %}
-                        {% endwith %}
-                    </td>
-                    <td>
-                        {% if part.prefetched_standards %}
-                            {% with first_standard=part.prefetched_standards.0 %}
-                    <span class="badge bg-primary">
-            {{ first_standard.standard.name }}
-            {% if first_standard.classification %}
-               / {{ first_standard.classification }}
+                    <tr>
+                        <th scope="col">Part Number</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Revision</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Process</th>
+                        <th scope="col" class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for part in page_obj.object_list %}
+                    <tr>
+                        <td class="fw-bold">{{ part.part_number }}</td>
+                        <td>{{ part.part_description }}</td>
+                        <td>{{ part.part_revision|default:"—" }}</td>
+                        <td>
+                            {% with assigned_count=part.standards_count %}
+                            {% if assigned_count %}
+                                <span class="badge bg-success" title="{{ assigned_count }} Standards assigned">
+                                    <i class="bi bi-check-circle-fill"></i> Ready ({{ assigned_count }})
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark" title="No standards assigned">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> No Standard
+                                </span>
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% if part.prefetched_standards %}
+                                {% with first_standard=part.prefetched_standards.0 %}
+                                <span class="badge bg-primary">
+                                    {{ first_standard.standard.name }}
+                                    {% if first_standard.classification %}
+                                        / {{ first_standard.classification }}
+                                    {% endif %}
+                                </span>
+                                {% endwith %}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'part_detail' part.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-chevron-right"></i> Start WO
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    <nav class="mt-4" aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>
+              </li>
             {% endif %}
-          </span>
-        {% endwith %}
-      {% else %}
-        —
-      {% endif %}
-    </td>
-    <td class="text-end">
-      <a href="{% url 'part_detail' part.id %}" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-chevron-right"></i> Select
-      </a>
-    </td>
-  </tr>
-{% endfor %}
-    </tbody>
-    </table>
-  </div>
-<!-- Pagination -->
-<nav class="mt-4" aria-label="Page navigation">
-  <ul class="pagination justify-content-center">
-    {% if page_obj.has_previous %}
-      <li class="page-item">
-        <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>
-      </li>
-    {% endif %}
-    {% for num in page_obj.paginator.page_range %}
-      <li class="page-item {% if num == page_obj.number %}active{% endif %}">
-        <a class="page-link" href="?q={{ query|urlencode }}&page={{ num }}">{{ num }}</a>
-      </li>
-    {% endfor %}
-    {% if page_obj.has_next %}
-      <li class="page-item">
-        <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>
-      </li>
-    {% endif %}
-  </ul>
-</nav>
+            {% for num in page_obj.paginator.page_range %}
+              <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                <a class="page-link" href="?q={{ query|urlencode }}&page={{ num }}">{{ num }}</a>
+              </li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>
+              </li>
+            {% endif %}
+        </ul>
+    </nav>
 
-  {% else %}
-    <div class="alert alert-warning text-center mt-4">
-      <i class="bi bi-exclamation-circle me-2"></i> No parts found.
-      <br>
-      <a href="{% url 'part_create' %}" class="btn btn-sm btn-success mt-3">
-        <i class="bi bi-plus-circle-fill"></i> Add New Part
-      </a>
-    </div>
-  {% endif %}
+    {% else %}
+        <div class="alert alert-warning text-center mt-4">
+            <i class="bi bi-exclamation-circle me-2"></i> No parts found.
+            <br>
+            <a href="{% url 'part_create' %}" class="btn btn-sm btn-success mt-3">
+                <i class="bi bi-plus-circle-fill"></i> Add New Part
+            </a>
+        </div>
+    {% endif %}
 
 </div>
 {% endblock %}

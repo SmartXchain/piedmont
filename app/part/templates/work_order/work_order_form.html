@@ -113,7 +113,6 @@
                     {% with field=form|get_field:field_name %}
                         <div class="col-md-4">
                             <div class="form-check form-switch fs-5">
-                                {# No |add_class here, let the widget handle switch styling #}
                                 {{ field }} 
                                 <label class="form-check-label text-dark">{{ field.label }}</label>
                             </div>
@@ -136,11 +135,8 @@
                     {% with field=form|get_field:field_name %}
                         <div class="col-md-6">
                             <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                            {% if field.field.widget.input_type == 'textarea' %}
-                                {{ field|add_class:"form-control" }}
-                            {% else %}
-                                {{ field|add_class:"form-control" }}
-                            {% endif %}
+                            {# Simpler rendering for all text/textarea fields via add_class #}
+                            {{ field|add_class:"form-control" }}
                             {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
                         </div>
                     {% endwith %}
@@ -186,13 +182,14 @@
                 return;
             }
             
-            // Replaced hardcoded URL with the correct dynamic reverse lookup via Django's JS utility
+            // 1. Get URL from the data attribute set below
             const url = standardSelect.dataset.url.replace("0", standardId);
 
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     classificationSelect.innerHTML = '<option value="">Select classification</option>';
+                    // Stash current value for re-selection after successful AJAX fetch
                     const currentValue = "{{ form.classification.value|default_if_none:'' }}";
                     
                     data.forEach(item => {
@@ -211,18 +208,20 @@
                 });
         }
     
-        // Add data attribute for cleaner JS URL resolution (Requires view change)
+        // 2. Set data attribute for cleaner JS URL resolution
+        // Note: The attribute must be set BEFORE the updateClassifications call if using its value.
         standardSelect.setAttribute('data-url', "{% url 'standard_classifications_json' 0 %}");
 
-        // Listen for changes
+        // 3. Listen for changes
         standardSelect.addEventListener("change", function () {
             updateClassifications(this.value);
         });
     
-        // Auto-trigger on page load
+        // 4. Auto-trigger on page load (for pre-filled standard or edit view)
         if (standardSelect.value) {
             updateClassifications(standardSelect.value);
         }
     });
 </script>
 {% endblock %}
+

@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint, Q
 from standard.models import Standard, Classification
-from process.models import Process
+from process.models import Process, ProcessStep
 from django.utils import timezone
 
 
@@ -68,8 +68,11 @@ class PartStandard(models.Model):
         ordering = ['part']
 
     def __str__(self):
-        classification_name = self.classification.class_name if self.classifications else 'No Classification'
-        return f"{self.part.part_number} - {self.standard.name} - {self.classification}"
+        if self.classification:
+            classification_info = f"{self.classification.class_name} - {self.classification.type}"
+        else:
+            classification_info = 'No Classification'
+        return f"{self.part.part_number} - {self.standard.name} - {self.classification_info}"
 
 
 class WorkOrder(models.Model):
@@ -194,17 +197,22 @@ class WorkOrder(models.Model):
 
     def get_process_steps(self):
         """
-        Retrieve process steps for the work order 
-        based on standard and classification.
+        Retrieve process steps for the work order based on standard and classification.
+        Returns a QuerySet of ProcessStep objects with related Method prefetched.
         """
-        process = Process.objects.select_related(
-            'standard', 'classification'
-        ).filter(
+        # 1. Find the Process ID efficiently
+        process_id_qs = Process.objects.filter(
             standard=self.standard,
             classification=self.classification
-        ).first()
+        ).values_list('id', flat=True).first()
 
-        return process.steps.all() if process else []
+        if not process_id_qs:
+            return []
+
+        # 2. Fetch the steps for that Process ID, prefetching the Method to avoid N+1 queries.
+        return ProcessStep.objects.filter(
+            process_id=process_id_qs
+        ).select_related('method').all()
 
     def _has_rectified_step(self):
         """
