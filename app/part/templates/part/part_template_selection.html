@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Template Selection for {{ part.part_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'part_list' %}">Parts</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ part.part_number }} - Template Select</li>
+        </ol>
+    </nav>
+
+    <h2 class="h4 text-primary mb-4">
+        <i class="bi bi-file-earmark-text me-2"></i> Select Template for Part <span class="fw-bold">{{ part.part_number }}</span>
+    </h2>
+    <p class="text-muted">Choose the processing specification required and decide if masking steps should be included.</p>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <strong>Assigned Specifications</strong>
+        </div>
+        <div class="card-body">
+            <form method="get" action="" id="template-select-form">
+                
+                {# Masking Toggle Fieldset #}
+                <div class="mb-4 p-3 border rounded">
+                    <label class="form-label fw-bold">Masking Inclusion:</label>
+                    <div class="form-check form-switch fs-5">
+                        <input class="form-check-input" type="checkbox" id="masking_toggle" name="masking" value="True" checked>
+                        <label class="form-check-label" for="masking_toggle">Include Masking Steps</label>
+                    </div>
+                    <small class="form-text text-muted">Toggle OFF to exclude all **Masking** steps from the printout.</small>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Specification</th>
+                                <th>Classification</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for part_standard in standards %}
+                            <tr>
+                                <td class="fw-bold">{{ part_standard.standard.name }}</td>
+                                <td>
+                                    {% if part_standard.classification %}
+                                        {{ part_standard.classification.class_name|default:"—" }} / {{ part_standard.classification.type|default:"—" }}
+                                    {% else %}
+                                        <span class="text-muted">Unclassified</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-success btn-sm print-template-btn"
+                                        data-part-standard-id="{{ part_standard.id }}"
+                                        title="Generate untracked process traveler for this specification"
+                                    >
+                                        <i class="bi bi-printer"></i> Print
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('template-select-form');
+        const printButtons = document.querySelectorAll('.print-template-btn');
+        const maskingToggle = document.getElementById('masking_toggle');
+
+        printButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const partStandardId = this.dataset.partStandardId;
+                
+                // Get the current state of the masking toggle
+                const maskingStatus = maskingToggle.checked ? 'True' : 'False';
+                
+                // Construct the target URL using the Django URL pattern
+                let url = "{% url 'part_process_print' 0 %}".replace('0', partStandardId);
+                
+                // Append the masking status as a GET parameter
+                url += `?masking=${maskingStatus}`;
+
+                // Open the new PDF in a new window/tab
+                window.open(url, '_blank');
+            });
+        });
+
+        // Ensure the toggle sends 'False' when unchecked
+        maskingToggle.addEventListener('change', function() {
+            if (!this.checked) {
+                // If unchecked, ensure the value is set to 'False' so it's passed
+                this.value = 'False';
+            } else {
+                this.value = 'True';
+            }
+        });
+    });
+</script>
+{% endblock %}

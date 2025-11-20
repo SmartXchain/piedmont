@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Printable Templates{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="h4 text-primary mb-4">
+        <i class="bi bi-file-earmark-text me-2"></i> Select Process Template
+    </h2>
+    <p class="text-muted">These templates are **untracked** and do not create a Work Order record.</p>
+
+    {% if templates %}
+    <div class="table-responsive shadow-sm">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Specification</th>
+                    <th>Classification</th>
+                    <th>Process ID</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for process in templates %}
+                <tr>
+                    <td class="fw-bold">{{ process.standard.name }}</td>
+                    <td>{{ process.classification|default:"Unclassified" }}</td>
+                    <td class="text-muted">{{ process.id }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'template_selection' process.id %}" class="btn btn-sm btn-info">
+                            <i class="bi bi-file-text"></i> Select Toggles
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center">No processes are currently marked as printable templates.</div>
+    {% endif %}
+    
+    <a href="{% url 'part_list' %}" class="btn btn-secondary mt-3"><i class="bi bi-arrow-left"></i> Back to Part List</a>
+</div>
+{% endblock %}

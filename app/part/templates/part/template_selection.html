@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Configure Template{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'global_template_list' %}">Templates</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Configure Print</li>
+        </ol>
+    </nav>
+
+    <h2 class="h4 text-primary mb-4">
+        <i class="bi bi-gear me-2"></i> Configure Template: 
+        <span class="fw-bold">{{ process.standard.name }} / {{ process.classification|default:"Unclassified" }}</span>
+    </h2>
+
+    <div class="card shadow-sm border-info">
+        <div class="card-header bg-light">
+            <strong>Print Options</strong>
+        </div>
+        <div class="card-body">
+            <form id="template-print-form">
+                
+                {# Masking Toggle Fieldset #}
+                <div class="mb-4 p-3 border rounded">
+                    <label class="form-label fw-bold">Step Inclusion:</label>
+                    <div class="form-check form-switch fs-5">
+                        <input class="form-check-input" type="checkbox" id="masking_toggle" name="masking" value="True" checked>
+                        <label class="form-check-label" for="masking_toggle">Include Masking Steps</label>
+                    </div>
+                    <small class="form-text text-muted">Toggle OFF to remove **Masking** steps from this printout.</small>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-1"></i> This printout will include the full standard process steps defined by the engineer, excluding only the steps deselected above.
+                </div>
+                
+                <a href="{% url 'global_template_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="button" id="print-button" class="btn btn-success float-end">
+                    <i class="bi bi-printer"></i> Generate & Print Template
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('print-button').addEventListener('click', function() {
+        const maskingStatus = document.getElementById('masking_toggle').checked ? 'True' : 'False';
+        
+        // Construct the target URL using the Django URL pattern
+        let url = "{% url 'template_process_print' process.id %}";
+        
+        // Append the masking status as a GET parameter
+        url += `?masking=${maskingStatus}`;
+
+        // Open the new PDF in a new window/tab
+        window.open(url, '_blank');
+    });
+</script>
+{% endblock %}

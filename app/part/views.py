@@ -122,7 +122,100 @@ def part_assign_standard_view(request, part_id):
 
     return render(request, 'part/part_assign_standard_form.html', {'form': form, 'part': part})
 
-# part/views.py (in work_order_detail_view)
+
+# 📌 View for printing untracked process traveler
+def part_process_print_view(request, part_standard_id):
+    
+    # 1. Fetch the PartStandard linkage
+    part_standard = get_object_or_404(
+        PartStandard.objects.select_related('part', 'standard', 'classification'), 
+        id=part_standard_id
+    )
+    part = part_standard.part
+    standard = part_standard.standard
+    classification = part_standard.classification
+
+    # 2. Find the Process
+    process = Process.objects.filter(
+        standard=standard,
+        classification=classification
+    ).first()
+
+    if not process:
+        return HttpResponse("No process steps found for this standard/classification combination.", content_type="text/plain")
+
+    # 3. Handle Toggles (Only Masking toggle is checked via GET parameter)
+    # The default for the toggle is CHECKED (True), so we only exclude if the parameter is explicitly 'False'
+    requires_masking = request.GET.get('masking') != 'False'
+    
+    exclusion_query = Q()
+    if not requires_masking:
+        exclusion_query |= Q(method__is_masking_operation=True) # Assuming is_masking_operation exists on Method
+
+    # 4. Fetch Process Steps (Efficiently)
+    process_steps = (
+        ProcessStep.objects
+        .filter(process=process)
+        .exclude(exclusion_query) # Apply the dynamic filter
+        .select_related('method')
+        .prefetch_related(
+            Prefetch(
+                'method__recorded_parameters',
+                queryset=ParameterToBeRecorded.objects.order_by('id'),
+                to_attr='prefetched_recorded_parameters',
+            )
+        )
+        .order_by('step_number')
+    )
+
+    # 5. Get PDF Context
+    pdf_settings = PDFSettings.objects.first()
+    current_date = timezone.now().strftime("%m-%d-%Y")
+    
+    job_data = {
+        'surface_area': 'N/A (Template)',
+        'amps': 'N/A (Template)',
+        'instructions': ["Template for untracked process. Operator must manually record all required data."],
+    }
+    
+    inspections_qs = getattr(standard, 'inspections', None)
+    inspections = inspections_qs.all() if inspections_qs else []
+
+    context = {
+        'part': part,
+        'standard': standard,
+        'classification': classification,
+        'process_steps': process_steps,
+        'current_date': current_date,
+        'doc_id': pdf_settings.doc_id if pdf_settings else 'CPTS',
+        # ... (other PDF settings context) ...
+        'job_data': job_data,
+        'inspections': inspections,
+        'untracked_mode': True 
+    }
+
+    # ... (rest of the PDF generation logic using WeasyPrint) ...
+    # You may also want to use a slightly different PDF template for untracked mode
+    # if you want to suppress the Work Order header fields.
+    
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Process_{part.part_number}_{standard.name}_Template.pdf"'
+    return response
+
+
+# 📌 View for selecting the standard and applying the mask toggle
+def part_template_selection_view(request, part_id):
+    part = get_object_or_404(Part, id=part_id)
+    
+    # Fetch all assigned standards, ensuring related models are selected for efficiency
+    standards = PartStandard.objects.filter(part=part).select_related('standard', 'classification')
+
+    context = {
+        'part': part,
+        'standards': standards,
+    }
+    return render(request, 'part/part_template_selection.html', context)
+
 
 def work_order_detail_view(request, work_order_id):
     # Fetch work order and related FKs (Part, Standard, Classification) in one go
@@ -356,3 +449,130 @@ def standard_classifications_json(request, standard_id):
     classifications = Classification.objects.filter(standard_id=standard_id)
     data = [{"id": c.id, "label": str(c)} for c in classifications]
     return JsonResponse(data, safe=False)
+
+
+# 📌 1. List all Processes marked as templates
+def global_template_list_view(request):
+    """Lists all Process objects where is_template=True."""
+    
+    # Filter only for templates and prefetch related data for efficiency
+    templates = Process.objects.filter(is_template=True).select_related(
+        'standard', 
+        'classification'
+    ).order_by('standard__name', 'classification')
+
+    context = {
+        'templates': templates
+    }
+    return render(request, 'part/global_template_list.html', context)
+
+
+# part/views.py
+
+# 📌 2. View to set masking toggle before final print
+def template_selection_view(request, process_id):
+    process = get_object_or_404(
+        Process.objects.select_related('standard', 'classification'), 
+        id=process_id,
+        is_template=True
+    )
+    
+    context = {
+        'process': process
+    }
+    return render(request, 'part/template_selection.html', context)
+
+
+def template_process_print_view(request, process_id):
+    """
+    Generates an untracked (no WorkOrder record) PDF traveler based on a Process ID
+    and the masking GET toggle.
+    """
+    
+    # 1. Fetch the Process and related models
+    process = get_object_or_404(
+        Process.objects.select_related('standard', 'classification'), 
+        id=process_id,
+        is_template=True
+    )
+    
+    # 2. Handle Toggles (Masking toggle is checked via GET parameter)
+    # The template selection page sends '?masking=False' to exclude.
+    requires_masking = request.GET.get('masking') != 'False'
+    
+    exclusion_query = Q()
+    if not requires_masking:
+        # Exclude steps where the Method is flagged as a masking operation
+        exclusion_query |= Q(method__is_masking_operation=True) 
+
+    # 3. Fetch Process Steps (Efficiently)
+    process_steps = (
+        ProcessStep.objects
+        .filter(process=process)
+        .exclude(exclusion_query) # Apply the dynamic filter
+        .select_related('method')
+        .prefetch_related(
+            Prefetch(
+                'method__recorded_parameters',
+                queryset=ParameterToBeRecorded.objects.order_by('id'),
+                to_attr='prefetched_recorded_parameters',
+            )
+        )
+        .order_by('step_number')
+    )
+
+    if not process_steps.exists():
+        return HttpResponse("Process steps not found or all steps were excluded.", content_type="text/plain")
+
+    # 4. Get PDF Context (Minimal)
+    pdf_settings = PDFSettings.objects.first()
+    current_date = timezone.now().strftime("%m-%d-%Y")
+    
+    # Minimal/placeholder data for the header since there is no Work Order
+    job_data = {
+        'surface_area': 'N/A (Template)',
+        'amps': 'N/A (Template)',
+        'instructions': ["TEMPLATE ONLY: Manually record all required data."],
+    }
+    
+    # Fetch inspections associated with the Standard
+    inspections_qs = getattr(process.standard, 'inspections', None)
+    inspections = inspections_qs.all() if inspections_qs else []
+
+    context = {
+        # Core Process Data
+        'process': process,
+        'standard': process.standard,
+        'classification': process.classification,
+        'process_steps': process_steps,
+        'inspections': inspections,
+        'untracked_mode': True, # Flag for template differentiation in the HTML
+        
+        # Placeholder Job/Bake Data (Reusing existing keys for template compatibility)
+        'job_data': job_data,
+        'bake_labels': ["Date and Time of Start of Baking", "Date and Time of Start of Soak", "Furnace Control Instrument Set Temperature", "Furnace Identification", "Graph Number"],
+
+        # PDF Footer Data
+        'current_date': current_date,
+        'doc_id': pdf_settings.doc_id if pdf_settings else 'CPTS',
+        'revision': pdf_settings.revision if pdf_settings else '0',
+        'date': pdf_settings.date.strftime('%m-%d-%Y') if pdf_settings else current_date,
+        'repair_station': pdf_settings.repair_station if pdf_settings else 'QKPR504X',
+        'footer_text': pdf_settings.footer_text if pdf_settings else f"Printed on: {current_date}",
+    }
+
+    # 5. Render HTML and Generate PDF
+    html_content = render_to_string('work_order/work_order_steps_pdf.html', context)
+
+    with tempfile.NamedTemporaryFile(delete=True) as temp_file:
+        HTML(string=html_content).write_pdf(temp_file.name)
+        temp_file.seek(0)
+        pdf_file = temp_file.read() # The variable 'pdf_file' is assigned here
+    
+    # 6. Return HTTP Response
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    filename = f"Process_{process.standard.name}_{process.classification.class_name if process.classification else 'Unclassified'}_Template.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
+
+# ... (other view functions) ...

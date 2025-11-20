@@ -25,6 +25,10 @@ class Process(models.Model):
         blank=True,
         null=True
     )
+    is_template = models.BooleanField(
+        default=False,
+        help_text="If checked, this Process can be printed as an untracked template (not a Work Order)."
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         db_index=True

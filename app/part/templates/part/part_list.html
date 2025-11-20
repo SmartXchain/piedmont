@@ -23,12 +23,10 @@
     if (!window.location.search.includes('page=')) {
     document.querySelector('input[name="q"]').focus();}
     </script>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        {% if query %}
-            <h5 class="text-muted">Results for: <span class="fw-bold text-dark">"{{ query }}"</span></h5>
-        {% else %}
-            <h5 class="text-muted">Showing all parts</h5>
-        {% endif %}
+    <div class="d-flex gap-2">
+        <a href="{% url 'global_template_list' %}" class="btn btn-info btn-sm shadow">
+            <i class="bi bi-archive-fill me-1"></i>Chemical Process Templates
+        </a>
         <a href="{% url 'part_create' %}" class="btn btn-success btn-sm">
             <i class="bi bi-plus-circle-fill me-1"></i> Add New Part
         </a>
