@@ -164,10 +164,10 @@ class Method(models.Model):
             return
 
         ParameterToBeRecorded.objects.create(
-                description=tpl.description,
-                is_nadcap_required=tpl.is_nadcap_required,
-                method=self,
-            )
+            description=tpl.description,
+            is_nadcap_required=tpl.is_nadcap_required,
+            method=self,
+        )
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
