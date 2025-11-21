@@ -40,8 +40,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # create directory for the app user
 RUN mkdir -p /home/app
-RUN chown -R 1000:1000 /home/app
-USER 1000:1000
 
 # create the app user
 RUN addgroup --system app && adduser --system --group app
