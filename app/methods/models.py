@@ -159,9 +159,11 @@ class Method(models.Model):
         if self.recorded_parameters.exists():
             return
 
-        templates = ParameterTemplate.objects.filter(category=self.category)
-        for tpl in templates:
-            ParameterToBeRecorded.objects.create(
+        tpl = ParameterTemplate.objects.filter(category=self.category).first()
+        if not tpl or not tpl.description:
+            return
+
+        ParameterToBeRecorded.objects.create(
                 description=tpl.description,
                 is_nadcap_required=tpl.is_nadcap_required,
                 method=self,
@@ -169,17 +171,9 @@ class Method(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
-
-        old_category = None
-
-        if not is_new:
-            old_category = Method.objects.filter(pk=self.pk).values_list("category", flat=True).first()
-
         super().save(*args, **kwargs)
 
-        category_changed = (old_category != self.category)
-
-        if self.category and (is_new or category_changed) and not self.recorded_parameters.exists():
+        if is_new and self.category:
             self.create_required_parameters_from_template()
 
 
@@ -207,8 +201,8 @@ class ParameterTemplate(models.Model):
         ordering = ['category']
         constraints = [
             models.UniqueConstraint(
-                fields=['category', 'description'],
-                name='unique_parameter_template_per_category'
+                fields=['category'],
+                name='unique_parameter_template_category'
             )
         ]
 
