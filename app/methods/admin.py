@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import Method, ParameterToBeRecorded, ParameterTemplate
 # You may need to import format_html if you use it in other functions not shown here
 
+
 @admin.action(description="Backfill recorded parameters from templates")
 def backfill_parameters(modeladmin, request, queryset):
     for method in queryset:
