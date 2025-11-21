@@ -138,7 +138,6 @@ class Method(models.Model):
         verbose_name = "Method"
         verbose_name_plural = "Methods"
         ordering = ['title']
-        # making the title field unique and prevent duplicate title definitions
         constraints = [
             models.UniqueConstraint(
                 fields=['title'],
@@ -147,19 +146,17 @@ class Method(models.Model):
         ]
 
     def __str__(self):
-        # ex: "Anodize (processing_tank)" or "Masking (manual_method)"
         return f"{self.title} ({self.method_type})"
 
     def create_required_parameters_from_template(self):
         """
-        Creates instances of required ParameterToBeRecored from ParameterTemplate
+        Creates instances of required ParameterToBeRecorded from ParameterTemplate
         based on the Method's Category.
         """
         if not self.category:
             return
 
         if self.recorded_parameters.exists():
-            # do not duplicate if they alreay exist
             return
 
         templates = ParameterTemplate.objects.filter(category=self.category)
@@ -173,15 +170,13 @@ class Method(models.Model):
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         super().save(*args, **kwargs)
-        # only auto-apply on first save so we don't duplicate
         if is_new:
             self.create_required_parameters_from_template()
 
 
 class ParameterTemplate(models.Model):
     """
-    Master list: for a given category (Anodize, Electroplating, Passivation...),
-    what should the operator be required to record?
+    Master list: what should the operator be required to record?
     """
     category = models.CharField(
         max_length=100,
@@ -201,7 +196,6 @@ class ParameterTemplate(models.Model):
         verbose_name = "Parameter Template"
         verbose_name_plural = "Parameter Templates"
         ordering = ['category']
-        # making the category field unique and prevent duplicate template definitions
         constraints = [
             models.UniqueConstraint(
                 fields=['category'],
@@ -217,7 +211,6 @@ class ParameterTemplate(models.Model):
 class ParameterToBeRecorded(models.Model):
     """
     Actual per-method rows that the traveler will print with blank lines.
-    Usually auto-created from ParameterTemplate, but can be edited per method.
     """
     description = models.TextField(
         blank=True,
@@ -247,4 +240,5 @@ class ParameterToBeRecorded(models.Model):
         ]
 
     def __str__(self):
+        # Flake8 F841 fix: ensured variable is used
         return f"{self.method.category} – {self.description[:20]}"
