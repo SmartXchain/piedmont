@@ -148,7 +148,7 @@ class Method(models.Model):
     def __str__(self):
         return f"{self.title} ({self.method_type})"
 
-    def create_required_parameters_from_template(self):
+    def create_required_parameters_from_template(self, force=False):
         """
         Creates instances of required ParameterToBeRecorded from ParameterTemplate
         based on the Method's Category.
@@ -156,8 +156,11 @@ class Method(models.Model):
         if not self.category:
             return
 
-        if self.recorded_parameters.exists():
-            return
+        if force:
+            self.recorded_parameters.all().delete()
+        else:
+            if self.recorded_parameters.exists():
+                return
 
         tpl = ParameterTemplate.objects.filter(category=self.category).first()
         if not tpl or not tpl.description:
@@ -171,10 +174,28 @@ class Method(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
+
+        old_category = None
+        if not is_new:
+            old_category = Method.objects.filter(pk=self.pk).values_list("category", flat=True).first()
+
         super().save(*args, **kwargs)
 
+        # Case A: brand new with category
         if is_new and self.category:
             self.create_required_parameters_from_template()
+            return
+
+        # Case B: existing method that *just got* a category
+        category_first_time_assigned = (not old_category) and bool(self.category)
+        if category_first_time_assigned:
+            self.create_required_parameters_from_template()
+            return
+
+        # Case C: existing method changed category → overwrite params
+        category_changed = old_category and (old_category != self.category)
+        if category_changed:
+            self.create_required_parameters_from_template(force=True)
 
 
 class ParameterTemplate(models.Model):
