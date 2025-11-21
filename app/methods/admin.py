@@ -1,22 +1,23 @@
 from django.contrib import admin
 # Ensure all models are imported
-from .models import Method, ParameterToBeRecorded, ParameterTemplate 
+from .models import Method, ParameterToBeRecorded, ParameterTemplate
 # You may need to import format_html if you use it in other functions not shown here
 
 # ----------------------------------------------------------------------
 # 1. Define Inline for ParameterToBeRecorded
 # ----------------------------------------------------------------------
 
+
 class ParameterInline(admin.TabularInline):
     """Allows managing ParameterToBeRecorded instances within the MethodAdmin."""
     model = ParameterToBeRecorded
     # Since you removed the 'unit' field, ensure 'fields' reflects this.
-    fields = ('description', 'is_nadcap_required') 
-    extra = 0 # Don't show extra blank rows by default
+    fields = ('description', 'is_nadcap_required')
+    extra = 0  # Don't show extra blank rows by default
     verbose_name_plural = "Recorded Parameters for this Method"
-    
+
     # Optional: Display parameter units/type if needed for context
-    # readonly_fields = ('some_calculated_field',) 
+    # readonly_fields = ('some_calculated_field',)
 
 
 # ----------------------------------------------------------------------
@@ -25,8 +26,8 @@ class ParameterInline(admin.TabularInline):
 
 @admin.register(Method)
 class MethodAdmin(admin.ModelAdmin):
-    inlines = [ParameterInline] 
-    
+    inlines = [ParameterInline]
+
     # Enhanced list display to show key flags
     list_display = (
         "title",
@@ -35,7 +36,7 @@ class MethodAdmin(admin.ModelAdmin):
         "is_rectified",
         "is_masking_operation",
     )
-    
+
     # Separate fieldsets for organization
     fieldsets = (
         ("General Details", {
@@ -43,7 +44,7 @@ class MethodAdmin(admin.ModelAdmin):
         }),
         ("Tank Parameters", {
             "fields": ('tank_name', ('temp_min', 'temp_max'), ('immersion_time_min', 'immersion_time_max'), 'chemical', 'rectifier_notes'),
-            "classes": ('collapse',) # Collapse this section by default
+            "classes": ('collapse',)  # Collapse this section by default
         }),
         ("Operation Flags", {
             "fields": ('is_rectified', 'is_strike_etch', 'is_masking_operation', 'is_stress_relief_operation', 'is_hydrogen_relief_operation'),
@@ -54,6 +55,7 @@ class MethodAdmin(admin.ModelAdmin):
 # ----------------------------------------------------------------------
 # 3. Parameter Template Admin (Kept as is)
 # ----------------------------------------------------------------------
+
 
 @admin.register(ParameterTemplate)
 class ParameterTemplateAdmin(admin.ModelAdmin):
