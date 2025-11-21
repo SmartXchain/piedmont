@@ -3,6 +3,12 @@ from django.contrib import admin
 from .models import Method, ParameterToBeRecorded, ParameterTemplate
 # You may need to import format_html if you use it in other functions not shown here
 
+@admin.action(description="Backfill recorded parameters from templates")
+def backfill_parameters(modeladmin, request, queryset):
+    for method in queryset:
+        if method.category and not method.recorded_parameters.exists():
+            method.create_required_parameters_from_template()
+
 # ----------------------------------------------------------------------
 # 1. Define Inline for ParameterToBeRecorded
 # ----------------------------------------------------------------------
@@ -51,6 +57,7 @@ class MethodAdmin(admin.ModelAdmin):
         }),
     )
     ordering = ("title",)
+    actions = [backfill_parameters]
 
 # ----------------------------------------------------------------------
 # 3. Parameter Template Admin (Kept as is)

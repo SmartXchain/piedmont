@@ -169,11 +169,20 @@ class Method(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
+
+        old_category=None
+        if not is_new:
+            old_category = Method.objects.filter(pk=self.pk).values_list("category", flat=True).first()
+
         super().save(*args, **kwargs)
-        if is_new:
+
+        category_changed = (old_category != self.category)
+
+        if self.category and (is_new or category_changed) and not self.recorded_parameters.exists():
             self.create_required_parameters_from_template()
 
 
+        super().save(*args, **kwargs)
 class ParameterTemplate(models.Model):
     """
     Master list: what should the operator be required to record?
@@ -198,8 +207,8 @@ class ParameterTemplate(models.Model):
         ordering = ['category']
         constraints = [
             models.UniqueConstraint(
-                fields=['category'],
-                name='unique_parameter_template_category'
+                fields=['category', 'description'],
+                name='unique_parameter_template_per_category'
             )
         ]
 
