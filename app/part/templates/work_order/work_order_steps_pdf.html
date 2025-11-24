@@ -223,35 +223,6 @@
             {{ step.method.description|safe }}
           </div>
 
-          {# Stress Relief / HER bake block #}
-          {% if step.method.title == 'Stress Relief' or step.method.title == 'Hydrogen Embrittlement Relief' or step.method.is_hydrogen_relief_operation %}
-            <div class="text-center"><strong>{{ step.method.title|upper }} DETAILS:</strong></div>
-            <div class="input-row">
-              <div class="input-label">Date and Time of Start of Baking:</div>
-              <div class="input-line"></div>
-            </div>
-            <div class="input-row">
-              <div class="input-label">Date and Time of Start of Soak:</div>
-              <div class="input-line"></div>
-            </div>
-            <div class="input-row">
-              <div class="input-label">Date and Time of Completion of Baking:</div>
-              <div class="input-line"></div>
-            </div>
-            <div class="input-row">
-              <div class="input-label">Furnace Control Instrument Set Temperature:</div>
-              <div class="input-line"></div>
-            </div>
-            <div class="input-row">
-              <div class="input-label">Furnace Identification:</div>
-              <div class="input-line"></div>
-            </div>
-            <div class="input-row">
-              <div class="input-label">Graph Number:</div>
-              <div class="input-line"></div>
-            </div>
-          {% endif %}
-
           {# Masking acknowledgement #}
           {% if step.method.title == 'Masking' or step.method.title == 'Wax-Masking' or step.method.title == 'Demasking' or step.method.is_masking_operation %}
             <div>
