@@ -194,8 +194,18 @@
         <td><strong>Quantity:</strong> {{ work_order.part_quantity|default_if_none:"" }}</td>
       </tr>
       <tr>
-        <td><strong>Processing Standard:</strong> {{ work_order.standard|default_if_none:"" }}</td>
-        <td><strong>Classification:</strong> {{ work_order.classification|default_if_none:"N/A" }}</td>
+        <td><strong>Processing Standard:</strong>
+        {% if untracked_mode %}
+            {{ standard.name|default_if_none:""}}
+        {% else %}
+            {{ work_order.standard|default_if_none:"" }}</td>
+        {% endif %}
+        <td><strong>Classification:</strong>
+        {% if untracked_mode %}
+            {{ classification|default_if_none:""}}
+        {% else %}
+            {{ work_order.classification|default_if_none:"" }}</td>
+        {% endif %}
         <td></td>
         <td></td>
       </tr>
