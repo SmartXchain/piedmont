@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.db.models import Max, OuterRef, Subquery, F
+from django.db.models import Max, OuterRef, Subquery, F, Count
 from collections import OrderedDict
 from .models import (
     Standard,
@@ -12,13 +12,14 @@ from .models import (
 )
 
 
+# 📌 List all standards (Read-only, latest revision only)
 def standard_list_view(request):
     """
     Show only the most recent revision of each standard.name (by updated_at),
-    and group for display. Optionally filter by the high-level process tag.
-    Operators should not see specs still marked as requires_process_review.
+    and group for display.
     """
-
+    # NOTE: PROCESS_CHOICES must be defined on StandardProcess model or imported globally.
+    process_choices = StandardProcess.PROCESS_CHOICES if hasattr(StandardProcess, 'PROCESS_CHOICES') else []
     selected_process = request.GET.get('process')
 
     # For each standard name, get the most recent updated_at timestamp
@@ -39,8 +40,9 @@ def standard_list_view(request):
         .order_by('name')
     )
 
-    if selected_process:
-        latest_standards = latest_standards.filter(process=selected_process)
+    # REMOVED FILTERING BY THE LEGACY 'process' FIELD
+    # if selected_process:
+    #     latest_standards = latest_standards.filter(process=selected_process)
 
     # Check if any standards still need review
     pending_reviews = Standard.objects.filter(requires_process_review=True)
@@ -57,21 +59,17 @@ def standard_list_view(request):
         'pending_reviews': pending_reviews,
         'requires_review': requires_review,
         'selected_process': selected_process,
-        'process_choices': Standard.PROCESS_CHOICES,
+        'process_choices': process_choices,
     }
 
     return render(request, 'standard/standard_list.html', context)
 
 
+# 📌 Read-only operator view for one Standard
 def standard_detail_view(request, standard_id):
     """
     Read-only operator view for one Standard.
-    We present:
-    - each StandardProcess block (clean / plate / strip / etc.) with its related
-      inspections and classifications
-    - any global inspections/classifications (no specific block)
-    - periodic test requirements
-    - internal notifications / notes
+    Presents process blocks, global requirements, and periodic tests efficiently.
     """
 
     standard = get_object_or_404(Standard, id=standard_id)
@@ -82,24 +80,17 @@ def standard_detail_view(request, standard_id):
         .filter(standard=standard)
         .order_by('title')
         .prefetch_related(
-            'inspections',        # InspectionRequirement.standard_process -> related_name='inspections'
-            'classifications',    # Classification.standard_process -> related_name='classifications'
+            'inspections',     
+            'classifications', 
         )
     )
 
     process_data = []
     for block in process_blocks:
-        # Because we filtered the queryset to this standard, we can safely use the prefetched related sets
-        block_inspections = (
-            block.inspections
-            .filter(standard=standard)
-            .order_by('name')
-        )
-        block_classifications = (
-            block.classifications
-            .filter(standard=standard)
-            .order_by('class_name', 'type')
-        )
+        # FIX: Directly use the prefetched lists/querysets. The standard filter is redundant 
+        # because the parent queryset was filtered to 'standard=standard'.
+        block_inspections = block.inspections.order_by('name')
+        block_classifications = block.classifications.order_by('class_name', 'type')
 
         process_data.append({
             "process": block,
@@ -107,14 +98,13 @@ def standard_detail_view(request, standard_id):
             "classifications": block_classifications,
         })
 
-    # Global inspections = applies to entire standard (no process scope)
+    # Global requirements = applies to entire standard (no process scope)
     global_inspections = (
         InspectionRequirement.objects
         .filter(standard=standard, standard_process__isnull=True)
         .order_by('name')
     )
 
-    # Global classifications = applies to entire standard (no process scope)
     global_classifications = (
         Classification.objects
         .filter(standard=standard, standard_process__isnull=True)
@@ -145,11 +135,11 @@ def standard_detail_view(request, standard_id):
     return render(request, "standard/standard_detail.html", context)
 
 
+# 📌 Internal review/acknowledge page
 def process_review_view(request):
     """
     Internal review/acknowledge page.
     This clears the requires_process_review flag on a Standard.
-    You should protect this view with auth in urls.py or a decorator.
     """
 
     standards_to_review = Standard.objects.filter(requires_process_review=True)

@@ -1,45 +1,27 @@
 from django.db import models
+from django.db.models import UniqueConstraint, Q
 
+"""
+1. CORE STANDARD MODEL
+"""
 
 class Standard(models.Model):
     """
     Tracks standards with versioning and notifications when revised.
-    NOTE: `process` stays for high-level categorization and backwards compatibility.
     """
-
-    PROCESS_CHOICES = [
-        ('anodize', 'Anodizing'),
-        ('brush plate', 'Brush Plating'),
-        ('clean', 'Cleaning'),
-        ('conversion coating', 'Conversion Coating'),
-        ('electroplate', 'Electroplating'),
-        ('nital etch', 'Nital Etch'),
-        ('paint', 'Paint'),
-        ('passivation', 'Passivation'),
-        ('pre-pen etch', 'Pre-Pen Etch'),
-        ('strip', 'Stripping of Coating'),
-        ('thermal', 'Thermal Treatment'),
-    ]
 
     name = models.CharField(max_length=255)
     description = models.TextField()
     revision = models.CharField(max_length=50)
     author = models.CharField(max_length=255)
-
-    # legacy / high-level tag for primary process family
-    process = models.CharField(max_length=50, choices=PROCESS_CHOICES)
-
     nadcap = models.BooleanField(default=False)
-
     upload_file = models.FileField(
         upload_to='standard/',
         blank=True,
         null=True
     )
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
     previous_version = models.ForeignKey(
         'self',
         null=True,
@@ -54,39 +36,17 @@ class Standard(models.Model):
     )
 
     class Meta:
-        unique_together = ('name', 'revision')
+        constraints = [
+            UniqueConstraint(fields=['name', 'revision'], name='unique_standard_name_revision')
+        ]
         ordering = ['name']
 
     def save(self, *args, **kwargs):
-        """
-        Your original versioning logic:
-        - If revision changes, mark this record as requiring review
-        - Clone the previous version
-
-        ⚠ Caution:
-        This can create duplicate historical rows every time you save with any
-        change to revision. You may eventually want to move this to an explicit
-        'Create New Revision' action in a view/admin instead of doing it here.
-        """
         if self.pk:
             previous = Standard.objects.get(pk=self.pk)
             if previous.revision != self.revision:
                 # mark new version as requiring downstream review
                 self.requires_process_review = True
-
-                old_version = Standard.objects.create(
-                    name=previous.name,
-                    description=previous.description,
-                    revision=previous.revision,
-                    author=previous.author,
-                    upload_file=previous.upload_file,
-                    previous_version=previous,
-                    requires_process_review=False,
-                    process=previous.process,
-                    nadcap=previous.nadcap,
-                )
-
-                self.previous_version = old_version
 
         super().save(*args, **kwargs)
 
@@ -95,6 +55,9 @@ class Standard(models.Model):
         return f"{self.name} (Rev {self.revision}) {review_flag}"
 
 
+"""
+2. STANDARD PROCESS (One-to-Many Link)
+"""
 class StandardProcess(models.Model):
     """
     A specific process block inside a standard.
@@ -322,8 +285,7 @@ class Classification(models.Model):
         Standard,
         on_delete=models.CASCADE,
         related_name='classifications',
-        null=True,
-        blank=True
+        null=True
     )
 
     standard_process = models.ForeignKey(
@@ -373,7 +335,7 @@ class Classification(models.Model):
         )
         if self.standard_process:
             return f"{base} [{self.standard_process.title}]"
-        return base
+        return f"{self.standard.name} - {base}"
 
 
 # --- Utility helpers (unchanged from yours) ---

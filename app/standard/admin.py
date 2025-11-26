@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.forms.models import BaseInlineFormSet
-
+from django.shortcuts import redirect
 from tank_controls.models import PeriodicTestSpec
 from .models import (
     Standard,
@@ -17,19 +17,18 @@ from .models import (
 # Custom inline formsets for process-scoped editing
 ########################################
 
+# Note: The manual FK setting is necessary here because the standard FK is hidden 
+# and often overridden by the process-scoped relationship.
 
 class _ProcessScopedInlineFormSet(BaseInlineFormSet):
     """
-    Used for inlines under StandardProcessAdmin.
-    Forces FK fields (standard, standard_process) so user doesn't have to pick.
+    Forces FK fields (standard, standard_process) under StandardProcessAdmin.
     """
     def save_new(self, form, commit=True):
         obj = super().save_new(form, commit=False)
-
-        # parent_object = the StandardProcess currently being edited
         parent_process = self.instance
 
-        # force linkages
+        # Force linkages
         if hasattr(obj, 'standard_process'):
             obj.standard_process = parent_process
         if hasattr(obj, 'standard'):
@@ -41,10 +40,9 @@ class _ProcessScopedInlineFormSet(BaseInlineFormSet):
 
     def save_existing(self, form, instance, commit=True):
         obj = super().save_existing(form, instance, commit=False)
-
         parent_process = self.instance
 
-        # re-enforce linkage in case user tried to change it
+        # Re-enforce linkage
         if hasattr(obj, 'standard_process'):
             obj.standard_process = parent_process
         if hasattr(obj, 'standard'):
@@ -56,14 +54,9 @@ class _ProcessScopedInlineFormSet(BaseInlineFormSet):
 
 
 class ProcessInspectionInline(admin.TabularInline):
-    """
-    Inline of InspectionRequirement under a specific StandardProcess.
-    """
     model = InspectionRequirement
     extra = 1
     formset = _ProcessScopedInlineFormSet
-
-    # We do NOT show standard or standard_process because we inject them
     fields = (
         'name',
         'description',
@@ -72,23 +65,14 @@ class ProcessInspectionInline(admin.TabularInline):
         'operator',
         'date',
     )
-
     show_change_link = True
-
-    # Make sure Django knows which FK links this inline to StandardProcess
     fk_name = 'standard_process'
 
 
 class ProcessClassificationInline(admin.TabularInline):
-    """
-    Inline of Classification under a specific StandardProcess.
-    Only for classifications scoped to that block (like plating classes).
-    """
     model = Classification
     extra = 1
     formset = _ProcessScopedInlineFormSet
-
-    # again we hide standard / standard_process, we'll set them in formset
     fields = (
         'method',
         'method_description',
@@ -100,7 +84,6 @@ class ProcessClassificationInline(admin.TabularInline):
         'plate_asf',
         'plating_time_minutes',
     )
-
     show_change_link = True
     fk_name = 'standard_process'
 
@@ -114,6 +97,7 @@ class StandardProcessInline(admin.TabularInline):
     extra = 1
     fields = ('title', 'process_type', 'notes')
     show_change_link = True
+    # The default FK points to 'standard', so no fk_name is required.
 
 
 class InspectionRequirementInline(admin.TabularInline):
@@ -131,35 +115,19 @@ class InspectionRequirementInline(admin.TabularInline):
     show_change_link = True
 
     def get_formset(self, request, obj=None, **kwargs):
-        """
-        Limit the standard_process dropdown so it only shows StandardProcess
-        rows that belong to THIS Standard being edited.
-        """
         formset = super().get_formset(request, obj, **kwargs)
 
-        # Step 1: figure out which Standard we're editing
-        standard_id = None
+        # Safely determine the standard ID based on the object being edited
+        standard_id = obj.pk if obj and obj.pk else None
 
-        # Case 1: editing an existing Standard
-        if obj and getattr(obj, "pk", None):
-            standard_id = obj.pk
-        else:
-            # Case 2: fallback parse from URL /admin/standard/standard/<id>/change/
-            parts = request.path.strip("/").split("/")
-            # expected: ["admin", "standard", "standard", "<id>", "change"]
-            if len(parts) >= 5 and parts[-1] == "change":
-                standard_id = parts[-2]
-
-        # Step 2: build allowed queryset
-        if standard_id:
+        # Handle the case where the StandardProcess dropdown needs filtering
+        if standard_id and 'standard_process' in formset.form.base_fields:
             allowed_qs = StandardProcess.objects.filter(standard__pk=standard_id)
-        else:
-            # On "Add Standard", no pk yet, so don't leak other specs
-            allowed_qs = StandardProcess.objects.none()
-
-        # Step 3: assign that queryset to the field on the inline form
-        if 'standard_process' in formset.form.base_fields:
             formset.form.base_fields['standard_process'].queryset = allowed_qs
+        
+        elif 'standard_process' in formset.form.base_fields:
+            # On 'Add Standard' page (no PK yet), ensure no options are shown
+            formset.form.base_fields['standard_process'].queryset = StandardProcess.objects.none()
 
         return formset
 
@@ -182,27 +150,16 @@ class ClassificationInline(admin.TabularInline):
     show_change_link = True
 
     def get_formset(self, request, obj=None, **kwargs):
-        """
-        Limit the standard_process dropdown so it only shows StandardProcess
-        rows that belong to THIS Standard being edited.
-        """
         formset = super().get_formset(request, obj, **kwargs)
-
-        standard_id = None
-        if obj and getattr(obj, "pk", None):
-            standard_id = obj.pk
-        else:
-            parts = request.path.strip("/").split("/")
-            if len(parts) >= 5 and parts[-1] == "change":
-                standard_id = parts[-2]
-
-        if standard_id:
+        
+        standard_id = obj.pk if obj and obj.pk else None
+        
+        if standard_id and 'standard_process' in formset.form.base_fields:
             allowed_qs = StandardProcess.objects.filter(standard__pk=standard_id)
-        else:
-            allowed_qs = StandardProcess.objects.none()
-
-        if 'standard_process' in formset.form.base_fields:
             formset.form.base_fields['standard_process'].queryset = allowed_qs
+            
+        elif 'standard_process' in formset.form.base_fields:
+            formset.form.base_fields['standard_process'].queryset = StandardProcess.objects.none()
 
         return formset
 
@@ -236,17 +193,17 @@ class StandardPeriodicRequirementInline(admin.TabularInline):
 
 @admin.register(Standard)
 class StandardAdmin(admin.ModelAdmin):
+    # FIX: Removed redundant 'process' field from model and admin display
     list_display = (
         'name',
         'revision',
         'author',
-        'process',
         'nadcap',
         'requires_process_review',
         'updated_at',
     )
-    search_fields = ('name', 'revision', 'author', 'process')
-    list_filter = ('nadcap', 'process', 'requires_process_review')
+    search_fields = ('name', 'revision', 'author') # Removed 'process'
+    list_filter = ('nadcap', 'requires_process_review') # Removed 'process'
     ordering = ('name',)
 
     inlines = [
@@ -269,7 +226,6 @@ class StandardAdmin(admin.ModelAdmin):
         }),
         ('Controls / Metadata', {
             'fields': (
-                'process',
                 'nadcap',
                 'requires_process_review',
                 'previous_version',
@@ -289,13 +245,6 @@ class StandardAdmin(admin.ModelAdmin):
 
 @admin.register(StandardProcess)
 class StandardProcessAdmin(admin.ModelAdmin):
-    """
-    Now this admin lets you:
-      - define the process block
-      - AND directly add inspections/classifications tied to it,
-        even on first save of the process itself.
-    """
-
     list_display = ('standard', 'title', 'process_type')
     list_filter = ('process_type', 'standard__name')
     search_fields = ('title', 'notes', 'standard__name')
@@ -319,6 +268,7 @@ class StandardProcessAdmin(admin.ModelAdmin):
 
 @admin.register(InspectionRequirement)
 class InspectionRequirementAdmin(admin.ModelAdmin):
+    # Added autocomplete for speed
     list_display = (
         'name',
         'standard',
@@ -387,9 +337,6 @@ class ClassificationAdmin(admin.ModelAdmin):
         'class_name',
         'type',
         'method',
-        'method_description',
-        'class_description',
-        'type_description',
     )
     autocomplete_fields = ('standard', 'standard_process')
     ordering = ('standard__name', 'class_name', 'type')
@@ -489,29 +436,6 @@ class PeriodicTestResultAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('performed_on',)
-
-
-@admin.register(StandardPeriodicRequirement)
-class StandardPeriodicRequirementAdmin(admin.ModelAdmin):
-    list_display = ("standard", "test_spec", "active")
-    list_filter = ("active", "standard__process")
-    search_fields = (
-        "standard__name",
-        "test_spec__name",
-        "test_spec__control_set__name",
-    )
-    autocomplete_fields = ("standard", "test_spec")
-    ordering = ("standard__name", "test_spec__name")
-
-    fieldsets = (
-        ('Link', {
-            'fields': ('standard', 'test_spec', 'active'),
-        }),
-        ('Notes / Tailoring', {
-            'fields': ('notes',),
-            'description': "Document any customer-specific tailoring (panel alloy, thickness, etc.).",
-        }),
-    )
 
 
 @admin.register(StandardRevisionNotification)
