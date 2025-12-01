@@ -1,7 +1,7 @@
 # process/models.py
 from django.db import models
 from methods.models import Method
-from standard.models import Standard, Classification
+from standard.models import Standard, Classification, StandardProcess
 from django.db.models import UniqueConstraint, CheckConstraint, Q
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -10,6 +10,12 @@ from django.dispatch import receiver
 class Process(models.Model):
     standard = models.ForeignKey(
         Standard,
+        on_delete=models.CASCADE,
+        related_name='processes',
+        db_index=True
+    )
+    standard_process = models.ForeignKey(
+        StandardProcess,
         on_delete=models.CASCADE,
         related_name='processes',
         db_index=True
