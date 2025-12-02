@@ -1,11 +1,10 @@
 {% extends 'base.html' %} 
 
-{% block title %}Logbook Index{% endblock %}
+{% block title %}Logbook{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="display-4 mb-4">Central Logbook Navigation Hub</h1>
-    <p class="lead">Select your role or the logbook type to proceed.</p>
+    <h1 class="display-4 mb-4">TAT Technology Logbook</h1>
 
     <div class="row mt-5">
         
@@ -39,7 +38,7 @@
                         <i class="bi bi-bar-chart-line"></i> View Environmental Dashboard
                     </a>
 
-                    <a href="{% url 'logbook:list' %}" class="btn btn-sm btn-outline-secondary w-100">
+                    <a href="{% url 'logbook:list' %}" class="btn btn-lg btn-outline-secondary w-100 mb-3">
                         <i class="bi bi-list-task"></i> View Production/Part Log List
                     </a>
                 </div>

@@ -117,25 +117,28 @@
                                                 <span class="badge bg-dark ms-1">NADCAP</span>
                                             {% endif %}
                                         </td>
-
                                         <td>
-                                            {% with process=standard.process %}
-                                            <span class="badge
-                                                {% if process == 'anodize' %}bg-primary
-                                                {% elif process == 'paint' %}bg-danger
-                                                {% elif process == 'clean' %}bg-secondary
-                                                {% elif process == 'conversion coating' %}bg-success
-                                                {% elif process == 'electroplate' %}bg-info text-dark
-                                                {% elif process == 'nital etch' %}bg-warning text-dark
-                                                {% elif process == 'passivation' %}bg-dark
-                                                {% elif process == 'pre-pen etch' %}bg-light text-dark border
-                                                {% elif process == 'strip' %}bg-warning text-dark
-                                                {% elif process == 'thermal' %}bg-danger
-                                                {% else %}bg-secondary
-                                                {% endif %}">
-                                                {{ standard.get_process_display }}
-                                            </span>
-                                            {% endwith %}
+                                            {% if standard.process_badges %}
+                                                {% for pb in standard.process_badges %}
+                                                    <span class="badge
+                                                        {% if pb.value == 'anodize' %}bg-primary
+                                                        {% elif pb.value == 'paint' %}bg-danger
+                                                        {% elif pb.value == 'clean' %}bg-secondary
+                                                        {% elif pb.value == 'conversion coating' %}bg-success
+                                                        {% elif pb.value == 'electroplate' %}bg-info text-dark
+                                                        {% elif pb.value == 'nital etch' %}bg-warning text-dark
+                                                        {% elif pb.value == 'passivation' %}bg-dark
+                                                        {% elif pb.value == 'pre-pen etch' %}bg-light text-dark border
+                                                        {% elif pb.value == 'strip' %}bg-warning text-dark
+                                                        {% elif pb.value == 'thermal' %}bg-danger
+                                                        {% else %}bg-secondary
+                                                        {% endif %} me-1">
+                                                        {{ pb.label }}
+                                                    </span>
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="badge bg-secondary">No General Process</span>
+                                            {% endif %}
                                         </td>
 
                                         <td style="min-width: 250px; max-width: 400px;">

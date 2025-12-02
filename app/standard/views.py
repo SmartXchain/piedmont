@@ -62,13 +62,14 @@ def standard_list_view(request):
             }
             for pt in sorted(raw_types)
         ]
-    
+
     pending_reviews = Standard.objects.filter(requires_process_review=True)
     requires_review = pending_reviews.exists()
 
     # Group by author (stable order, deterministic)
     standards_by_author = OrderedDict()
-    for std in latest_standards:
+    sorted_standards = sorted(latest_standards, key=lambda s: (s.author.lower(), s.name.lower()))
+    for std in sorted_standards:
         standards_by_author.setdefault(std.author, [])
         standards_by_author[std.author].append(std)
 
