@@ -1,7 +1,6 @@
 # logbook/models.py
 from django.db import models
-from django.contrib.auth.models import User 
-
+from django.contrib.auth.models import User
 
 REWORK_SOURCE_CHOICES = [
     ('TRAVELER', 'Traveler labeled rework'),
@@ -105,7 +104,7 @@ class DailyInspectionLogEntry(models.Model):
         help_text="Enter the exact date and time of inspection",
         verbose_name="Log Date and Time",
     )
-    
+
     # Inspection Checks
     containment_is_clean = models.BooleanField(
         default=True,
@@ -117,8 +116,8 @@ class DailyInspectionLogEntry(models.Model):
     )
     # The default=False logic is correct: False = No leaks found.
     leaks_present = models.BooleanField(
-        default=False, 
-        verbose_name="Leaks Present", # Added verbose_name for clarity
+        default=False,
+        verbose_name="Leaks Present",
         help_text="Are there any leaks?",
     )
     pipes_are_secure = models.BooleanField(
@@ -151,13 +150,13 @@ class DailyInspectionLogEntry(models.Model):
         return f"Inspection Log {self.pk} - {self.log_date.strftime('%Y-%m-%d')}"
 
 
-class ScrubberLog(models.Model): # Corrected name (RECOMMENDATION 1)
-    
+class ScrubberLog(models.Model):
+
     log_date = models.DateTimeField(
         help_text="Enter the date and time the reading was taken.",
         verbose_name="Log Date and Time",
     )
-    
+
     # Readings - Removed null=True, blank=True assuming these are mandatory (RECOMMENDATION 2)
     stage_one_reading = models.DecimalField(
         max_digits=5,
@@ -167,7 +166,7 @@ class ScrubberLog(models.Model): # Corrected name (RECOMMENDATION 1)
         verbose_name="Stage 1 Reading (in)",
         help_text="Stage 1: Min 0.7 inches, Max 2.7 inches",
     )
-    
+
     stage_two_reading = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -176,7 +175,7 @@ class ScrubberLog(models.Model): # Corrected name (RECOMMENDATION 1)
         verbose_name="Stage 2 Reading (in)",
         help_text="Stage 2: Min 0.7 inches, Max 4.7 inches",
     )
-    
+
     stage_three_reading = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -185,7 +184,7 @@ class ScrubberLog(models.Model): # Corrected name (RECOMMENDATION 1)
         verbose_name="Stage 3 Reading (in)",
         help_text="Stage 3: Min 0.8 inches, Max 2.8 inches",
     )
-    
+
     # Boolean Field Renamed for clarity (RECOMMENDATION 1)
     limits_exceeded = models.BooleanField(
         default=False,
@@ -196,17 +195,17 @@ class ScrubberLog(models.Model): # Corrected name (RECOMMENDATION 1)
         blank=True,
         help_text="Add any notes/comments",
     )
-    
+
     operator = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Recorded By" # Verbose name for consistency
+        verbose_name="Recorded By"
     )
 
     class Meta:
-        ordering = ['-log_date'] # Sort by newest first
+        ordering = ['-log_date']
         verbose_name_plural = "Scrubber Logs"
-        
+
     def __str__(self):
         # Human-readable string representation
         status = "FAIL" if self.limits_exceeded else "PASS"

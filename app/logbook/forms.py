@@ -14,7 +14,7 @@ class BaseEnvironmentalLogForm(forms.ModelForm):
         label="Date and Time of Inspection",
         help_text="Set the exact date and time the log was performed."
     )
-    
+
     # 2. Operator Dropdown (REQUIRED)
     # Overrides the ForeignKey to show all active users as a simple select list.
     operator = forms.CharField(
@@ -35,15 +35,19 @@ class DailyInspectionLogForm(BaseEnvironmentalLogForm):
 
 
 # --- Scrubber Log Form ---
+
+
 class ScrubberLogForm(BaseEnvironmentalLogForm):
     # Explicitly set numerical fields as NOT REQUIRED,
     # even though they are null/blank in the model.
     stage_one_reading = forms.DecimalField(required=False)
     stage_two_reading = forms.DecimalField(required=False)
-    stage_three_reading = forms.DecimalField(required=False)    
+    stage_three_reading = forms.DecimalField(required=False)
+
     class Meta:
         model = ScrubberLog
         fields = "__all__"
+
 
 class LogEntryForm(forms.ModelForm):
     class Meta:

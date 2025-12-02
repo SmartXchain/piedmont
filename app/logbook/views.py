@@ -2,8 +2,7 @@
 from datetime import datetime, time
 import csv
 import json
-
-from django.db import transaction 
+from django.db import transaction
 from django.db.models import fields as model_fields
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -21,6 +20,7 @@ from .models import (
     DailyInspectionLogEntry,
     ScrubberLog,
 )
+
 
 def operator_env_log_create(request):
     success = False
@@ -62,10 +62,10 @@ def operator_env_log_create(request):
 class IndexView(TemplateView):
     """ Central Landing Page for Logbook Navigation """
     template_name = 'logbook/index.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['log_creation_url'] = 'logbook:create' # For the general log entry form
+        context['log_creation_url'] = 'logbook:create'
         context['manager_dashboard_url'] = 'logbook:manager_dashboard'
         return context
 
@@ -275,7 +275,6 @@ class LogbookLandingView(ListView):
         return ctx
 
 
-
 def download_log_data(request):
     # 1. Get parameters from the request
     log_type = request.GET.get('log_type')
@@ -301,7 +300,7 @@ def download_log_data(request):
         # Convert start date string to a datetime object at the start of the day (00:00:00)
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
         start_datetime = datetime.combine(start_date, time.min)
-        
+
         # Convert end date string to a datetime object at the end of the day (23:59:59)
         end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
         end_datetime = datetime.combine(end_date, time.max)
@@ -310,7 +309,7 @@ def download_log_data(request):
 
     # Filter data based on the log_date field
     queryset = Model.objects.filter(log_date__range=(start_datetime, end_datetime)).order_by('log_date')
-    
+
     # 4. Prepare HTTP Response
     filename = f"{log_name}_{start_date_str}_to_{end_date_str}.csv"
     response = HttpResponse(content_type='text/csv')
@@ -336,21 +335,19 @@ def download_log_data(request):
     # Write Data Rows
     for obj in queryset:
         row = []
-        for field in field_names:
+        for field in fields:
             value = getattr(obj, field.name)
-            
+
             # Special handling for ForeignKey fields (like 'operator')
             if isinstance(field, model_fields.related.ForeignKey):
                 # Use the username or 'N/A' if the operator is None
                 value = getattr(value, 'username', 'N/A')
-            
+
             # Simple conversion for None/Null values
             if value is None:
                 value = ''
-            
+
             row.append(value)
         writer.writerow(row)
 
     return response
-
-

@@ -5,6 +5,7 @@ from django.db.models import UniqueConstraint, Q
 1. CORE STANDARD MODEL
 """
 
+
 class Standard(models.Model):
     """
     Tracks standards with versioning and notifications when revised.
@@ -58,6 +59,8 @@ class Standard(models.Model):
 """
 2. STANDARD PROCESS (One-to-Many Link)
 """
+
+
 class StandardProcess(models.Model):
     """
     A specific process block inside a standard.

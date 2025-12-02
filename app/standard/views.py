@@ -80,14 +80,14 @@ def standard_detail_view(request, standard_id):
         .filter(standard=standard)
         .order_by('title')
         .prefetch_related(
-            'inspections',     
-            'classifications', 
+            'inspections',
+            'classifications',
         )
     )
 
     process_data = []
     for block in process_blocks:
-        # FIX: Directly use the prefetched lists/querysets. The standard filter is redundant 
+        # FIX: Directly use the prefetched lists/querysets. The standard filter is redundant
         # because the parent queryset was filtered to 'standard=standard'.
         block_inspections = block.inspections.order_by('name')
         block_classifications = block.classifications.order_by('class_name', 'type')

@@ -13,11 +13,11 @@ app_name = "logbook"
 
 urlpatterns = [
     # 1. ROOT URL: Leads to the Central Navigation Page (UX Improvement)
-    path("", IndexView.as_view(), name="index"), # Changed from "list" to "index"
+    path("", IndexView.as_view(), name="index"),
 
     # --- Operator Entry Paths ---
     # The existing part/process log entry form
-    path("parts/new/", logentry_create, name="create"), 
+    path("parts/new/", logentry_create, name="create"),
     # The existing part/process log list view
     path("parts/list/", LogbookLandingView.as_view(), name="list"),
     # Environmental Log Submission Page

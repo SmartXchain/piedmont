@@ -17,8 +17,9 @@ from .models import (
 # Custom inline formsets for process-scoped editing
 ########################################
 
-# Note: The manual FK setting is necessary here because the standard FK is hidden 
+# Note: The manual FK setting is necessary here because the standard FK is hidden
 # and often overridden by the process-scoped relationship.
+
 
 class _ProcessScopedInlineFormSet(BaseInlineFormSet):
     """
@@ -124,7 +125,7 @@ class InspectionRequirementInline(admin.TabularInline):
         if standard_id and 'standard_process' in formset.form.base_fields:
             allowed_qs = StandardProcess.objects.filter(standard__pk=standard_id)
             formset.form.base_fields['standard_process'].queryset = allowed_qs
-        
+
         elif 'standard_process' in formset.form.base_fields:
             # On 'Add Standard' page (no PK yet), ensure no options are shown
             formset.form.base_fields['standard_process'].queryset = StandardProcess.objects.none()
@@ -151,13 +152,13 @@ class ClassificationInline(admin.TabularInline):
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        
+
         standard_id = obj.pk if obj and obj.pk else None
-        
+
         if standard_id and 'standard_process' in formset.form.base_fields:
             allowed_qs = StandardProcess.objects.filter(standard__pk=standard_id)
             formset.form.base_fields['standard_process'].queryset = allowed_qs
-            
+
         elif 'standard_process' in formset.form.base_fields:
             formset.form.base_fields['standard_process'].queryset = StandardProcess.objects.none()
 
@@ -202,8 +203,8 @@ class StandardAdmin(admin.ModelAdmin):
         'requires_process_review',
         'updated_at',
     )
-    search_fields = ('name', 'revision', 'author') # Removed 'process'
-    list_filter = ('nadcap', 'requires_process_review') # Removed 'process'
+    search_fields = ('name', 'revision', 'author')
+    list_filter = ('nadcap', 'requires_process_review')
     ordering = ('name',)
 
     inlines = [
