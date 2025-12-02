@@ -1,0 +1,50 @@
+{% extends 'base.html' %} 
+
+{% block title %}Logbook Index{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="display-4 mb-4">Central Logbook Navigation Hub</h1>
+    <p class="lead">Select your role or the logbook type to proceed.</p>
+
+    <div class="row mt-5">
+        
+<div class="col-md-6 mb-4">
+            <div class="card shadow border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Operator: Data Entry</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Use this section to log daily inspections, scrubber readings, or production process events.</p>
+                    
+                    <a href="{% url 'logbook:env_create' %}" class="btn btn-lg btn-warning w-100 mb-3 text-dark">
+                        <i class="bi bi-thermometer-half"></i> **Log Environmental Inspections**
+                    </a>
+
+                    <a href="{% url 'logbook:create' %}" class="btn btn-lg btn-success w-100 mb-3">
+                        <i class="bi bi-pencil-square"></i> Log Production/Part Data
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Manager/Reviewer: Reporting & Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">View consolidated reports, summary statistics, and download compliance data.</p>
+                    
+                    <a href="{% url 'logbook:manager_dashboard' %}" class="btn btn-lg btn-info w-100 mb-3">
+                        <i class="bi bi-bar-chart-line"></i> View Environmental Dashboard
+                    </a>
+
+                    <a href="{% url 'logbook:list' %}" class="btn btn-sm btn-outline-secondary w-100">
+                        <i class="bi bi-list-task"></i> View Production/Part Log List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

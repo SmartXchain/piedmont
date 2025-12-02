@@ -1,0 +1,238 @@
+{% extends 'base.html' %} 
+
+{% block title %}Environmental Log Entry{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Environmental Log Entry 📝</h1>
+    <p class="lead">Complete both the Daily Inspection Checklist and the Scrubber Readings below.</p>
+
+    {% if success %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Success!</strong> Log entry submitted successfully.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
+    <form method="post" id="envLogForm" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        {{ daily_form.hidden_fields }}
+        {{ scrubber_form.hidden_fields }}
+
+        {# Optional: show non-field errors for debugging/visibility #}
+        {% if daily_form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ daily_form.non_field_errors }}
+            </div>
+        {% endif %}
+        {% if scrubber_form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ scrubber_form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="card shadow p-4 mb-4 bg-light">
+            <h4 class="mb-3 text-primary">1. Daily Inspection Log Details</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ daily_form.log_date.id_for_label }}" class="form-label text-muted">
+                        Time of Inspection *
+                    </label>
+                    {{ daily_form.log_date }}
+                    {% for error in daily_form.log_date.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">{{ daily_form.log_date.help_text }}</div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="{{ daily_form.operator.id_for_label }}" class="form-label text-muted">
+                        Operator Name *
+                    </label>
+                    {{ daily_form.operator }}
+                    {% for error in daily_form.operator.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">{{ daily_form.operator.help_text }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    2. Daily Inspection Checklist
+                    <small class="float-end">(Check is PASS / Uncheck is FAIL)</small>
+                </h4>
+            </div>
+            <div class="card-body">
+                {% for field in daily_form %}
+                    {% if field.name != 'log_date' and field.name != 'operator' and field.name != 'id' and field.name != 'notes' %}
+                        <div class="form-check form-switch check-item p-4 mb-2 border rounded 
+                             {% if field.errors %}border-danger{% else %}border-secondary{% endif %}">
+                            
+                            <input class="form-check-input float-end" 
+                                   type="checkbox" 
+                                   role="switch" 
+                                   id="{{ field.id_for_label }}" 
+                                   name="{{ field.html_name }}" 
+                                   style="font-size: 1.8rem;"
+                                   {% if field.value or field.name == 'leaks_present' and not field.value %}checked{% endif %}>
+                            
+                            <label class="form-check-label fs-5 me-5" for="{{ field.id_for_label }}">
+                                <strong>{{ field.help_text }}</strong>
+                                {% if field.name == 'leaks_present' %}
+                                    <br><span class="text-danger small">(This check should be TRUE only if leaks are actually FOUND)</span>
+                                {% endif %}
+                            </label>
+
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-2">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">3. Scrubber Pressure Readings</h4>
+            </div>
+            <div class="card-body row">
+
+                {# Scrubber-specific date & operator fields #}
+                <div class="col-md-6 mb-3">
+                    <label for="{{ scrubber_form.log_date.id_for_label }}" class="form-label text-muted">
+                        Scrubber Reading Date &amp; Time *
+                    </label>
+                    {{ scrubber_form.log_date }}
+                    {% for error in scrubber_form.log_date.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">{{ scrubber_form.log_date.help_text }}</div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="{{ scrubber_form.operator.id_for_label }}" class="form-label text-muted">
+                        Scrubber Operator
+                    </label>
+                    {{ scrubber_form.operator }}
+                    {% for error in scrubber_form.operator.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">{{ scrubber_form.operator.help_text }}</div>
+                </div>
+
+                {% for field in scrubber_form %}
+                    {% if field.name != 'log_date' and field.name != 'operator' and field.name != 'id' and field.name != 'limits_exceeded' %}
+                        <div class="col-md-4 mb-4">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            
+                            {% with limit=field.field.help_text %}
+                                <input type="number" 
+                                       step="0.01"
+                                       class="form-control form-control-lg"
+                                       id="{{ field.id_for_label }}" 
+                                       name="{{ field.html_name }}" 
+                                       value="{{ field.value|default:'' }}"
+                                       placeholder="Enter Reading ({{ limit }})"
+                                       {% if not field.field.required %}data-optional="true"{% endif %}
+                                >
+                                <div class="form-text text-success fw-bold">{{ limit }}</div>
+                            {% endwith %}
+
+                            {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                
+                <div class="col-md-12 mb-4 mt-3">
+                    <div class="form-check form-switch p-4 border rounded bg-warning-subtle">
+                        <input class="form-check-input float-end" 
+                               type="checkbox" 
+                               role="switch" 
+                               id="{{ scrubber_form.limits_exceeded.id_for_label }}" 
+                               name="{{ scrubber_form.limits_exceeded.html_name }}" 
+                               style="font-size: 1.8rem;"
+                               {% if scrubber_form.limits_exceeded.value %}checked{% endif %}>
+                        
+                        <label class="form-check-label fs-5" for="{{ scrubber_form.limits_exceeded.id_for_label }}">
+                            <strong>{{ scrubber_form.limits_exceeded.label }}</strong>
+                            <br><span class="text-muted small">{{ scrubber_form.limits_exceeded.help_text }}</span>
+                        </label>
+                        {% for error in scrubber_form.limits_exceeded.errors %}
+                            <div class="text-danger small mt-2">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h4 class="mb-0">4. Additional Notes/Comments</h4>
+            </div>
+            <div class="card-body">
+                <label for="{{ daily_form.notes.id_for_label }}" class="form-label text-muted">
+                    Notes/Comments
+                </label>
+                {{ daily_form.notes }}
+                <div class="form-text mt-1">{{ daily_form.notes.help_text }}</div>
+                {% for error in daily_form.notes.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <button type="submit" class="d-none"></button>
+    </form>
+</div>
+
+<div class="sticky-footer p-3 bg-white border-top shadow-lg">
+    <div class="container">
+        <button type="button" 
+                onclick="document.getElementById('envLogForm').submit()" 
+                class="btn btn-primary btn-lg w-100">
+            Submit Complete Environmental Log
+        </button>
+    </div>
+</div>
+
+<style>
+    /* Ensure the switches are large and color-coded */
+    .form-check.check-item:has(input:checked) {
+        background-color: #e6ffed; /* Light green for PASS */
+        border-color: #198754 !important; /* Green border */
+    }
+    .form-check.check-item:not(:has(input:checked)) {
+        background-color: #ffe6e6; /* Light red for FAIL */
+        border-color: #dc3545 !important; /* Red border */
+    }
+    .form-check-input {
+        width: 3.5rem; /* Larger touch target */
+        height: 1.8rem; /* Larger touch target */
+        margin-left: -3rem; /* Adjust position */
+    }
+    /* Style for the multi-line notes box */
+    #id_daily-notes {
+        width: 100%;
+        min-height: 100px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    /* Sticky footer for submit button */
+    .sticky-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+    }
+</style>
+{% endblock %}
+
