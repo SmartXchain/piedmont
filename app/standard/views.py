@@ -19,7 +19,7 @@ def standard_list_view(request):
     and group for display.
     """
     # NOTE: PROCESS_CHOICES must be defined on StandardProcess model or imported globally.
-    process_choices = StandardProcess.PROCESS_CHOICES if hasattr(StandardProcess, 'PROCESS_CHOICES') else []
+    process_choices = getattr(StandardProcess, "PROCESS_CHOICES", [])
     selected_process = request.GET.get('process')
 
     # For each standard name, get the most recent updated_at timestamp
@@ -38,6 +38,7 @@ def standard_list_view(request):
         .filter(updated_at=F('latest_for_name'))
         .exclude(requires_process_review=True)
         .order_by('name')
+        .prefetch_related("standard_processes")
     )
 
     # REMOVED FILTERING BY THE LEGACY 'process' FIELD
@@ -45,6 +46,23 @@ def standard_list_view(request):
     #     latest_standards = latest_standards.filter(process=selected_process)
 
     # Check if any standards still need review
+    if selected_process:
+        latest_standards = latest_standards.filter(
+            standard_processes__process_type=selected_process
+        ).distinct()
+
+    process_label_map = dict(process_choices)
+
+    for std in latest_standards:
+        raw_types = {sp.process_type for sp in std.standard_processes.all()}
+        std.process_badges = [
+            {
+                "value": pt,
+                "label": process_label_map.get(pt, pt.title()),
+            }
+            for pt in sorted(raw_types)
+        ]
+    
     pending_reviews = Standard.objects.filter(requires_process_review=True)
     requires_review = pending_reviews.exists()
 
@@ -67,11 +85,6 @@ def standard_list_view(request):
 
 # 📌 Read-only operator view for one Standard
 def standard_detail_view(request, standard_id):
-    """
-    Read-only operator view for one Standard.
-    Presents process blocks, global requirements, and periodic tests efficiently.
-    """
-
     standard = get_object_or_404(Standard, id=standard_id)
 
     # Fetch all process blocks for this standard, and prefetch related data
@@ -87,8 +100,6 @@ def standard_detail_view(request, standard_id):
 
     process_data = []
     for block in process_blocks:
-        # FIX: Directly use the prefetched lists/querysets. The standard filter is redundant
-        # because the parent queryset was filtered to 'standard=standard'.
         block_inspections = block.inspections.order_by('name')
         block_classifications = block.classifications.order_by('class_name', 'type')
 
@@ -98,6 +109,15 @@ def standard_detail_view(request, standard_id):
             "classifications": block_classifications,
         })
 
+    # Build a human-readable list of process types for the header
+    process_label_map = dict(StandardProcess.PROCESS_CHOICES)
+    distinct_types = sorted({pb.process_type for pb in process_blocks})
+    if distinct_types:
+        primary_processes = ", ".join(
+            process_label_map.get(pt, pt.title()) for pt in distinct_types
+        )
+    else:
+        primary_processes = "Not set"
     # Global requirements = applies to entire standard (no process scope)
     global_inspections = (
         InspectionRequirement.objects
@@ -130,6 +150,7 @@ def standard_detail_view(request, standard_id):
         "global_classifications": global_classifications,
         "periodic_tests": periodic_tests,
         "notifications": notifications,
+        "primary_processes": primary_processes,
     }
 
     return render(request, "standard/standard_detail.html", context)
