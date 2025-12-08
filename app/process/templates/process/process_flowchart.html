@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}
+Process Flowchart – {{ process.standard.name }}{% if process.classification %} ({{ process.classification }}){% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-0">
+            Process Flowchart<br>
+            <small class="text-muted">
+                {{ process.standard.name }}
+                {% if process.classification %}
+                    — {{ process.classification }}
+                {% else %}
+                    — Unclassified
+                {% endif %}
+            </small>
+        </h1>
+    </div>
+
+    <div class="btn-group">
+        <a href="{% url 'process_flowchart_download' process.pk %}"
+           class="btn btn-outline-primary btn-sm">
+            Download SVG
+        </a>
+        <a href="javascript:history.back()" class="btn btn-secondary btn-sm">
+            Back
+        </a>
+    </div>
+</div>
+
+<div>
+    <div class="card">
+        <div class="card-body">
+            <div class="flowchart-wrapper" style="overflow: auto; border: 1px solid #eee; padding: 1rem;">
+                {{ svg|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

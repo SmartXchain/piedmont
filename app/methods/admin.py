@@ -56,6 +56,9 @@ class MethodAdmin(admin.ModelAdmin):
         ("Operation Flags", {
             "fields": ('is_rectified', 'is_strike_etch', 'is_masking_operation', 'is_stress_relief_operation', 'is_hydrogen_relief_operation'),
         }),
+        ("Process Time", {
+            "fields": ('touch_time_min', 'touch_time_max', 'run_time_min', 'run_time_max'),
+        }),
     )
     ordering = ("title",)
     actions = [backfill_parameters]

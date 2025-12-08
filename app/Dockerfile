@@ -10,6 +10,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # WeasyPrint native deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    graphviz \
     libcairo2 \
     libpango-1.0-0 \
     libpangoft2-1.0-0 \

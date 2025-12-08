@@ -94,7 +94,26 @@ class Method(models.Model):
         null=True,
         help_text="Maximum contact/immersion time."
     )
-
+    touch_time_min = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text="Minimum operator touch time for this step (minutes)."
+    )
+    touch_time_max = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text="Maximum operator touch time for this step (minutes)."
+    )
+    run_time_min = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text="Minimum unattended/run time for this step (minutes)."
+    )
+    run_time_max = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text="Maximum unattended/run time for this step (minutes)."
+    )
     chemical = models.CharField(
         max_length=255,
         blank=True,
