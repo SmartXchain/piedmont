@@ -187,7 +187,7 @@ def build_process_flowchart_svg(process: Process) -> str:
     # Add totals if any non-zero
     if total_touch > 0 or total_run > 0:
         header_lines.append(
-            f"Est. Touch Time: {total_touch} min  |  Est. Run Time: {total_run} min"
+            f"Est. Avg. Touch Time: {total_touch} min  |  Est. Avg. Run Time: {total_run} min"
         )
 
     header_lines.append(f"Generated {generated_date} — Process #{process.id}")
