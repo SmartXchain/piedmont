@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Work Order {{ order.work_order }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Work Order {{ order.work_order }}</h1>
+  <p class="mb-1"><strong>Part:</strong> {{ order.part_number }} – {{ order.part_description }}</p>
+  <p class="mb-1"><strong>Quantity:</strong> {{ order.quantity }}</p>
+  <p class="mb-1"><strong>Process:</strong> {{ order.process }}</p>
+  <p class="mb-1">
+    <strong>Dates:</strong>
+    Start {{ order.start_date|date:"Y-m-d" }},
+    Due {{ order.due_date|date:"Y-m-d" }},
+    Est Finish {{ order.estimated_finish_date|date:"Y-m-d" }}
+  </p>
+  <p class="mb-1">
+    <strong>Status:</strong> {{ order.get_status_display }} |
+    <strong>Part Status:</strong> {{ order.get_part_status_display }}
+  </p>
+  <p class="mb-3">
+    <strong>Assigned To:</strong>
+    {% if order.assigned_to %}
+      {{ order.assigned_to.get_full_name|default:order.assigned_to.username }}
+    {% else %}
+      <span class="text-muted">Unassigned</span>
+    {% endif %}
+  </p>
+
+  <div class="card">
+    <div class="card-header">
+      <strong>Schedule Timeline – Operations for {{ order.work_order }}</strong>
+    </div>
+    <div class="card-body">
+      <div id="wo-timeline"></div>
+      <p class="text-muted small mt-2">
+        Step 1 is at the top. Each block spans the actual start and end time.
+        Right-angle arrows show the flow from one step to the next.
+      </p>
+    </div>
+  </div>
+
+  <a href="{% url 'scheduler:dashboard' %}" class="btn btn-link mt-3">
+    &laquo; Back to Schedule
+  </a>
+</div>
+
+<!-- Plotly (CDN) -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const url = "{% url 'scheduler:order_gantt_data' order.pk %}";
+    const chartElementId = "wo-timeline";
+
+    fetch(url)
+      .then(res => res.json())
+      .then(rawTasks => {
+        if (!rawTasks.length) {
+          document.getElementById(chartElementId).innerHTML =
+            '<p class="text-muted">No operations scheduled for this work order.</p>';
+          return;
+        }
+
+        // Sort by sequence so step 1, 2, 3... are in order
+        const tasks = [...rawTasks].sort((a, b) => {
+          const sa = a.sequence || 0;
+          const sb = b.sequence || 0;
+          return sa - sb;
+        });
+
+        const shapes = [];
+        const annotations = [];
+        const tickvals = [];
+        const ticktext = [];
+        const opsForArrows = [];
+
+        tasks.forEach((t, idx) => {
+          const stepIndex = idx + 1;  // 1-based row index
+
+          const startDate = new Date(t.start);
+          const endDate = new Date(t.end);
+
+          // Midpoint of the bar for label
+          const midTime = new Date((startDate.getTime() + endDate.getTime()) / 2);
+          const midIso = midTime.toISOString();
+
+          const x0 = t.start;
+          const x1 = t.end;
+          const yCenter = stepIndex;
+          const y0 = yCenter - 0.45;  // top-to-bottom thickness
+          const y1 = yCenter + 0.45;
+
+          const opLabel = t.sequence ? `Op ${t.sequence}` : (t.name || "Operation");
+          const resourceLabel = t.resource ? ` [${t.resource}]` : "";
+          const statusLabel = t.status ? ` (${t.status})` : "";
+
+          // Left axis label per step (Op + resource + status)
+          tickvals.push(stepIndex);
+          ticktext.push(opLabel + resourceLabel + statusLabel);
+
+          // Rectangle "block" for the step
+          shapes.push({
+            type: "rect",
+            xref: "x",
+            yref: "y",
+            x0: x0,
+            x1: x1,
+            y0: y0,
+            y1: y1,
+            line: {
+              width: 1,
+              color: "#0b5ed7",
+            },
+            fillcolor: "#0d6efd",  // Bootstrap primary-ish
+            opacity: 0.95,
+          });
+
+          // Text in the middle of the block (step description)
+          const textLabel = t.name || opLabel;
+          annotations.push({
+            x: midIso,
+            y: yCenter,
+            xref: "x",
+            yref: "y",
+            text: textLabel,
+            showarrow: false,
+            font: {
+              size: 18,
+              color: "#ffffff",
+            },
+            xanchor: "center",
+            yanchor: "middle",
+          });
+
+          // Store for connector arrow math
+          opsForArrows.push({
+            stepIndex: stepIndex,
+            startIso: x0,
+            endIso: x1,
+            midIso: midIso,
+          });
+        });
+
+        // Build right-angle connectors between consecutive steps
+        // From middle bottom of upper block -> middle left of block below
+        const connectorColor = "#6c757d";
+
+        for (let i = 0; i < opsForArrows.length - 1; i++) {
+          const from = opsForArrows[i];
+          const to = opsForArrows[i + 1];
+
+          const fromStep = from.stepIndex;
+          const toStep = to.stepIndex;
+
+          const fromBottomY = fromStep + 0.45;  // bottom of upper block
+          const toCenterY = toStep;             // center of next block
+
+          const fromMidX = from.midIso;
+          const toLeftX = to.startIso;
+
+          // Vertical segment: straight down from bottom center of upper block
+          shapes.push({
+            type: "line",
+            xref: "x",
+            yref: "y",
+            x0: fromMidX,
+            y0: fromBottomY,
+            x1: fromMidX,
+            y1: toCenterY,
+            line: {
+              width: 3,
+              color: connectorColor,
+            },
+          });
+
+          // Horizontal arrow: from that point to middle left of the next block
+          annotations.push({
+            x: toLeftX,
+            y: toCenterY,
+            xref: "x",
+            yref: "y",
+            ax: fromMidX,
+            ay: toCenterY,
+            axref: "x",
+            ayref: "y",
+            text: "",
+            showarrow: true,
+            arrowhead: 3,
+            arrowsize: 4,
+            arrowwidth: 3,
+            arrowcolor: connectorColor,
+          });
+        }
+
+        // Dummy trace just to give Plotly an axis to attach shapes/annotations to
+        const data = [{
+          type: "scatter",
+          x: [],
+          y: [],
+          showlegend: false,
+          hoverinfo: "none",
+        }];
+
+        const layout = {
+          title: "",
+          xaxis: {
+            type: "date",
+            title: "Time",
+          },
+          yaxis: {
+            type: "linear",
+            tickmode: "array",
+            tickvals: tickvals,
+            ticktext: ticktext,
+            autorange: "reversed",  // step 1 at top
+            automargin: true,
+          },
+          margin: { l: 260, r: 40, t: 10, b: 40 },
+          hovermode: "closest",
+          shapes: shapes,
+          annotations: annotations,
+        };
+
+        Plotly.newPlot(chartElementId, data, layout, {responsive: true});
+      })
+      .catch(err => {
+        console.error("Error loading order timeline:", err);
+      });
+  });
+</script>
+{% endblock %}
+

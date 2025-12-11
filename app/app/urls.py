@@ -41,6 +41,7 @@ urlpatterns = [
     path('periodic/', include('periodic_testing.urls')),
     path('controls/', include('tank_controls.urls')),
     path('logbook/', include('logbook.urls')),
+    path('schedule/', include('scheduler.urls', namespace='scheduler')),
 ]
 if bool(settings.DEBUG):
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

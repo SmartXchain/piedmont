@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}Production Schedule{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1 class="mb-3">Production Schedule</h1>
+
+  <!-- Overview Table -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <strong>Manufacturing Orders Overview</strong>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Work Order</th>
+              <th>Part Number</th>
+              <th>Description</th>
+              <th class="text-end">Qty</th>
+              <th>Process</th>
+              <th>Start</th>
+              <th>Due</th>
+              <th>Est Finish</th>
+              <th>Status</th>
+              <th>Part Status</th>
+              <th>Assigned To</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+              <tr>
+                <td>
+                  <a href="{% url 'scheduler:order_detail' order.pk %}">
+                    {{ order.work_order }}
+                  </a>
+                </td>
+                <td>{{ order.part_number }}</td>
+                <td>{{ order.part_description }}</td>
+                <td class="text-end">{{ order.quantity }}</td>
+                <td>{{ order.process }}</td>
+                <td>{{ order.start_date|date:"Y-m-d" }}</td>
+                <td>
+                  {% if order.is_late %}
+                    <span class="badge bg-danger">{{ order.due_date|date:"Y-m-d" }}</span>
+                  {% else %}
+                    {{ order.due_date|date:"Y-m-d" }}
+                  {% endif %}
+                </td>
+                <td>{{ order.estimated_finish_date|date:"Y-m-d" }}</td>
+                <td>
+                  {% if order.status == "planned" %}
+                    <span class="badge bg-secondary">Planned</span>
+                  {% elif order.status == "scheduled" %}
+                    <span class="badge bg-info text-dark">Scheduled</span>
+                  {% elif order.status == "in_progress" %}
+                    <span class="badge bg-primary">In Progress</span>
+                  {% elif order.status == "done" %}
+                    <span class="badge bg-success">Done</span>
+                  {% elif order.status == "hold" %}
+                    <span class="badge bg-warning text-dark">On Hold</span>
+                  {% else %}
+                    <span class="badge bg-dark">Cancelled</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if order.part_status == "not_received" %}
+                    <span class="badge bg-secondary">Not Received</span>
+                  {% elif order.part_status == "received" %}
+                    <span class="badge bg-info text-dark">Received</span>
+                  {% elif order.part_status == "not_booked" %}
+                    <span class="badge bg-warning text-dark">Not Booked</span>
+                  {% else %}
+                    <span class="badge bg-success">Booked</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if order.assigned_to %}
+                    {{ order.assigned_to.get_full_name|default:order.assigned_to.username }}
+                  {% else %}
+                    <span class="text-muted">Unassigned</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="11" class="text-center text-muted py-3">
+                  No manufacturing orders found.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline Filters -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <strong>Schedule Filters</strong>
+    </div>
+    <div class="card-body">
+      <form id="gantt-filter-form" class="row gy-2 gx-3 align-items-end">
+        <div class="col-md-3">
+          <label for="id_start" class="form-label">Start Date</label>
+          <input type="date" id="id_start" name="start" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label for="id_end" class="form-label">End Date</label>
+          <input type="date" id="id_end" name="end" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label for="id_department" class="form-label">Department</label>
+          <select id="id_department" name="department" class="form-select">
+            <option value="">All</option>
+            {% for dept in departments %}
+              <option value="{{ dept }}">{{ dept }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="id_hide_completed" name="hide_completed" checked>
+            <label class="form-check-label" for="id_hide_completed">
+              Hide completed
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="id_hide_cancelled" name="hide_cancelled" checked>
+            <label class="form-check-label" for="id_hide_cancelled">
+              Hide cancelled
+            </label>
+          </div>
+        </div>
+
+        <div class="col-12 mt-2 d-flex flex-wrap gap-2">
+          <button type="button" id="btn-today" class="btn btn-outline-secondary btn-sm">
+            Today
+          </button>
+          <button type="button" id="btn-next7" class="btn btn-outline-secondary btn-sm">
+            Today + 7 days
+          </button>
+          <button type="button" id="btn-thisweek" class="btn btn-outline-secondary btn-sm">
+            This week
+          </button>
+          <button type="button" id="apply-filters" class="btn btn-primary btn-sm ms-auto">
+            Apply Filters
+          </button>
+          <button type="button" id="clear-filters" class="btn btn-outline-secondary btn-sm">
+            Clear
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Global Production Timeline (Plotly) -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Global Production Timeline</strong>
+      <span class="text-muted small">Blocks group by work order · Vertical line = now</span>
+    </div>
+    <div class="card-body">
+      <div id="schedule-chart"></div>
+      <p class="text-muted small mt-2">
+        Each block is an operation. Blocks from the same work order share a color.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Plotly (CDN) -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+<script>
+  function formatDateInput(dateObj) {
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dateObj.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const chartElementId = "schedule-chart";
+    const ganttDataUrl = "{% url 'scheduler:gantt_data' %}";
+    const filterForm = document.getElementById("gantt-filter-form");
+    const applyBtn = document.getElementById("apply-filters");
+    const clearBtn = document.getElementById("clear-filters");
+    const todayBtn = document.getElementById("btn-today");
+    const next7Btn = document.getElementById("btn-next7");
+    const thisWeekBtn = document.getElementById("btn-thisweek");
+    const startInput = document.getElementById("id_start");
+    const endInput = document.getElementById("id_end");
+
+    // Color palette for work orders
+    const woColorMap = {};
+    const colorPalette = [
+      "#0d6efd", "#198754", "#fd7e14", "#6f42c1",
+      "#20c997", "#ffc107", "#dc3545", "#6610f2",
+      "#0dcaf0", "#6c757d"
+    ];
+    let colorIndex = 0;
+
+    function colorForWorkOrder(workOrder) {
+      if (!workOrder) {
+        return "#6c757d";
+      }
+      if (!woColorMap[workOrder]) {
+        woColorMap[workOrder] = colorPalette[colorIndex % colorPalette.length];
+        colorIndex += 1;
+      }
+      return woColorMap[workOrder];
+    }
+
+    function setDefaultWindowNext7() {
+      const today = new Date();
+      const end = new Date();
+      end.setDate(today.getDate() + 7);
+      startInput.value = formatDateInput(today);
+      endInput.value = formatDateInput(end);
+    }
+
+    function setTodayWindow() {
+      const today = new Date();
+      startInput.value = formatDateInput(today);
+      endInput.value = formatDateInput(today);
+    }
+
+    function setThisWeekWindow() {
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // 0 = Sun
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      startInput.value = formatDateInput(monday);
+      endInput.value = formatDateInput(sunday);
+    }
+
+    function loadTimeline() {
+      const params = new URLSearchParams(new FormData(filterForm));
+      const url = ganttDataUrl + "?" + params.toString();
+
+      fetch(url)
+        .then(response => response.json())
+        .then(tasks => {
+          if (!tasks.length) {
+            document.getElementById(chartElementId).innerHTML =
+              '<p class="text-muted">No operations to display for the selected filters.</p>';
+            return;
+          }
+
+          // Sort by start time so rows are ordered sensibly
+          const sorted = [...tasks].sort((a, b) => {
+            const as = new Date(a.start).getTime();
+            const bs = new Date(b.start).getTime();
+            return as - bs;
+          });
+
+          const shapes = [];
+          const annotations = [];
+          const tickvals = [];
+          const ticktext = [];
+
+          sorted.forEach((t, idx) => {
+            const rowIndex = idx + 1;  // y position for this op
+
+            const startIso = t.start;
+            const endIso = t.end;
+
+            const x0 = startIso;
+            const x1 = endIso;
+            const yCenter = rowIndex;
+            const y0 = yCenter - 0.4;
+            const y1 = yCenter + 0.4;
+
+            const opLabel = t.sequence ? `Op ${t.sequence}` : "";
+            const resourceLabel = t.resource ? ` [${t.resource}]` : "";
+            const statusLabel = t.status ? ` (${t.status})` : "";
+            const leftLabel = `${t.work_order} – ${opLabel}${resourceLabel}${statusLabel}`;
+
+            tickvals.push(rowIndex);
+            ticktext.push(leftLabel);
+
+            const color = colorForWorkOrder(t.work_order);
+
+            // Rectangle block for this operation
+            shapes.push({
+              type: "rect",
+              xref: "x",
+              yref: "y",
+              x0: x0,
+              x1: x1,
+              y0: y0,
+              y1: y1,
+              line: {
+                width: 1,
+                color: "#343a40",
+              },
+              fillcolor: color,
+              opacity: 0.95,
+            });
+
+            // Optional: small annotation in the middle (work order)
+            const startDate = new Date(startIso);
+            const endDate = new Date(endIso);
+            const midTime = new Date((startDate.getTime() + endDate.getTime()) / 2);
+            const midIso = midTime.toISOString();
+
+            annotations.push({
+              x: midIso,
+              y: yCenter,
+              xref: "x",
+              yref: "y",
+              text: t.work_order,
+              showarrow: false,
+              font: {
+                size: 10,
+                color: "#ffffff",
+              },
+              xanchor: "center",
+              yanchor: "middle",
+            });
+          });
+
+          // Vertical "NOW" line across entire chart
+          const now = new Date().toISOString();
+          shapes.push({
+            type: "line",
+            xref: "x",
+            yref: "paper",
+            x0: now,
+            x1: now,
+            y0: 0,
+            y1: 1,
+            line: {
+              color: "#dc3545",
+              width: 2,
+              dash: "dot",
+            },
+          });
+
+          // Dummy trace just to anchor axes (everything visual is shapes + annotations)
+          const data = [{
+            type: "scatter",
+            x: [],
+            y: [],
+            showlegend: false,
+            hoverinfo: "none",
+          }];
+
+          const baseHeight = 150;
+          const perRow = 24;
+          const height = baseHeight + tickvals.length * perRow;
+
+          const layout = {
+            title: "",
+            xaxis: {
+              type: "date",
+              title: "Time",
+            },
+            yaxis: {
+              type: "linear",
+              tickmode: "array",
+              tickvals: tickvals,
+              ticktext: ticktext,
+              automargin: true,
+              autorange: "reversed",  // newest rows at top if you want; flip if not
+            },
+            margin: { l: 260, r: 40, t: 10, b: 40 },
+            hovermode: "closest",
+            shapes: shapes,
+            annotations: annotations,
+            height: height,
+          };
+
+          Plotly.newPlot(chartElementId, data, layout, { responsive: true });
+        })
+        .catch(err => {
+          console.error("Error loading schedule timeline:", err);
+        });
+    }
+
+    applyBtn.addEventListener("click", function () {
+      loadTimeline();
+    });
+
+    clearBtn.addEventListener("click", function () {
+      filterForm.reset();
+      setDefaultWindowNext7();
+      loadTimeline();
+    });
+
+    todayBtn.addEventListener("click", function () {
+      setTodayWindow();
+      loadTimeline();
+    });
+
+    next7Btn.addEventListener("click", function () {
+      setDefaultWindowNext7();
+      loadTimeline();
+    });
+
+    thisWeekBtn.addEventListener("click", function () {
+      setThisWeekWindow();
+      loadTimeline();
+    });
+
+    // Initial defaults: Today + 7 days, hide completed/cancelled
+    setDefaultWindowNext7();
+    const hideCompleted = document.getElementById("id_hide_completed");
+    const hideCancelled = document.getElementById("id_hide_cancelled");
+    if (hideCompleted) hideCompleted.checked = true;
+    if (hideCancelled) hideCancelled.checked = true;
+
+    loadTimeline();
+  });
+</script>
+{% endblock %}
+
