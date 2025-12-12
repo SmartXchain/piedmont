@@ -12,11 +12,13 @@ from .models import DelayLog, ManufacturingOrder
 
 
 class SchedulerView(TemplateView):
+    """Renders the Gantt chart page."""
+
     template_name = "scheduler/main.html"
 
 
 class SchedulerDataView(View):
-    """Generates a nested waterfall: Work Order > Individual Steps."""
+    """Generates a nested waterfall with a summary bar for parent rows."""
 
     def get(self, request, *args, **kwargs):
         orders = ManufacturingOrder.objects.select_related("process").all()
@@ -25,14 +27,16 @@ class SchedulerDataView(View):
 
         for order in orders:
             order_color = self._generate_color(order.work_order)
+            parent_id = f"order-{order.id}"
 
-            # 1. Parent Resource: The Work Order Folder
+            # 1. Parent Resource Definition
             resources.append({
-                "id": f"order-{order.id}",
+                "id": parent_id,
                 "title": order.work_order,
                 "partNumber": order.part_number,
                 "status": order.get_status_display(),
                 "color": order_color,
+                "uiOrder": 0
             })
 
             steps = (
@@ -41,7 +45,9 @@ class SchedulerDataView(View):
                 .order_by("step_number")
             )
 
+            # Waterfall track parameters
             current_pointer = order.planned_start_time
+            mo_start_time = order.planned_start_time
             delays = {d.step_number: d.added_minutes for d in order.delays.all()}
 
             for step in steps:
@@ -49,16 +55,15 @@ class SchedulerDataView(View):
                 if not method:
                     continue
 
-                # 2. Child Resource: The specific step row under the order
                 child_resource_id = f"step-{order.id}-{step.step_number}"
                 resources.append({
                     "id": child_resource_id,
-                    "parentId": f"order-{order.id}",
+                    "parentId": parent_id,
                     "title": f"Step {step.step_number}: {method.title}",
                     "tank": method.tank_name or "N/A",
+                    "uiOrder": step.step_number
                 })
 
-                # Calculate times
                 t_max = getattr(method, "touch_time_max", 0) or 0
                 r_max = getattr(method, "run_time_max", 0) or 0
                 extra = delays.get(step.step_number, 0)
@@ -66,7 +71,7 @@ class SchedulerDataView(View):
 
                 end_pointer = current_pointer + timedelta(minutes=duration)
 
-                # 3. Create the Event on the Child Resource Row
+                # Individual Step Event
                 events.append({
                     "id": f"evt-{order.id}-{step.step_number}",
                     "resourceId": child_resource_id,
@@ -75,19 +80,31 @@ class SchedulerDataView(View):
                     "title": f"{method.title}",
                     "backgroundColor": order_color,
                     "extendedProps": {
+                        "isSummary": False,
                         "orderId": order.id,
                         "stepNumber": step.step_number,
-                        "tank": method.tank_name,
                         "isDelayed": extra > 0,
-                        "details": (
-                            f"Process: {method.title}\n"
-                            f"Tank: {method.tank_name}\n"
-                            f"Duration: {duration} min"
-                        )
+                        "details": f"Step {step.step_number}: {method.title}"
                     }
                 })
-                # Ripple effect
                 current_pointer = end_pointer
+
+            # 2. Add the Summary Event (visible on the parent row)
+            if steps.exists():
+                events.append({
+                    "id": f"summary-{order.id}",
+                    "resourceId": parent_id,
+                    "start": mo_start_time.isoformat(),
+                    "end": current_pointer.isoformat(),
+                    "title": f"Total Order: {order.work_order}",
+                    "display": "block",
+                    "backgroundColor": order_color,
+                    "opacity": "0.6",  # Make it look like a summary
+                    "extendedProps": {
+                        "isSummary": True,
+                        "details": f"Work Order: {order.work_order}\nTotal Duration"
+                    }
+                })
 
         return JsonResponse({"events": events, "resources": resources})
 
@@ -98,6 +115,8 @@ class SchedulerDataView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AddDelayView(View):
+    """Endpoint to record a delay and the mandatory reason."""
+
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
         try:
