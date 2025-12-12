@@ -1,217 +1,100 @@
 # scheduler/views.py
-from datetime import datetime, timedelta
+import hashlib
 import json
+from datetime import timedelta
 
-from django.http import HttpResponseBadRequest, JsonResponse
-from django.shortcuts import get_object_or_404, render
-from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView, View
 
-from .models import ManufacturingOrder, Operation, Resource
-
-
-def schedule_dashboard(request):
-    """
-    Landing page:
-      - Overview table of all manufacturing orders
-      - Time-based chart of all operations below (Plotly on frontend).
-    """
-    orders = (
-        ManufacturingOrder.objects
-        .select_related("process", "assigned_to")
-        .order_by("due_date", "work_order")
-    )
-
-    departments = (
-        Resource.objects
-        .exclude(department="")
-        .values_list("department", flat=True)
-        .distinct()
-        .order_by("department")
-    )
-
-    context = {
-        "orders": orders,
-        "departments": departments,
-    }
-    return render(request, "scheduler/dashboard.html", context)
+from .models import DelayLog, ManufacturingOrder
 
 
-def gantt_data(request):
-    """
-    JSON data for the main schedule chart.
+class SchedulerView(TemplateView):
+    template_name = "scheduler/main.html"
 
-    Optional filters (GET params):
-      - start: YYYY-MM-DD
-      - end:   YYYY-MM-DD
-      - department: resource.department
-      - hide_completed: "1" to exclude completed ops
-      - hide_cancelled: "1" to exclude cancelled ops
-    """
-    ops = (
-        Operation.objects
-        .select_related("manufacturing_order", "resource")
-        .order_by("planned_start")
-    )
 
-    start_str = request.GET.get("start")
-    end_str = request.GET.get("end")
-    department = request.GET.get("department")
-    hide_completed = request.GET.get("hide_completed") == "1"
-    hide_cancelled = request.GET.get("hide_cancelled") == "1"
+class SchedulerDataView(View):
+    """Generates Gantt data with integrated manual delays."""
 
-    if start_str:
+    def get(self, request, *args, **kwargs):
+        orders = ManufacturingOrder.objects.select_related("process").all()
+        events = []
+        resources = []
+
+        for order in orders:
+            order_color = self._generate_color(order.work_order)
+            resources.append({
+                "id": str(order.id),
+                "title": order.work_order,
+                "partNumber": order.part_number,
+                "status": order.get_status_display(),
+                "color": order_color
+            })
+
+            steps = order.process.steps.all().select_related("method").order_by("step_number")
+            current_pointer = order.planned_start_time
+
+            # Pre-fetch delays for this order to avoid N+1 queries
+            delays = {d.step_number: d.added_minutes for d in order.delays.all()}
+
+            for step in steps:
+                method = step.method
+                if not method:
+                    continue
+
+                # Base duration + any manual delays logged
+                t_max = getattr(method, "touch_time_max", 0) or 0
+                r_max = getattr(method, "run_time_max", 0) or 0
+                standard_duration = max(int(t_max) + int(r_max), 1)
+                extra_time = delays.get(step.step_number, 0)
+                
+                total_duration = standard_duration + extra_time
+                end_pointer = current_pointer + timedelta(minutes=total_duration)
+
+                events.append({
+                    "id": f"{order.id}-{step.step_number}",
+                    "resourceId": str(order.id),
+                    "start": current_pointer.isoformat(),
+                    "end": end_pointer.isoformat(),
+                    "title": f"{method.title} ({method.tank_name or 'Manual'})",
+                    "backgroundColor": order_color,
+                    "extendedProps": {
+                        "orderId": order.id,
+                        "stepNumber": step.step_number,
+                        "isDelayed": extra_time > 0
+                    }
+                })
+                # Waterfall update
+                current_pointer = end_pointer
+
+        return JsonResponse({"events": events, "resources": resources})
+
+    def _generate_color(self, text):
+        hash_obj = hashlib.md5(text.encode())
+        return f"#{hash_obj.hexdigest()[:6]}"
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AddDelayView(View):
+    """Endpoint to record a delay and the mandatory reason."""
+
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
         try:
-            start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
-            ops = ops.filter(planned_end__date__gte=start_date)
-        except ValueError:
-            start_date = None
+            order = ManufacturingOrder.objects.get(id=data['orderId'])
+            
+            # Create or update delay for this step
+            delay, created = DelayLog.objects.get_or_create(
+                order=order,
+                step_number=data['stepNumber'],
+                defaults={'added_minutes': 0, 'reason': ''}
+            )
+            delay.added_minutes += int(data['minutes'])
+            delay.reason += f"\n[{data['minutes']}m added]: {data['reason']}"
+            delay.save()
 
-    if end_str:
-        try:
-            end_date = datetime.strptime(end_str, "%Y-%m-%d").date()
-            ops = ops.filter(planned_start__date__lte=end_date)
-        except ValueError:
-            end_date = None
-
-    if department:
-        ops = ops.filter(resource__department=department)
-
-    if hide_completed:
-        ops = ops.exclude(status="completed")
-
-    if hide_cancelled:
-        ops = ops.exclude(status="cancelled")
-
-    data = []
-    for op in ops:
-        order = op.manufacturing_order
-        data.append(
-            {
-                "id": op.id,
-                "sequence": op.sequence,
-                "order_id": order.id,
-                "work_order": order.work_order,
-                "part_number": order.part_number,
-                "status": op.status,
-                "resource": op.resource.name if op.resource else "",
-                "start": op.planned_start.isoformat(),
-                "end": op.planned_end.isoformat(),
-            }
-        )
-
-    return JsonResponse(data, safe=False)
-
-
-def order_detail(request, pk):
-    """
-    Detail view for a single ManufacturingOrder, including a Plotly timeline.
-    """
-    order = get_object_or_404(
-        ManufacturingOrder.objects.select_related("process", "assigned_to"),
-        pk=pk,
-    )
-    return render(request, "scheduler/order_detail.html", {"order": order})
-
-
-def order_gantt_data(request, pk):
-    """
-    JSON data for a single work order's operations, used by Plotly timeline.
-    """
-    order = get_object_or_404(ManufacturingOrder, pk=pk)
-    ops = (
-        Operation.objects
-        .filter(manufacturing_order=order)
-        .select_related("resource")
-        .order_by("planned_start")
-    )
-
-    data = []
-    for op in ops:
-        data.append(
-            {
-                "id": op.id,
-                "sequence": op.sequence,
-                "name": f"Op {op.sequence} – {op.process_step}",
-                "status": op.status,
-                "resource": op.resource.name if op.resource else "",
-                "start": op.planned_start.isoformat(),
-                "end": op.planned_end.isoformat(),
-            }
-        )
-
-    return JsonResponse(data, safe=False)
-
-
-@require_POST
-def operation_reschedule(request, pk):
-    """
-    Update planned_start/planned_end for a single operation.
-    Expects JSON body:
-      { "start": iso8601, "end": iso8601 }
-    """
-    op = get_object_or_404(Operation, pk=pk)
-
-    try:
-        payload = json.loads(request.body.decode("utf-8"))
-        start_str = payload.get("start")
-        end_str = payload.get("end")
-        if not start_str or not end_str:
-            return HttpResponseBadRequest("Missing start or end")
-
-        start_dt = datetime.fromisoformat(start_str)
-        end_dt = datetime.fromisoformat(end_str)
-
-        if timezone.is_naive(start_dt):
-            start_dt = timezone.make_aware(start_dt)
-        if timezone.is_naive(end_dt):
-            end_dt = timezone.make_aware(end_dt)
-
-        op.planned_start = start_dt
-        op.planned_end = end_dt
-        op.save(update_fields=["planned_start", "planned_end"])
-
-        return JsonResponse({"status": "ok"})
-    except (json.JSONDecodeError, TypeError, ValueError) as exc:
-        return HttpResponseBadRequest(str(exc))
-
-
-@require_POST
-def order_shift(request, pk):
-    """
-    Shift all operations for a ManufacturingOrder by a delta in minutes.
-
-    Expects JSON body:
-      { "delta_minutes": 120 }
-    """
-    order = get_object_or_404(ManufacturingOrder, pk=pk)
-
-    try:
-        payload = json.loads(request.body.decode("utf-8"))
-        delta_minutes = int(payload.get("delta_minutes", 0))
-    except (json.JSONDecodeError, TypeError, ValueError) as exc:
-        return HttpResponseBadRequest(f"Invalid delta_minutes: {exc}")
-
-    if delta_minutes == 0:
-        return JsonResponse({"status": "no_change"})
-
-    delta = timedelta(minutes=delta_minutes)
-
-    ops = (
-        Operation.objects
-        .filter(manufacturing_order=order)
-        .order_by("planned_start")
-    )
-
-    for op in ops:
-        op.planned_start += delta
-        op.planned_end += delta
-        op.save(update_fields=["planned_start", "planned_end"])
-
-    last = ops.last()
-    if last:
-        order.estimated_finish_date = last.planned_end.date()
-        order.save(update_fields=["estimated_finish_date"])
-
-    return JsonResponse({"status": "ok"})
-
+            return JsonResponse({"status": "success"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)

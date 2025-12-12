@@ -1,0 +1,100 @@
+<{% extends "base.html" %}
+
+{% block title %}
+Chemical Processing Scheduler
+{% endblock %}
+
+{% block content %}!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Work Order Scheduler</title>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.10/index.global.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; margin: 0; }
+        .controls { padding: 15px; background: #fff; border-bottom: 1px solid #ddd; }
+        #calendar { height: 90vh; padding: 10px; }
+        .fc-timeline-event { cursor: pointer; border-radius: 3px; }
+        .delayed-event { border: 2px dashed red !important; }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <strong>Search:</strong> <input type="text" id="orderSearch" placeholder="Work Order...">
+        <small style="margin-left: 15px; color: #666;">Click a block to add time / report equipment failure.</small>
+    </div>
+
+    <div id="calendar"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var rawResources = [];
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'resourceTimelineDay',
+                schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'resourceTimelineDay,resourceTimelineWeek' },
+                resourceAreaHeaderContent: 'Work Orders',
+                resourceColumns: [
+                    { labelText: 'Work Order', field: 'title' },
+                    { labelText: 'Status', field: 'status' }
+                ],
+                eventSources: [{
+                    url: '{% url "scheduler:data" %}',
+                    success: function(content) {
+                        rawResources = content.resources;
+                        calendar.setOption('resources', rawResources);
+                        return content.events;
+                    }
+                }],
+
+                // HANDLE CLICK TO EXTEND TIME
+                eventClick: function(info) {
+                    const props = info.event.extendedProps;
+                    
+                    const minutes = prompt("Add additional minutes to this step (Equipment Failure/Delay):", "15");
+                    if (!minutes || isNaN(minutes)) return;
+
+                    const reason = prompt("MANDATORY: Enter reason for extension:");
+                    if (!reason) {
+                        alert("Delay cannot be recorded without a reason.");
+                        return;
+                    }
+
+                    // Send to backend
+                    fetch('{% url "scheduler:add_delay" %}', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            orderId: props.orderId,
+                            stepNumber: props.stepNumber,
+                            minutes: minutes,
+                            reason: reason
+                        })
+                    }).then(res => res.json()).then(data => {
+                        if (data.status === 'success') calendar.refetchEvents();
+                        else alert("Error: " + data.message);
+                    });
+                },
+
+                eventDidMount: function(info) {
+                    if (info.event.extendedProps.isDelayed) {
+                        info.el.classList.add('delayed-event');
+                    }
+                }
+            });
+
+            // Filter logic
+            document.getElementById('orderSearch').addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase();
+                calendar.setOption('resources', rawResources.filter(r => r.title.toLowerCase().includes(term)));
+            });
+
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
+{% endblock %}
