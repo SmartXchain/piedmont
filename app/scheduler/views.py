@@ -49,7 +49,7 @@ class SchedulerDataView(View):
                 r_max = getattr(method, "run_time_max", 0) or 0
                 standard_duration = max(int(t_max) + int(r_max), 1)
                 extra_time = delays.get(step.step_number, 0)
-                
+
                 total_duration = standard_duration + extra_time
                 end_pointer = current_pointer + timedelta(minutes=total_duration)
 
@@ -84,7 +84,7 @@ class AddDelayView(View):
         data = json.loads(request.body)
         try:
             order = ManufacturingOrder.objects.get(id=data['orderId'])
-            
+
             # Create or update delay for this step
             delay, created = DelayLog.objects.get_or_create(
                 order=order,
