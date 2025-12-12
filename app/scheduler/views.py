@@ -40,7 +40,7 @@ class SchedulerDataView(View):
                 .select_related("method")
                 .order_by("step_number")
             )
-            
+
             current_pointer = order.planned_start_time
             delays = {d.step_number: d.added_minutes for d in order.delays.all()}
 
@@ -63,7 +63,7 @@ class SchedulerDataView(View):
                 r_max = getattr(method, "run_time_max", 0) or 0
                 extra = delays.get(step.step_number, 0)
                 duration = max(int(t_max) + int(r_max), 1) + extra
-                
+
                 end_pointer = current_pointer + timedelta(minutes=duration)
 
                 # 3. Create the Event on the Child Resource Row
