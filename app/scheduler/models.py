@@ -105,4 +105,3 @@ class DelayLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.order.work_order} Step {self.step_number} Delay"
-

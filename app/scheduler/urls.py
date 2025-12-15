@@ -10,4 +10,3 @@ urlpatterns = [
     path("api/add-delay/", AddDelayView.as_view(), name="add_delay"),
     path("api/update-status/", UpdateStatusView.as_view(), name="update_status"),
 ]
-

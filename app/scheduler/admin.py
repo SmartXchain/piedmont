@@ -47,4 +47,3 @@ class DelayLogAdmin(admin.ModelAdmin):
     list_filter = ("timestamp",)
     search_fields = ("order__work_order", "order__part_number", "reason")
     ordering = ("-timestamp",)
-

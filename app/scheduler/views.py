@@ -264,4 +264,3 @@ class UpdateStatusView(View):
                 {"status": "error", "message": str(exc)},
                 status=400,
             )
-
