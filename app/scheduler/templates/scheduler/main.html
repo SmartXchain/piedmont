@@ -1,142 +1,253 @@
-
-<{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}
 Chemical Processing Scheduler
 {% endblock %}
 
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Production Scheduler</title>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.10/index.global.min.js"></script>
-    <style>
-        body { font-family: sans-serif; margin: 0; background: #f8f9fa; }
-        
-        /* HEADER UI FIXES */
-        .fc-header-toolbar {
-            padding: 10px 20px;
-            background: #fff;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 0 !important;
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.10/index.global.min.js"></script>
+
+<style>
+  .scheduler-page { font-family: sans-serif; margin: 0; background: #f8f9fa; }
+
+  .fc-header-toolbar {
+    padding: 10px 20px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 0 !important;
+  }
+  .fc-toolbar-chunk { display: flex; align-items: center; }
+
+  .controls {
+    padding: 10px 20px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  #orderSearch { padding: 5px 10px; width: 250px; }
+  .hint { font-size: 0.8em; color: #777; }
+
+  #calendar { height: calc(100vh - 110px); padding: 10px; }
+
+  .summary-bar {
+    opacity: 0.60;
+    height: 12px !important;
+    margin-top: 6px;
+    border: none !important;
+  }
+
+  .delayed-event { border: 2px dashed red !important; }
+
+  .completed-event {
+    opacity: 0.78;
+    cursor: not-allowed !important;
+    filter: grayscale(10%);
+  }
+
+  /* ===== Right-click menu ===== */
+  #ctxMenu {
+    position: fixed;
+    z-index: 99999;
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    padding: 6px;
+    display: none;
+  }
+  #ctxMenu .ctx-title {
+    padding: 8px 10px;
+    font-size: 12px;
+    color: #666;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 6px;
+    white-space: pre-line;
+  }
+  #ctxMenu button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    padding: 10px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  #ctxMenu button:hover { background: #f3f4f6; }
+  #ctxMenu .danger:hover { background: rgba(220, 53, 69, 0.12); }
+  #ctxMenu .warn:hover { background: rgba(255, 193, 7, 0.18); }
+  #ctxMenu .info:hover { background: rgba(13, 110, 253, 0.12); }
+  #ctxMenu .divider { height: 1px; background: #eee; margin: 6px 0; }
+</style>
+
+<div class="scheduler-page">
+  <div class="controls">
+    <input type="text" id="orderSearch" placeholder="Search Work Order...">
+    <span class="hint">
+      Click step = add delay | Right-click any bar = status menu | Completed stays visible and red
+    </span>
+  </div>
+
+  <div id="calendar"></div>
+
+  <!-- Context menu -->
+  <div id="ctxMenu">
+    <div class="ctx-title" id="ctxTitle">Work Order</div>
+
+    <button class="info" data-status="in_progress">Set: In Progress</button>
+    <button class="warn" data-status="hold">Set: On Hold</button>
+    <button class="danger" data-status="done">Set: Completed</button>
+    <div class="divider"></div>
+    <button data-status="planned">Set: Planned</button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+    const ctxMenu = document.getElementById('ctxMenu');
+    const ctxTitle = document.getElementById('ctxTitle');
+
+    let rawResources = [];
+    let ctxOrderId = null;
+
+    function hideMenu() {
+      ctxMenu.style.display = 'none';
+      ctxOrderId = null;
+    }
+
+    function showMenu(x, y, titleText, orderId) {
+      ctxTitle.textContent = titleText || 'Work Order';
+      ctxOrderId = orderId;
+
+      const pad = 10;
+      const menuW = 240;
+      const menuH = 210;
+      const maxX = window.innerWidth - menuW - pad;
+      const maxY = window.innerHeight - menuH - pad;
+
+      ctxMenu.style.left = Math.max(pad, Math.min(x, maxX)) + 'px';
+      ctxMenu.style.top = Math.max(pad, Math.min(y, maxY)) + 'px';
+      ctxMenu.style.display = 'block';
+    }
+
+    document.addEventListener('click', hideMenu);
+    document.addEventListener('scroll', hideMenu, true);
+    window.addEventListener('resize', hideMenu);
+
+    ctxMenu.addEventListener('click', function (e) {
+      const btn = e.target.closest('button[data-status]');
+      if (!btn || !ctxOrderId) return;
+
+      const newStatus = btn.getAttribute('data-status');
+
+      fetch('{% url "scheduler:update_status" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: ctxOrderId, status: newStatus })
+      })
+      .then(res => res.json())
+      .then(() => {
+        hideMenu();
+        calendar.refetchEvents();
+      });
+    });
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'resourceTimelineDay',
+      schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
+      resourceOrder: 'uiOrder',
+      resourcesInitiallyExpanded: false,
+      resourceAreaWidth: '30%',
+
+      headerToolbar: {
+        left: 'today prev,next',
+        center: 'title',
+        right: 'resourceTimelineDay,resourceTimelineWeek'
+      },
+
+      resourceColumns: [
+        { labelText: 'Order / Step', field: 'title' },
+        { labelText: 'Location', field: 'tank' }
+      ],
+
+      eventSources: [{
+        url: '{% url "scheduler:data" %}',
+        success: function (content) {
+          rawResources = content.resources;
+          calendar.setOption('resources', rawResources);
+          return content.events;
         }
-        
-        .fc-toolbar-chunk { display: flex; align-items: center; }
+      }],
 
-        #calendar { height: calc(100vh - 75px); padding: 10px; }
+      eventDidMount: function (info) {
+        info.el.title = info.event.extendedProps.details || '';
 
-        /* SUMMARY BAR STYLING */
-        .summary-bar {
-            opacity: 0.5;
-            height: 12px !important;
-            margin-top: 5px;
-            border: none !important;
-            pointer-events: none; /* Make summary bars non-clickable */
+        if (info.event.extendedProps.isSummary) {
+          info.el.classList.add('summary-bar');
+        }
+        if (info.event.extendedProps.isDelayed) {
+          info.el.classList.add('delayed-event');
+        }
+        if (info.event.extendedProps.isCompleted) {
+          info.el.classList.add('completed-event');
         }
 
-        .fc-timeline-event { cursor: pointer; }
-        .delayed-event { border: 2px dashed red !important; }
+        info.el.addEventListener('contextmenu', function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
 
-        .controls { 
-            padding: 10px 20px; 
-            background: #fff; 
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-        }
-        #orderSearch { padding: 5px 10px; width: 250px; }
-    </style>
-</head>
-<body>
-
-    <div class="controls">
-        <input type="text" id="orderSearch" placeholder="Search Work Order...">
-        <span style="margin-left: 15px; font-size: 0.8em; color: #777;">
-            (Expand Order to see details | Click step to add time)
-        </span>
-    </div>
-
-    <div id="calendar"></div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var rawResources = [];
-
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'resourceTimelineDay',
-                schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
-                resourceOrder: 'uiOrder',
-                resourcesInitiallyExpanded: false, // Start collapsed as requested
-                resourceAreaWidth: '30%',
-                
-                headerToolbar: {
-                    left: 'today prev,next',
-                    center: 'title',
-                    right: 'resourceTimelineDay,resourceTimelineWeek'
-                },
-
-                resourceColumns: [
-                    { labelText: 'Order / Step', field: 'title' },
-                    { labelText: 'Location', field: 'tank' }
-                ],
-
-                eventSources: [{
-                    url: '{% url "scheduler:data" %}',
-                    success: function(content) {
-                        rawResources = content.resources;
-                        calendar.setOption('resources', rawResources);
-                        return content.events;
-                    }
-                }],
-
-                eventDidMount: function(info) {
-                    // Tooltip
-                    info.el.title = info.event.extendedProps.details;
-                    
-                    // Special styling for Summary Bar
-                    if (info.event.extendedProps.isSummary) {
-                        info.el.classList.add('summary-bar');
-                    }
-
-                    if (info.event.extendedProps.isDelayed) {
-                        info.el.classList.add('delayed-event');
-                    }
-                },
-
-                eventClick: function(info) {
-                    // Prevent "Add Time" logic for summary bars
-                    if (info.event.extendedProps.isSummary) return;
-
-                    const minutes = prompt("Add minutes (Failure/Delay):", "15");
-                    if (!minutes || isNaN(minutes)) return;
-                    const reason = prompt("Enter mandatory reason:");
-                    if (!reason) return;
-
-                    fetch('{% url "scheduler:add_delay" %}', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            orderId: info.event.extendedProps.orderId,
-                            stepNumber: info.event.extendedProps.stepNumber,
-                            minutes: minutes,
-                            reason: reason
-                        })
-                    }).then(() => calendar.refetchEvents());
-                }
-            });
-
-            document.getElementById('orderSearch').addEventListener('input', function(e) {
-                const term = e.target.value.toLowerCase();
-                const filtered = rawResources.filter(r => r.title.toLowerCase().includes(term));
-                calendar.setOption('resources', filtered);
-            });
-
-            calendar.render();
+          const props = info.event.extendedProps || {};
+          const titleText = props.details || info.event.title || 'Work Order';
+          showMenu(ev.clientX, ev.clientY, titleText, props.orderId);
         });
-    </script>
-</body>
-</html>
+      },
+
+      eventClick: function (info) {
+        const props = info.event.extendedProps || {};
+
+        if (props.isCompleted) {
+          alert('This work order is Completed (read-only).');
+          return;
+        }
+
+        if (props.isSummary) return;
+
+        const minutes = prompt('Add minutes (Failure/Delay):', '15');
+        if (!minutes || isNaN(minutes)) return;
+
+        const reason = prompt('Enter mandatory reason:');
+        if (!reason) return;
+
+        fetch('{% url "scheduler:add_delay" %}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: props.orderId,
+            stepNumber: props.stepNumber,
+            minutes: minutes,
+            reason: reason
+          })
+        })
+        .then(res => res.json())
+        .then(() => calendar.refetchEvents());
+      }
+    });
+
+    document.getElementById('orderSearch').addEventListener('input', function (e) {
+      const term = (e.target.value || '').toLowerCase();
+      const filtered = rawResources.filter(r =>
+        (r.title || '').toLowerCase().includes(term)
+      );
+      calendar.setOption('resources', filtered);
+    });
+
+    calendar.render();
+  });
+</script>
 {% endblock %}
+
