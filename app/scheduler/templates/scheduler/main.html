@@ -1,4 +1,5 @@
-{% extends "base.html" %}
+
+<{% extends "base.html" %}
 
 {% block title %}
 Chemical Processing Scheduler
@@ -14,47 +15,47 @@ Chemical Processing Scheduler
     <style>
         body { font-family: sans-serif; margin: 0; background: #f8f9fa; }
         
-        /* UI Styling */
+        /* HEADER UI FIXES */
+        .fc-header-toolbar {
+            padding: 10px 20px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 0 !important;
+        }
+        
+        .fc-toolbar-chunk { display: flex; align-items: center; }
+
+        #calendar { height: calc(100vh - 75px); padding: 10px; }
+
+        /* SUMMARY BAR STYLING */
+        .summary-bar {
+            opacity: 0.5;
+            height: 12px !important;
+            margin-top: 5px;
+            border: none !important;
+            pointer-events: none; /* Make summary bars non-clickable */
+        }
+
+        .fc-timeline-event { cursor: pointer; }
+        .delayed-event { border: 2px dashed red !important; }
+
         .controls { 
             padding: 10px 20px; 
             background: #fff; 
             border-bottom: 1px solid #ddd;
             display: flex;
             align-items: center;
-            gap: 15px;
         }
-        #orderSearch { padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; width: 250px; }
-        .print-btn { 
-            padding: 6px 15px; 
-            background: #2c3e50; 
-            color: white; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-        }
-        .print-btn:hover { background: #34495e; }
-
-        #calendar { height: calc(100vh - 80px); padding: 10px; }
-
-        /* Summary Bar Styling */
-        .summary-bar { opacity: 0.5; height: 12px !important; margin-top: 5px; pointer-events: none; }
-        .delayed-event { border: 2px dashed red !important; }
-
-        /* PRINT VIEW STYLES */
-        @media print {
-            .controls, .fc-header-toolbar { display: none !important; }
-            #calendar { height: auto !important; width: 100% !important; overflow: visible !important; }
-            body { background: #fff; }
-            .fc-scroller { height: auto !important; overflow: visible !important; }
-        }
+        #orderSearch { padding: 5px 10px; width: 250px; }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <input type="text" id="orderSearch" placeholder="Filter Work Orders...">
-        <button class="print-btn" onclick="window.print()">Print Schedule</button>
-        <span style="font-size: 0.8em; color: #666;">(5-Day View | Today Centered)</span>
+        <input type="text" id="orderSearch" placeholder="Search Work Order...">
+        <span style="margin-left: 15px; font-size: 0.8em; color: #777;">
+            (Expand Order to see details | Click step to add time)
+        </span>
     </div>
 
     <div id="calendar"></div>
@@ -64,34 +65,19 @@ Chemical Processing Scheduler
             var calendarEl = document.getElementById('calendar');
             var rawResources = [];
 
-            // CALCULATE INITIAL DATE (Today - 2 days) to center Today in a 5-day view
-            var today = new Date();
-            var startOfView = new Date(today);
-            startOfView.setDate(today.getDate() - 2);
-
             var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'resourceTimelineDay',
                 schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
-                initialView: 'resourceTimelineFiveDays',
-                initialDate: startOfView, // This sets the start to 2nd day before today
+                resourceOrder: 'uiOrder',
+                resourcesInitiallyExpanded: false, // Start collapsed as requested
+                resourceAreaWidth: '30%',
                 
-                // Define the 5-Day View
-                views: {
-                    resourceTimelineFiveDays: {
-                        type: 'resourceTimeline',
-                        duration: { days: 5 },
-                        buttonText: '5 Days'
-                    }
-                },
-
                 headerToolbar: {
                     left: 'today prev,next',
                     center: 'title',
-                    right: 'resourceTimelineDay,resourceTimelineFiveDays,resourceTimelineWeek'
+                    right: 'resourceTimelineDay,resourceTimelineWeek'
                 },
 
-                resourceOrder: 'uiOrder',
-                resourcesInitiallyExpanded: false,
-                resourceAreaWidth: '30%',
                 resourceColumns: [
                     { labelText: 'Order / Step', field: 'title' },
                     { labelText: 'Location', field: 'tank' }
@@ -107,19 +93,25 @@ Chemical Processing Scheduler
                 }],
 
                 eventDidMount: function(info) {
+                    // Tooltip
                     info.el.title = info.event.extendedProps.details;
+                    
+                    // Special styling for Summary Bar
                     if (info.event.extendedProps.isSummary) {
                         info.el.classList.add('summary-bar');
                     }
+
                     if (info.event.extendedProps.isDelayed) {
                         info.el.classList.add('delayed-event');
                     }
                 },
 
                 eventClick: function(info) {
+                    // Prevent "Add Time" logic for summary bars
                     if (info.event.extendedProps.isSummary) return;
-                    const min = prompt("Add minutes (Delay/Failure):", "15");
-                    if (!min || isNaN(min)) return;
+
+                    const minutes = prompt("Add minutes (Failure/Delay):", "15");
+                    if (!minutes || isNaN(minutes)) return;
                     const reason = prompt("Enter mandatory reason:");
                     if (!reason) return;
 
@@ -129,7 +121,7 @@ Chemical Processing Scheduler
                         body: JSON.stringify({
                             orderId: info.event.extendedProps.orderId,
                             stepNumber: info.event.extendedProps.stepNumber,
-                            minutes: min,
+                            minutes: minutes,
                             reason: reason
                         })
                     }).then(() => calendar.refetchEvents());
@@ -138,7 +130,8 @@ Chemical Processing Scheduler
 
             document.getElementById('orderSearch').addEventListener('input', function(e) {
                 const term = e.target.value.toLowerCase();
-                calendar.setOption('resources', rawResources.filter(r => r.title.toLowerCase().includes(term)));
+                const filtered = rawResources.filter(r => r.title.toLowerCase().includes(term));
+                calendar.setOption('resources', filtered);
             });
 
             calendar.render();
