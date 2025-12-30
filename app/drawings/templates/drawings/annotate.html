@@ -1,0 +1,1187 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Annotate {{ drawing }}{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --anno-text: #111827;
+    --anno-muted: #374151;
+    --anno-muted2:#4b5563;
+    --anno-border:#d1d5db;
+    --anno-soft:  #f9fafb;
+    --anno-panel: #ffffff;
+    --anno-shadow: 0 1px 2px rgba(0,0,0,.06), 0 10px 22px rgba(0,0,0,.08);
+
+    --anno-primary-bg:#eff6ff;
+    --anno-primary-border:#7aa7ff;
+
+    --anno-danger-bg:#fef2f2;
+    --anno-danger-border:#ff8a8a;
+  }
+
+  .anno-scope, .anno-scope *{ box-sizing:border-box; }
+  .anno-scope{ color: var(--anno-text); }
+
+  h1{
+    margin: 6px 0 12px;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--anno-text);
+  }
+
+  .anno-wrap{ display:flex; gap:16px; align-items:flex-start; }
+  .left{ flex:1; min-width: 720px; }
+  .right{ width: 360px; }
+
+  .module{
+    background: var(--anno-panel);
+    border: 1px solid var(--anno-border);
+    border-radius: 12px;
+    box-shadow: var(--anno-shadow);
+    padding: 12px;
+  }
+  .module h2{
+    margin: 0 0 10px;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--anno-text);
+  }
+
+  #pdf-container{
+    position:relative;
+    border: 1px solid var(--anno-border);
+    background:#fff;
+    overflow:auto;
+    border-radius: 12px;
+  }
+  #page-img{
+    display:block;
+    user-select:none;
+    -webkit-user-drag:none;
+  }
+  #overlay{
+    position:absolute;
+    left:0;
+    top:0;
+  }
+
+  .tool-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin: 8px 0;
+  }
+
+  .anno-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+
+    padding:8px 12px;
+    border:1px solid #9ca3af;
+    border-radius:10px;
+
+    background:#f3f4f6;
+    color: var(--anno-text);
+    font-size:12px;
+    font-weight:800;
+    line-height:1;
+
+    cursor:pointer;
+    user-select:none;
+
+    appearance:none;
+    -webkit-appearance:none;
+    text-decoration:none;
+  }
+
+  .anno-btn:hover{ background:#e5e7eb; }
+
+  .anno-btn.primary{
+    background: var(--anno-primary-bg);
+    border-color: var(--anno-primary-border);
+  }
+  .anno-btn.primary:hover{ background:#dbeafe; }
+
+  .anno-btn.danger{
+    background: var(--anno-danger-bg);
+    border-color: var(--anno-danger-border);
+  }
+  .anno-btn.danger:hover{ background:#fee2e2; }
+
+  .anno-btn:focus{
+    outline: 3px solid rgba(37,99,235,.25);
+    outline-offset: 2px;
+  }
+
+  .anno-btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+  }
+
+  .field{ margin: 10px 0; }
+  .field label{
+    display:block;
+    font-weight:800;
+    font-size:12px;
+    margin-bottom:6px;
+    color: var(--anno-muted);
+  }
+  .field input,
+  .field select,
+  .field textarea{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--anno-border);
+    border-radius:10px;
+    background:#fff;
+    font-size:12px;
+    color: var(--anno-text);
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus{
+    outline: 3px solid rgba(37,99,235,.18);
+    border-color: rgba(37,99,235,.60);
+  }
+
+  .row{ display:flex; gap:10px; }
+  .row > div{ flex:1; }
+
+  .small{ font-size:12px; color: var(--anno-muted2); opacity: 1; }
+  .muted{ color: var(--anno-muted2); opacity: 1; }
+
+  .zones{
+    border:1px solid var(--anno-border);
+    border-radius:12px;
+    padding:10px;
+    background: var(--anno-soft);
+    max-height:300px;
+    overflow:auto;
+  }
+  .zone-item{
+    padding:10px;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    background:#fff;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition: border-color .12s ease, box-shadow .12s ease;
+    color: var(--anno-text);
+  }
+  .zone-item:hover{
+    border-color:#93c5fd;
+    box-shadow: 0 1px 10px rgba(37,99,235,.12);
+  }
+  .zone-item.active{
+    border-color:#3b82f6;
+    box-shadow: 0 1px 14px rgba(37,99,235,.18);
+  }
+
+  .pill{
+    display:inline-block;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid var(--anno-border);
+    font-size:11px;
+    font-weight:900;
+    background:#fff;
+    color: var(--anno-text);
+    white-space:nowrap;
+  }
+
+  .pill.cadmium{ border-color:#60a5fa; background:#eff6ff; }
+  .pill.chrome{ border-color:#a78bfa; background:#f5f3ff; }
+  .pill.nickel{ border-color:#34d399; background:#ecfdf5; }
+
+  #zones-list, #zones-list *{
+    color: var(--anno-text) !important;
+    opacity: 1 !important;
+  }
+  #zones-list .small, #zones-list .muted{
+    color: var(--anno-muted2) !important;
+  }
+
+  .banner{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+  }
+
+  .hint{
+    padding:10px 12px;
+    border:1px solid var(--anno-border);
+    border-radius:12px;
+    background: #fff;
+    box-shadow: var(--anno-shadow);
+  }
+
+  @media (max-width: 1100px){
+    .anno-wrap{ flex-direction:column; }
+    .right{ width:auto; }
+    .left{ min-width:auto; }
+  }
+</style>
+
+<div class="anno-scope">
+  <div class="banner">
+    <div>
+      <h1>Annotate Drawing: {{ drawing }}</h1>
+      <div class="small muted">
+        First select plating type. All zones saved will belong to (Drawing + Plating Type), and the Plating Area Card is generated automatically.
+      </div>
+    </div>
+
+    <div class="hint" style="min-width:320px;">
+      <div class="field" style="margin:0;">
+        <label>Plating Type (required)</label>
+        <select id="plating-type">
+          <option value="">— Select plating type —</option>
+          {% for pt in plating_types %}
+            <option value="{{ pt }}" {% if plating_type == pt %}selected{% endif %}>
+              {{ pt|capfirst }}
+            </option>
+          {% endfor %}
+        </select>
+        <div class="small muted" style="margin-top:6px;">
+          Current:
+          {% if plating_type %}
+            <span class="pill {{ plating_type }}">{{ plating_type|capfirst }}</span>
+            {% if card %}<span class="small muted">Card ID: {{ card.id }}</span>{% endif %}
+          {% else %}
+            <span class="small muted">none selected</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno-wrap">
+    <div class="left">
+      <div class="tool-row">
+        <button id="tool-pan" class="anno-btn primary" type="button">Pan/Select</button>
+        <button id="tool-rect" class="anno-btn" type="button">Rectangle</button>
+        <button id="tool-poly" class="anno-btn" type="button">Polygon</button>
+        <button id="tool-reshape" class="anno-btn" type="button" disabled>Reshape</button>
+        <button id="btn-cancel" class="anno-btn" type="button">Cancel shape</button>
+        <button id="btn-new" class="anno-btn" type="button">New zone</button>
+        <button id="btn-clear-highlight" class="anno-btn" type="button">Clear highlight</button>
+      </div>
+
+      <div class="tool-row">
+        <div class="field" style="margin:0; min-width:220px;">
+          <label class="small">Zoom</label>
+          <div class="row">
+            <div><button id="zoom-out" class="anno-btn" type="button">-</button></div>
+            <div><input id="zoom" type="number" step="0.1" min="0.2" max="4" value="1.2"></div>
+            <div><button id="zoom-in" class="anno-btn" type="button">+</button></div>
+          </div>
+        </div>
+
+        <div class="field" style="margin:0; min-width:160px;">
+          <label class="small">Render DPI</label>
+          <input id="dpi" type="number" min="72" max="300" step="1" value="150">
+        </div>
+      </div>
+
+      <div id="pdf-container">
+        <img id="page-img" alt="Drawing page">
+        <svg id="overlay"></svg>
+      </div>
+
+      <p class="small muted" style="margin-top:10px;">
+        Rectangle: click-drag-release. Polygon: click to add points, double-click to finish.
+        Reshape: select a zone, click Reshape, drag handles, then Save.
+      </p>
+    </div>
+
+    <div class="right">
+      <div class="module">
+        <h2>Zone Editor</h2>
+
+        <div class="field">
+          <label>Label</label>
+          <input id="z-label" type="text" placeholder="e.g., Outside surfaces – Plate area">
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Area Value</label>
+            <input id="z-area" type="number" step="0.0001" min="0" placeholder="1.4200">
+          </div>
+          <div class="field">
+            <label>Unit</label>
+            <select id="z-unit">
+              <option value="in2">in²</option>
+              <option value="ft2">ft²</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Type</label>
+            <select id="z-type" disabled>
+              <option value="polygon">Polygon</option>
+              <option value="rect">Rectangle</option>
+            </select>
+            <div class="small muted">Type is set by the drawing tool.</div>
+          </div>
+          <div class="field">
+            <label>Zone Role</label>
+            <select id="z-role">
+              <option value="include">Include (adds area)</option>
+              <option value="exclude">Exclude (subtracts area)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Default Selected</label>
+            <select id="z-default">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Notes</label>
+          <textarea id="z-notes" rows="3" placeholder="Assumptions / what is included or excluded"></textarea>
+        </div>
+
+        <div class="tool-row">
+          <button id="btn-save" class="anno-btn primary" type="button" disabled>Save zone</button>
+          <button id="btn-delete" class="anno-btn danger" type="button" disabled>Delete zone</button>
+        </div>
+
+        <div class="small muted" id="status"></div>
+      </div>
+
+      <div class="module" style="margin-top:14px;">
+        <h2>Zones</h2>
+        <div class="zones" id="zones-list">
+          <div class="small muted">Select plating type…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PAGE_IMAGE_URL = "{{ page_image_url|escapejs }}";
+  const ZONES_JSON_URL = "{{ zones_json_url|escapejs }}";
+  const SAVE_ZONE_URL = "{{ save_zone_url|escapejs }}";
+  const DELETE_ZONE_URL_TEMPLATE =
+    "{% url 'drawings:delete_zone' drawing_id=drawing.id zone_id=999999 %}".replace("999999", "{ZONE_ID}");
+
+  // Selected plating type is required for all zone operations
+  let CURRENT_PLATING_TYPE = "{{ plating_type|default:''|escapejs }}";
+</script>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function setStatus(msg, isError=false) {
+    const el = $("status");
+    el.textContent = msg || "";
+    el.style.color = isError ? "crimson" : "inherit";
+  }
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  }
+
+  function clamp01(v) {
+    v = Number(v);
+    if (Number.isNaN(v)) return 0;
+    return Math.max(0, Math.min(1, v));
+  }
+
+  function svgEl(tag, attrs={}) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+  }
+
+  function toNorm(xPx, yPx, widthPx, heightPx) {
+    return { x: clamp01(xPx / widthPx), y: clamp01(yPx / heightPx) };
+  }
+
+  function fromNorm(xN, yN, widthPx, heightPx) {
+    return { x: xN * widthPx, y: yN * heightPx };
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (m) => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+    }[m]));
+  }
+
+  function requirePlatingType() {
+    if (CURRENT_PLATING_TYPE) return true;
+    setStatus("Select plating type before loading/saving zones.", true);
+    return false;
+  }
+
+  function setToolsEnabled(enabled) {
+    const ids = [
+      "tool-pan","tool-rect","tool-poly","tool-reshape",
+      "btn-cancel","btn-new","btn-clear-highlight",
+      "btn-save","btn-delete",
+      "z-label","z-area","z-unit","z-role","z-default","z-notes"
+    ];
+    ids.forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      if (el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA") {
+        el.disabled = !enabled;
+      } else {
+        el.disabled = !enabled;
+      }
+    });
+
+    if (!enabled) {
+      $("zones-list").innerHTML = '<div class="small muted">Select plating type…</div>';
+    }
+  }
+
+  // State (single-page)
+  let zoom = 1.2;
+  let mode = "pan";
+  let zones = [];
+  let activeZoneId = null;
+
+  let drawingRect = null;
+  let drawingPoly = null;
+
+  let tempGeometry = null;
+  let tempGeomType = null;
+
+  let editHandles = [];
+  let dragState = null;
+
+  const img = $("page-img");
+  const overlay = $("overlay");
+
+  let baseW = 0;
+  let baseH = 0;
+
+  function currentW() { return img.clientWidth; }
+  function currentH() { return img.clientHeight; }
+
+  function applyZoomSizing() {
+    img.style.width = (baseW * zoom) + "px";
+    img.style.height = (baseH * zoom) + "px";
+  }
+
+  function sizeOverlayToImage() {
+    const w = currentW();
+    const h = currentH();
+    overlay.setAttribute("width", w);
+    overlay.setAttribute("height", h);
+    overlay.style.width = w + "px";
+    overlay.style.height = h + "px";
+    overlay.style.pointerEvents = "auto";
+  }
+
+  async function loadPageImage() {
+    setStatus("Loading image…");
+    const dpi = Number($("dpi").value || 150);
+
+    const url = new URL(PAGE_IMAGE_URL, window.location.origin);
+    url.searchParams.set("dpi", String(dpi));
+
+    img.onload = async () => {
+      baseW = img.naturalWidth;
+      baseH = img.naturalHeight;
+      applyZoomSizing();
+      sizeOverlayToImage();
+
+      if (CURRENT_PLATING_TYPE) {
+        await fetchZones();
+        drawZones();
+        if (mode === "reshape") drawEditHandles();
+      } else {
+        drawZones();
+        $("zones-list").innerHTML = '<div class="small muted">Select plating type…</div>';
+        setStatus("Select plating type to begin.", true);
+      }
+      setStatus("");
+    };
+
+    img.onerror = () => {
+      setStatus("Failed to load image. Check the page-image request in DevTools → Network.", true);
+      console.error("Image failed:", img.src);
+    };
+
+    img.src = url.toString();
+  }
+
+  async function fetchZones() {
+    if (!requirePlatingType()) return;
+
+    const url = new URL(ZONES_JSON_URL, window.location.origin);
+    url.searchParams.set("plating_type", CURRENT_PLATING_TYPE);
+
+    const res = await fetch(url.toString(), { headers: { "Accept": "application/json" }});
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "Failed to load zones");
+
+    zones = data.zones || [];
+    activeZoneId = null;
+    tempGeometry = null;
+    tempGeomType = null;
+    clearEditHandles();
+    $("tool-reshape").disabled = true;
+
+    syncZoneList();
+    syncButtons();
+    clearEditorFields(false);
+  }
+
+  function zoneColor(zone) {
+    return zone.is_exclusion_zone ? "rgba(255, 0, 0, 0.18)" : "rgba(0, 120, 255, 0.18)";
+  }
+
+  function zoneStroke(zone, isActive=false) {
+    if (isActive) return zone.is_exclusion_zone ? "#c40000" : "#1d5cff";
+    return zone.is_exclusion_zone ? "#ff6666" : "#7aa7ff";
+  }
+
+  function drawTempShape() {
+    Array.from(overlay.querySelectorAll("[data-temp='1']")).forEach(el => el.remove());
+    if (!tempGeometry || !tempGeomType) return;
+
+    const w = currentW();
+    const h = currentH();
+    const fill = "rgba(0, 180, 0, 0.14)";
+    const stroke = "#1b7a1b";
+
+    if (tempGeomType === "rect") {
+      const g = tempGeometry;
+      const r = svgEl("rect", {
+        x: g.x * w, y: g.y * h, width: g.w * w, height: g.h * h,
+        fill, stroke, "stroke-width":"3"
+      });
+      r.dataset.temp = "1";
+      overlay.appendChild(r);
+    } else {
+      const pts = tempGeometry.map(pt => {
+        const p = fromNorm(pt.x, pt.y, w, h);
+        return `${p.x},${p.y}`;
+      }).join(" ");
+      const p = svgEl("polygon", { points: pts, fill, stroke, "stroke-width":"3" });
+      p.dataset.temp = "1";
+      overlay.appendChild(p);
+    }
+  }
+
+  function drawZones() {
+    while (overlay.firstChild) overlay.removeChild(overlay.firstChild);
+    const w = currentW();
+    const h = currentH();
+
+    for (const z of zones) {
+      const isActive = z.id === activeZoneId;
+
+      if (z.geom_type === "rect") {
+        const g = z.geometry;
+        const rect = svgEl("rect", {
+          x: g.x * w,
+          y: g.y * h,
+          width: g.w * w,
+          height: g.h * h,
+          fill: zoneColor(z),
+          stroke: zoneStroke(z, isActive),
+          "stroke-width": isActive ? "3" : "2",
+        });
+        rect.style.cursor = "pointer";
+        rect.addEventListener("click", (e) => { e.stopPropagation(); setActiveZone(z.id); });
+        overlay.appendChild(rect);
+      } else {
+        const pts = (z.geometry || []).map(pt => {
+          const p = fromNorm(pt.x, pt.y, w, h);
+          return `${p.x},${p.y}`;
+        }).join(" ");
+        const poly = svgEl("polygon", {
+          points: pts,
+          fill: zoneColor(z),
+          stroke: zoneStroke(z, isActive),
+          "stroke-width": isActive ? "3" : "2",
+        });
+        poly.style.cursor = "pointer";
+        poly.addEventListener("click", (e) => { e.stopPropagation(); setActiveZone(z.id); });
+        overlay.appendChild(poly);
+      }
+    }
+
+    drawTempShape();
+  }
+
+  function syncZoneList() {
+    const list = $("zones-list");
+    list.innerHTML = "";
+    if (!zones.length) {
+      list.innerHTML = '<div class="small muted">No zones.</div>';
+      return;
+    }
+    zones.forEach(z => {
+      const div = document.createElement("div");
+      div.className = "zone-item" + (z.id === activeZoneId ? " active" : "");
+      const role = z.is_exclusion_zone ? "EXCLUDE" : "INCLUDE";
+      div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+          <div><strong>${escapeHtml(z.label)}</strong></div>
+          <div class="pill">${role}</div>
+        </div>
+        <div class="small muted">${z.geom_type.toUpperCase()} · ${z.area_value} ${escapeHtml(z.area_unit)}</div>
+      `;
+      div.addEventListener("click", () => setActiveZone(z.id));
+      list.appendChild(div);
+    });
+  }
+
+  function clearEditorFields(redraw=true) {
+    $("z-label").value = "";
+    $("z-area").value = "";
+    $("z-unit").value = "in2";
+    $("z-type").value = "polygon";
+    $("z-role").value = "include";
+    $("z-default").value = "true";
+    $("z-notes").value = "";
+
+    activeZoneId = null;
+    tempGeometry = null;
+    tempGeomType = null;
+    clearEditHandles();
+    $("tool-reshape").disabled = true;
+
+    syncButtons();
+    syncZoneList();
+    if (redraw) drawZones();
+  }
+
+  function setActiveZone(zoneId) {
+    activeZoneId = zoneId;
+    const zone = zones.find(z => z.id === zoneId);
+    if (!zone) return;
+
+    $("z-label").value = zone.label || "";
+    $("z-area").value = zone.area_value || "";
+    $("z-unit").value = zone.area_unit || "in2";
+    $("z-type").value = zone.geom_type || "polygon";
+    $("z-role").value = zone.is_exclusion_zone ? "exclude" : "include";
+    $("z-default").value = zone.default_selected ? "true" : "false";
+    $("z-notes").value = zone.notes || "";
+
+    tempGeometry = zone.geometry;
+    tempGeomType = zone.geom_type;
+
+    $("tool-reshape").disabled = false;
+    clearEditHandles();
+    drawZones();
+    if (mode === "reshape") drawEditHandles();
+
+    syncButtons();
+    syncZoneList();
+    setStatus(`Selected zone #${zone.id}`);
+  }
+
+  function syncButtons() {
+    const canSave = Boolean(tempGeometry) &&
+      ($("z-label").value.trim().length > 0) &&
+      ($("z-area").value !== "");
+    $("btn-save").disabled = !canSave;
+    $("btn-delete").disabled = !activeZoneId;
+  }
+
+  function setMode(newMode) {
+    mode = newMode;
+    $("tool-pan").classList.toggle("primary", mode === "pan");
+    $("tool-rect").classList.toggle("primary", mode === "rect");
+    $("tool-poly").classList.toggle("primary", mode === "poly");
+    $("tool-reshape").classList.toggle("primary", mode === "reshape");
+    clearEditHandles();
+    drawZones();
+    if (mode === "reshape") drawEditHandles();
+    setStatus(`Mode: ${mode}`);
+  }
+
+  function cancelInProgress() {
+    if (drawingRect?.rectEl) overlay.removeChild(drawingRect.rectEl);
+    if (drawingPoly?.polyEl) overlay.removeChild(drawingPoly.polyEl);
+    if (drawingPoly?.dots) drawingPoly.dots.forEach(d => overlay.removeChild(d));
+    drawingRect = null;
+    drawingPoly = null;
+  }
+
+  function getOverlayPoint(evt) {
+    const rect = overlay.getBoundingClientRect();
+    return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+  }
+
+  overlay.addEventListener("click", () => {
+    if (mode === "pan") {
+      activeZoneId = null;
+      clearEditHandles();
+      syncZoneList();
+      drawZones();
+      syncButtons();
+    }
+  });
+
+  // RECT
+  overlay.addEventListener("mousedown", (e) => {
+    if (mode !== "rect") return;
+    if (!requirePlatingType()) return;
+
+    const pt = getOverlayPoint(e);
+
+    drawingRect = {
+      startX: pt.x,
+      startY: pt.y,
+      rectEl: svgEl("rect", {
+        x: pt.x, y: pt.y, width: 1, height: 1,
+        fill: "rgba(0,0,0,0.08)",
+        stroke: "#333",
+        "stroke-width": "2",
+        "stroke-dasharray": "6,4",
+      })
+    };
+    overlay.appendChild(drawingRect.rectEl);
+    e.preventDefault();
+  });
+
+  overlay.addEventListener("mousemove", (e) => {
+    if (mode !== "rect" || !drawingRect) return;
+    const pt = getOverlayPoint(e);
+
+    const x = Math.min(drawingRect.startX, pt.x);
+    const y = Math.min(drawingRect.startY, pt.y);
+    const w = Math.abs(pt.x - drawingRect.startX);
+    const h = Math.abs(pt.y - drawingRect.startY);
+
+    drawingRect.rectEl.setAttribute("x", x);
+    drawingRect.rectEl.setAttribute("y", y);
+    drawingRect.rectEl.setAttribute("width", w);
+    drawingRect.rectEl.setAttribute("height", h);
+    e.preventDefault();
+  });
+
+  overlay.addEventListener("mouseup", () => {
+    if (mode !== "rect" || !drawingRect) return;
+
+    const rect = drawingRect.rectEl;
+    const x = Number(rect.getAttribute("x"));
+    const y = Number(rect.getAttribute("y"));
+    const w = Number(rect.getAttribute("width"));
+    const h = Number(rect.getAttribute("height"));
+
+    if (w < 8 || h < 8) {
+      overlay.removeChild(rect);
+      drawingRect = null;
+      return setStatus("Rectangle too small (ignored)", true);
+    }
+
+    const geom = {
+      x: clamp01(x / currentW()),
+      y: clamp01(y / currentH()),
+      w: clamp01(w / currentW()),
+      h: clamp01(h / currentH()),
+    };
+
+    overlay.removeChild(rect);
+    drawingRect = null;
+
+    activeZoneId = null;
+    tempGeometry = geom;
+    tempGeomType = "rect";
+    $("z-type").value = "rect";
+
+    clearEditHandles();
+    drawZones();
+    syncButtons();
+    setStatus("Rectangle captured. Enter label + area, then Save.");
+  });
+
+  // POLY
+  overlay.addEventListener("click", (e) => {
+    if (mode !== "poly") return;
+    if (!requirePlatingType()) return;
+    if (e.detail && e.detail > 1) return;
+
+    const pt = getOverlayPoint(e);
+    if (!drawingPoly) {
+      drawingPoly = {
+        points: [],
+        polyEl: svgEl("polyline", {
+          points: "",
+          fill: "rgba(0,0,0,0.06)",
+          stroke: "#333",
+          "stroke-width": "2",
+          "stroke-dasharray": "6,4",
+        }),
+        dots: [],
+      };
+      overlay.appendChild(drawingPoly.polyEl);
+    }
+
+    drawingPoly.points.push({ x: pt.x, y: pt.y });
+    const dot = svgEl("circle", { cx: pt.x, cy: pt.y, r: 4, fill: "#333" });
+    drawingPoly.dots.push(dot);
+    overlay.appendChild(dot);
+
+    drawingPoly.polyEl.setAttribute(
+      "points",
+      drawingPoly.points.map(p => `${p.x},${p.y}`).join(" ")
+    );
+
+    e.stopPropagation();
+  });
+
+  overlay.addEventListener("dblclick", (e) => {
+    if (mode !== "poly" || !drawingPoly) return;
+    if (drawingPoly.points.length < 3) return setStatus("Polygon needs at least 3 points.", true);
+
+    const geom = drawingPoly.points.map(p => toNorm(p.x, p.y, currentW(), currentH()));
+
+    overlay.removeChild(drawingPoly.polyEl);
+    drawingPoly.dots.forEach(d => overlay.removeChild(d));
+    drawingPoly = null;
+
+    activeZoneId = null;
+    tempGeometry = geom;
+    tempGeomType = "polygon";
+    $("z-type").value = "polygon";
+
+    clearEditHandles();
+    drawZones();
+    syncButtons();
+    setStatus("Polygon captured. Enter label + area, then Save.");
+    e.preventDefault();
+  });
+
+  // RESHAPE
+  function clearEditHandles() {
+    editHandles.forEach(el => el.remove());
+    editHandles = [];
+    dragState = null;
+  }
+
+  function drawEditHandles() {
+    clearEditHandles();
+    if (mode !== "reshape") return;
+    if (!tempGeometry || !tempGeomType) return;
+
+    const w = currentW();
+    const h = currentH();
+
+    if (tempGeomType === "rect") {
+      const g = tempGeometry;
+      const corners = [
+        { x: g.x,       y: g.y },
+        { x: g.x+g.w,   y: g.y },
+        { x: g.x+g.w,   y: g.y+g.h },
+        { x: g.x,       y: g.y+g.h },
+      ].map(p => ({ x: p.x * w, y: p.y * h }));
+
+      corners.forEach((c, idx) => {
+        const hdl = svgEl("circle", { cx: c.x, cy: c.y, r: 6, fill:"#fff", stroke:"#111", "stroke-width":2 });
+        hdl.style.cursor = "grab";
+        hdl.dataset.handleType = "rect";
+        hdl.dataset.handleIndex = String(idx);
+        overlay.appendChild(hdl);
+        editHandles.push(hdl);
+      });
+    } else {
+      const pts = tempGeometry.map(pt => fromNorm(pt.x, pt.y, w, h));
+      pts.forEach((p, idx) => {
+        const hdl = svgEl("circle", { cx: p.x, cy: p.y, r: 6, fill:"#fff", stroke:"#111", "stroke-width":2 });
+        hdl.style.cursor = "grab";
+        hdl.dataset.handleType = "poly";
+        hdl.dataset.handleIndex = String(idx);
+        overlay.appendChild(hdl);
+        editHandles.push(hdl);
+      });
+    }
+  }
+
+  overlay.addEventListener("mousedown", (e) => {
+    if (mode !== "reshape") return;
+    const t = e.target?.dataset?.handleType;
+    const idx = Number(e.target?.dataset?.handleIndex);
+    if (!t || Number.isNaN(idx)) return;
+
+    dragState = { type: t, handleIndex: idx };
+    e.target.style.cursor = "grabbing";
+    e.preventDefault();
+  });
+
+  overlay.addEventListener("mousemove", (e) => {
+    if (mode !== "reshape" || !dragState) return;
+
+    const pt = getOverlayPoint(e);
+    const w = currentW();
+    const h = currentH();
+
+    if (dragState.type === "rect") {
+      const g = { ...tempGeometry };
+      const x1 = g.x;
+      const y1 = g.y;
+      const x2 = g.x + g.w;
+      const y2 = g.y + g.h;
+
+      const nx = clamp01(pt.x / w);
+      const ny = clamp01(pt.y / h);
+
+      let newX1 = x1;
+      let newY1 = y1;
+      let newX2 = x2;
+      let newY2 = y2;
+
+      if (dragState.handleIndex === 0) { newX1 = nx; newY1 = ny; }
+      if (dragState.handleIndex === 1) { newX2 = nx; newY1 = ny; }
+      if (dragState.handleIndex === 2) { newX2 = nx; newY2 = ny; }
+      if (dragState.handleIndex === 3) { newX1 = nx; newY2 = ny; }
+
+      const minX = Math.min(newX1, newX2);
+      const maxX = Math.max(newX1, newX2);
+      const minY = Math.min(newY1, newY2);
+      const maxY = Math.max(newY1, newY2);
+      const eps = 0.002;
+
+      tempGeometry = {
+        x: minX,
+        y: minY,
+        w: Math.max(eps, maxX - minX),
+        h: Math.max(eps, maxY - minY),
+      };
+    } else {
+      const pts = tempGeometry.map(p => ({...p}));
+      pts[dragState.handleIndex] = toNorm(pt.x, pt.y, w, h);
+      tempGeometry = pts;
+    }
+
+    drawZones();
+    drawEditHandles();
+    syncButtons();
+    e.preventDefault();
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (!dragState) return;
+    dragState = null;
+    editHandles.forEach(h => h.style.cursor = "grab");
+  });
+
+  async function saveZone() {
+    if (!requirePlatingType()) return;
+
+    const label = $("z-label").value.trim();
+    const area = $("z-area").value;
+    const unit = $("z-unit").value;
+    const role = $("z-role").value;
+    const defaultSelected = $("z-default").value === "true";
+    const notes = $("z-notes").value;
+
+    if (!tempGeometry || !tempGeomType) return setStatus("Draw a rectangle or polygon first.", true);
+    if (!label || area === "") return setStatus("Label and Area Value are required.", true);
+
+    const payload = {
+      plating_type: CURRENT_PLATING_TYPE,
+      id: activeZoneId || undefined,
+      label,
+      geom_type: tempGeomType,
+      geometry: tempGeometry,
+      area_value: area,
+      area_unit: unit,
+      is_exclusion_zone: (role === "exclude"),
+      default_selected: defaultSelected,
+      notes,
+    };
+
+    setStatus("Saving…");
+    const res = await fetch(SAVE_ZONE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!data.ok) return setStatus(data.error || "Save failed", true);
+
+    setStatus("Saved.");
+    clearEditHandles();
+    await fetchZones();
+    drawZones();
+    if (mode === "reshape") drawEditHandles();
+  }
+
+  async function deleteZone() {
+    if (!requirePlatingType()) return;
+    if (!activeZoneId) return;
+    if (!confirm("Delete this zone?")) return;
+
+    setStatus("Deleting…");
+    const url = new URL(
+      DELETE_ZONE_URL_TEMPLATE.replace("{ZONE_ID}", String(activeZoneId)),
+      window.location.origin
+    );
+    url.searchParams.set("plating_type", CURRENT_PLATING_TYPE);
+
+    const res = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+        "Accept": "application/json",
+      },
+    });
+
+    const data = await res.json();
+    if (!data.ok) return setStatus(data.error || "Delete failed", true);
+
+    setStatus("Deleted.");
+    clearEditHandles();
+    await fetchZones();
+    drawZones();
+  }
+
+  $("tool-pan").addEventListener("click", () => setMode("pan"));
+  $("tool-rect").addEventListener("click", () => { cancelInProgress(); setMode("rect"); });
+  $("tool-poly").addEventListener("click", () => { cancelInProgress(); setMode("poly"); });
+
+  $("tool-reshape").addEventListener("click", () => {
+    if (!activeZoneId) return;
+    cancelInProgress();
+    setMode("reshape");
+    drawZones();
+    drawEditHandles();
+  });
+
+  $("btn-cancel").addEventListener("click", cancelInProgress);
+
+  $("btn-new").addEventListener("click", () => {
+    if (!requirePlatingType()) return;
+
+    activeZoneId = null;
+    tempGeometry = null;
+    tempGeomType = null;
+    clearEditHandles();
+    $("tool-reshape").disabled = true;
+
+    $("z-label").value = "";
+    $("z-area").value = "";
+    $("z-unit").value = "in2";
+    $("z-role").value = "include";
+    $("z-default").value = "true";
+    $("z-notes").value = "";
+    $("z-type").value = "polygon";
+
+    drawZones();
+    syncButtons();
+    syncZoneList();
+    setStatus("New zone: draw a shape, then enter label + area and Save.");
+  });
+
+  $("btn-clear-highlight").addEventListener("click", () => {
+    activeZoneId = null;
+    tempGeometry = null;
+    tempGeomType = null;
+    clearEditHandles();
+    $("tool-reshape").disabled = true;
+    syncZoneList();
+    drawZones();
+    syncButtons();
+  });
+
+  $("btn-save").addEventListener("click", saveZone);
+  $("btn-delete").addEventListener("click", deleteZone);
+
+  ["z-label","z-area","z-unit","z-role","z-default","z-notes"].forEach(id => {
+    $(id).addEventListener("input", syncButtons);
+    $(id).addEventListener("change", syncButtons);
+  });
+
+  $("zoom-in").addEventListener("click", () => {
+    zoom = Math.min(4, Number($("zoom").value || zoom) + 0.1);
+    $("zoom").value = zoom.toFixed(1);
+    applyZoomSizing();
+    sizeOverlayToImage();
+    drawZones();
+    if (mode === "reshape") drawEditHandles();
+  });
+
+  $("zoom-out").addEventListener("click", () => {
+    zoom = Math.max(0.2, Number($("zoom").value || zoom) - 0.1);
+    $("zoom").value = zoom.toFixed(1);
+    applyZoomSizing();
+    sizeOverlayToImage();
+    drawZones();
+    if (mode === "reshape") drawEditHandles();
+  });
+
+  $("zoom").addEventListener("change", () => {
+    const z = Number($("zoom").value);
+    if (Number.isNaN(z) || z < 0.2 || z > 4) {
+      $("zoom").value = zoom.toFixed(1);
+      return setStatus("Zoom must be 0.2..4.0", true);
+    }
+    zoom = z;
+    applyZoomSizing();
+    sizeOverlayToImage();
+    drawZones();
+    if (mode === "reshape") drawEditHandles();
+  });
+
+  $("dpi").addEventListener("change", async () => {
+    await loadPageImage();
+  });
+
+  window.addEventListener("resize", () => {
+    sizeOverlayToImage();
+    drawZones();
+    if (mode === "reshape") drawEditHandles();
+  });
+
+  // Plating type selection: reload page with ?plating_type=...
+  $("plating-type").addEventListener("change", () => {
+    const v = $("plating-type").value;
+    const url = new URL(window.location.href);
+    if (v) url.searchParams.set("plating_type", v);
+    else url.searchParams.delete("plating_type");
+    window.location.href = url.toString();
+  });
+
+  (async function init() {
+    setMode("pan");
+    $("zoom").value = zoom.toFixed(1);
+
+    setToolsEnabled(Boolean(CURRENT_PLATING_TYPE));
+    await loadPageImage();
+
+    if (CURRENT_PLATING_TYPE) {
+      setStatus(`Plating type: ${CURRENT_PLATING_TYPE}`, false);
+    } else {
+      setStatus("Select plating type to begin.", true);
+    }
+  })().catch(err => {
+    console.error(err);
+    setStatus(err.message || "Failed to initialize", true);
+  });
+</script>
+{% endblock %}
+

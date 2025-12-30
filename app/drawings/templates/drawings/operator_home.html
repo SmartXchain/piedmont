@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Plating Area Card{% endblock %}
+
+{% block content %}
+<style>
+  .op-wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
+
+  .op-banner {
+    padding: 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 10px 22px rgba(0,0,0,.08);
+    margin-bottom: 14px;
+  }
+
+  .op-banner h1 { margin: 0 0 6px; font-size: 24px; font-weight: 900; }
+  .op-banner p { margin: 0; color: #4b5563; }
+
+  .op-search-row { display: flex; gap: 10px; margin-top: 12px; align-items: center; }
+  .op-search-row input[type="text"] {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  .op-btn {
+    padding: 10px 14px;
+    border: 1px solid #9ca3af;
+    border-radius: 12px;
+    background: #f3f4f6;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+    color: #111827;
+    white-space: nowrap;
+  }
+  .op-btn:hover { background: #e5e7eb; }
+
+  .op-meta {
+    margin-top: 10px;
+    color: #4b5563;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .op-list {
+    border: 1px solid #d1d5db;
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .op-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-top: 1px solid #e5e7eb;
+  }
+  .op-item:first-child { border-top: none; }
+
+  .op-item strong { font-size: 14px; }
+  .op-muted { color: #4b5563; font-size: 12px; margin-top: 3px; }
+
+  .op-open-btn {
+    padding: 9px 12px;
+    border: 1px solid #7aa7ff;
+    border-radius: 12px;
+    background: #eff6ff;
+    font-weight: 900;
+    cursor: pointer;
+    text-decoration: none;
+    color: #111827;
+    white-space: nowrap;
+  }
+  .op-open-btn:hover { background: #dbeafe; }
+
+  .op-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 640px) {
+    .op-search-row { flex-direction: column; align-items: stretch; }
+    .op-search-row input[type="text"] { width: 100%; }
+  }
+</style>
+
+<div class="op-wrap">
+  <div class="op-banner">
+    <h1>Plating Area Card</h1>
+    <p>Search by part number (drawing number). Open the card to select which plating areas apply.</p>
+
+    <form method="get" class="op-search-row" role="search" aria-label="Search drawings">
+      <label for="q" class="op-sr-only">Search drawing number</label>
+      <input
+        id="q"
+        type="text"
+        name="q"
+        value="{{ query|default:'' }}"
+        placeholder="Search drawing number (part number)…"
+        autocomplete="off"
+        autofocus
+        aria-label="Search drawing number"
+      >
+      <button type="submit" class="op-btn">Search</button>
+
+      {% if query %}
+        <a class="op-btn" href="{% url 'drawings:operator_list' %}">Clear</a>
+      {% endif %}
+    </form>
+
+    <div class="op-meta">
+      <div>
+        {% if drawings %}
+          Showing <strong>{{ drawings|length }}</strong> result{{ drawings|length|pluralize }}{% if query %} for “{{ query }}”{% endif %}.
+        {% else %}
+          {% if query %}
+            No results for “{{ query }}”.
+          {% else %}
+            Showing all drawings.
+          {% endif %}
+        {% endif %}
+      </div>
+      <div class="op-muted">Tip: Enter a partial drawing number to filter.</div>
+    </div>
+  </div>
+
+  <div class="op-list" aria-label="Drawing list">
+    {% if drawings %}
+      {% for d in drawings %}
+        <div class="op-item">
+          <div>
+            <strong>{{ d.drawing_number }}</strong>
+            {% if d.title %}
+              <div class="op-muted">{{ d.title }}</div>
+            {% endif %}
+          </div>
+
+          <a class="op-open-btn"
+             href="{% url 'drawings:operator_card' drawing_id=d.id %}"
+             aria-label="Open plating area card for {{ d.drawing_number }}">
+            Open Area Card
+          </a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="op-item">
+        <div>
+          <strong>No drawings found.</strong>
+          <div class="op-muted">Try a different search term.</div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

@@ -42,6 +42,13 @@
         </li>
 
         <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'operator_list' %}active{% endif %}" href="{% url 'drawings:operator_list' %}" title="Plating Area Card">
+            <i class="bi bi-box-seam me-1"></i> Plating Area Card
+          </a>
+        </li>
+
+
+        <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'standard_list' %}active{% endif %}" href="{% url 'standard_list' %}" title="Standards">
             <i class="bi bi-journals me-1"></i> Standards
           </a>

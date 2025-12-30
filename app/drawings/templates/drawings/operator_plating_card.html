@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}Area Card – {{ drawing.drawing_number }}{% endblock %}
+
+{% block content %}
+<style>
+  .pac-scope { --b:#d1d5db; --muted:#4b5563; --text:#111827; }
+  .pac-wrap { max-width: 1200px; margin: 0 auto; padding: 18px; }
+
+  .pac-top{
+    display:flex; justify-content:space-between; gap: 12px; align-items:flex-start;
+    padding: 14px;
+    border: 1px solid var(--b);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 10px 22px rgba(0,0,0,.08);
+    margin-bottom: 14px;
+  }
+  .pac-top h1 { margin: 0; font-size: 20px; font-weight: 900; color: var(--text); }
+  .pac-muted { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+  .pac-pill{
+    display:inline-block; padding: 6px 10px; border-radius: 999px;
+    border: 1px solid var(--b); font-weight: 900; background: #f9fafb;
+    color: var(--text);
+  }
+
+  .pac-grid { display:grid; grid-template-columns: 1fr 380px; gap: 14px; }
+  .pac-panel{
+    border: 1px solid var(--b);
+    border-radius: 14px;
+    background: #fff;
+    padding: 12px;
+  }
+  .pac-panel h2 { margin: 0 0 10px; font-size: 14px; font-weight: 900; color: var(--text); }
+
+  /* Viewer */
+  #viewer{
+    position: relative;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: auto;
+    background: #fff;
+    max-height: 70vh;
+  }
+  #page-img{ display:block; user-select:none; -webkit-user-drag:none; }
+  #overlay{ position:absolute; left:0; top:0; pointer-events:auto; }
+
+  .pac-controls{
+    display:flex; gap: 10px; flex-wrap:wrap; margin-bottom: 10px; align-items:end;
+  }
+  .pac-field label{
+    display:block; font-size: 12px; font-weight: 900; margin-bottom: 4px; color: var(--text);
+  }
+  .pac-field input{
+    width: 120px;
+    padding: 8px 10px;
+    border: 1px solid var(--b);
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .pac-btn{
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid #9ca3af;
+    background:#f3f4f6;
+    cursor:pointer;
+    font-weight: 900;
+    color: var(--text);
+  }
+  .pac-btn:hover{ background:#e5e7eb; }
+  .pac-btn.primary{ border-color:#7aa7ff; background:#eff6ff; }
+  .pac-btn.primary:hover{ background:#dbeafe; }
+
+  /* Zones list */
+  .pac-zone{
+    display:flex; gap: 10px; align-items:flex-start;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .pac-zone:hover{ background:#f9fafb; }
+  .pac-zone.off{ opacity: 0.55; }
+  .pac-zone.active{ outline: 2px solid #7aa7ff; }
+
+  .pac-zone input{ margin-top: 3px; }
+  .pac-zone-title{ font-weight: 900; color: var(--text); }
+  .pac-zone-meta{ font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .pac-role{
+    font-size: 11px;
+    font-weight: 900;
+    border-radius: 999px;
+    padding: 2px 8px;
+    border: 1px solid var(--b);
+    margin-left: 8px;
+    display:inline-block;
+  }
+  .pac-include{ background: #eff6ff; border-color:#7aa7ff; }
+  .pac-exclude{ background: #fef2f2; border-color:#ff8a8a; }
+
+  .pac-total{
+    font-size: 26px;
+    font-weight: 1000;
+    margin: 4px 0;
+    color: var(--text);
+  }
+
+  @media (max-width: 1100px){
+    .pac-grid{ grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="pac-scope">
+  <div class="pac-wrap">
+    <div class="pac-top">
+      <div>
+        <h1>Plating Area Card – {{ drawing.drawing_number }}</h1>
+        {% if drawing.title %}<div class="pac-muted">{{ drawing.title }}</div>{% endif %}
+        <div class="pac-muted">Click a zone to highlight it. Uncheck to remove it (overlay will show what changed).</div>
+      </div>
+      <div class="pac-pill" id="unit-pill">Unit: —</div>
+    </div>
+
+    <div class="pac-grid">
+      <!-- LEFT -->
+      <div class="pac-panel">
+        <h2>Drawing View</h2>
+
+        <div class="pac-controls">
+          <div class="pac-field">
+            <label for="dpi">DPI</label>
+            <input id="dpi" type="number" min="72" max="300" step="1" value="150">
+          </div>
+          <div class="pac-field">
+            <label for="zoom">Zoom</label>
+            <input id="zoom" type="number" min="0.2" max="4" step="0.1" value="1.2">
+          </div>
+
+          <button class="pac-btn" type="button" id="btn-reload">Reload</button>
+          <button class="pac-btn" type="button" id="btn-select-default">Select Default</button>
+          <button class="pac-btn primary" type="button" id="btn-select-all">Select All</button>
+          <button class="pac-btn" type="button" id="btn-clear-all">Clear All</button>
+        </div>
+
+        <div id="viewer" aria-label="Drawing viewer">
+          <img id="page-img" alt="Drawing page">
+          <svg id="overlay" aria-label="Zone overlay"></svg>
+        </div>
+
+        <div class="pac-muted" id="status" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="pac-panel">
+        <h2>Plating Areas</h2>
+        <div class="pac-total" id="total-area">—</div>
+        <div class="pac-muted" id="total-detail">Include minus exclude (selected only)</div>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0;">
+        <div id="zones">
+          <div class="pac-muted">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PAGE_IMAGE_URL = "{{ page_image_url|escapejs }}";
+  const ZONES_JSON_URL = "{{ zones_json_url|escapejs }}";
+</script>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function setStatus(msg, isError=false) {
+    const el = $("status");
+    el.textContent = msg || "";
+    el.style.color = isError ? "crimson" : "#4b5563";
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (m) => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+    }[m]));
+  }
+
+  function svgEl(tag, attrs={}) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+  }
+
+  function fromNorm(xN, yN, widthPx, heightPx) {
+    return { x: xN * widthPx, y: yN * heightPx };
+  }
+
+  function parseNum(s) {
+    const n = Number(s);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  // State
+  let zones = [];
+  let unit = "";
+  let activeZoneId = null;
+
+  // When a zone is toggled off, we flash it briefly
+  let flashZoneId = null;
+  let flashUntilMs = 0;
+
+  const img = $("page-img");
+  const overlay = $("overlay");
+
+  let baseW = 0;
+  let baseH = 0;
+
+  function currentW() { return img.clientWidth; }
+  function currentH() { return img.clientHeight; }
+
+  function applyZoomSizing() {
+    const zoom = Number($("zoom").value || 1.2);
+    img.style.width = (baseW * zoom) + "px";
+    img.style.height = (baseH * zoom) + "px";
+  }
+
+  function sizeOverlayToImage() {
+    const w = currentW();
+    const h = currentH();
+    overlay.setAttribute("width", w);
+    overlay.setAttribute("height", h);
+    overlay.style.width = w + "px";
+    overlay.style.height = h + "px";
+    overlay.style.pointerEvents = "auto";
+  }
+
+  function isSelected(z) {
+    const cb = document.getElementById("zcb-" + z.id);
+    return cb ? cb.checked : !!z.default_selected;
+  }
+
+  function zoneFill(z, selected) {
+    if (!selected) return "rgba(0,0,0,0)";
+    return z.is_exclusion_zone ? "rgba(255, 0, 0, 0.18)" : "rgba(0, 120, 255, 0.18)";
+  }
+
+  function zoneStroke(z, selected, active=false, flashing=false) {
+    if (flashing) return "#f59e0b";               // amber
+    if (!selected) return "rgba(0,0,0,0.25)";
+    if (active) return z.is_exclusion_zone ? "#c40000" : "#1d5cff";
+    return z.is_exclusion_zone ? "#ff6666" : "#7aa7ff";
+  }
+
+  function zoneStrokeWidth(active=false, flashing=false) {
+    if (flashing) return "5";
+    if (active) return "3";
+    return "2";
+  }
+
+  function computeTotal() {
+    let inc = 0;
+    let exc = 0;
+
+    zones.forEach(z => {
+      const cb = document.getElementById("zcb-" + z.id);
+      if (!cb || !cb.checked) return;
+      const val = parseNum(z.area_value);
+      if (z.is_exclusion_zone) exc += val;
+      else inc += val;
+    });
+
+    const total = inc - exc;
+    const u = unit || "";
+    $("total-area").textContent = `${total.toFixed(4)} ${u}`;
+    $("total-detail").textContent = `Include ${inc.toFixed(4)} ${u} minus Exclude ${exc.toFixed(4)} ${u}`;
+  }
+
+  function syncUnitPill() {
+    const units = Array.from(new Set(zones.map(z => z.area_unit).filter(Boolean)));
+    if (units.length === 1) {
+      unit = units[0];
+      $("unit-pill").textContent = "Unit: " + unit;
+      return;
+    }
+    if (units.length > 1) {
+      unit = units[0] || "";
+      $("unit-pill").textContent = "Unit: MIXED";
+      $("total-detail").textContent = "Warning: mixed units. Ask Engineering to standardize units.";
+      return;
+    }
+    unit = "";
+    $("unit-pill").textContent = "Unit: —";
+  }
+
+  function isFlashing(zId) {
+    return flashZoneId === zId && Date.now() < flashUntilMs;
+  }
+
+  function drawOverlay() {
+    while (overlay.firstChild) overlay.removeChild(overlay.firstChild);
+
+    const w = currentW();
+    const h = currentH();
+
+    // If flashing, dim everything else for clarity
+    const dimOthers = flashZoneId && Date.now() < flashUntilMs;
+
+    zones.forEach(z => {
+      const selected = isSelected(z);
+      const active = (z.id === activeZoneId);
+      const flashing = isFlashing(z.id);
+
+      let shape = null;
+
+      if (z.geom_type === "rect") {
+        const g = z.geometry;
+        shape = svgEl("rect", {
+          x: g.x * w,
+          y: g.y * h,
+          width: g.w * w,
+          height: g.h * h,
+          fill: zoneFill(z, selected),
+          stroke: zoneStroke(z, selected, active, flashing),
+          "stroke-width": zoneStrokeWidth(active, flashing),
+        });
+      } else {
+        const pts = (z.geometry || []).map(pt => {
+          const p = fromNorm(pt.x, pt.y, w, h);
+          return `${p.x},${p.y}`;
+        }).join(" ");
+        shape = svgEl("polygon", {
+          points: pts,
+          fill: zoneFill(z, selected),
+          stroke: zoneStroke(z, selected, active, flashing),
+          "stroke-width": zoneStrokeWidth(active, flashing),
+        });
+      }
+
+      if (dimOthers && !flashing) {
+        shape.setAttribute("opacity", "0.20");
+      }
+
+      shape.style.cursor = "pointer";
+      shape.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setActive(z.id);
+      });
+
+      overlay.appendChild(shape);
+    });
+  }
+
+  function renderZonesList() {
+    const container = $("zones");
+    container.innerHTML = "";
+
+    if (!zones.length) {
+      container.innerHTML = '<div class="pac-muted">No zones defined.</div>';
+      computeTotal();
+      drawOverlay();
+      return;
+    }
+
+    zones.forEach(z => {
+      const roleClass = z.is_exclusion_zone ? "pac-exclude" : "pac-include";
+      const roleText = z.is_exclusion_zone ? "EXCLUDE" : "INCLUDE";
+
+      const row = document.createElement("div");
+      row.className = "pac-zone" + (z.id === activeZoneId ? " active" : "");
+
+      row.innerHTML = `
+        <input type="checkbox" id="zcb-${z.id}" aria-label="Select zone ${escapeHtml(z.label)}">
+        <div style="flex:1;">
+          <div class="pac-zone-title">
+            ${escapeHtml(z.label)}
+            <span class="pac-role ${roleClass}">${roleText}</span>
+          </div>
+          <div class="pac-zone-meta">Area: ${escapeHtml(z.area_value)} ${escapeHtml(z.area_unit)}</div>
+          ${z.notes ? `<div class="pac-zone-meta">${escapeHtml(z.notes)}</div>` : ""}
+        </div>
+      `;
+
+      container.appendChild(row);
+
+      const cb = row.querySelector("input");
+      cb.checked = !!z.default_selected;
+
+      function syncRowState() {
+        row.classList.toggle("off", !cb.checked);
+      }
+
+      cb.addEventListener("change", () => {
+        // If turning OFF, flash the exact zone being deselected
+        if (!cb.checked) {
+          flashZoneId = z.id;
+          flashUntilMs = Date.now() + 900;
+          setStatus(`Deselected: ${z.label}`);
+          drawOverlay();
+          // refresh flash after a moment
+          setTimeout(() => drawOverlay(), 950);
+        } else {
+          setStatus(`Selected: ${z.label}`);
+        }
+
+        syncRowState();
+        computeTotal();
+        drawOverlay();
+      });
+
+      row.addEventListener("click", (e) => {
+        if (e.target && e.target.tagName === "INPUT") return;
+        setActive(z.id);
+      });
+
+      syncRowState();
+    });
+
+    computeTotal();
+    drawOverlay();
+  }
+
+  function setActive(zoneId) {
+    activeZoneId = zoneId;
+    renderZonesList();
+    drawOverlay();
+  }
+
+  async function loadZones() {
+    const url = new URL(ZONES_JSON_URL, window.location.origin);
+    // single-page mode: server may ignore page, but no harm
+    url.searchParams.set("page", "1");
+
+    const res = await fetch(url.toString(), { headers: { "Accept": "application/json" }});
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "Failed to load zones");
+
+    zones = data.zones || [];
+    activeZoneId = null;
+    syncUnitPill();
+    renderZonesList();
+  }
+
+  async function loadPageImage() {
+    const dpi = Number($("dpi").value || 150);
+
+    setStatus("Loading drawing…");
+
+    const url = new URL(PAGE_IMAGE_URL, window.location.origin);
+    url.searchParams.set("page", "1");
+    url.searchParams.set("dpi", String(dpi));
+
+    img.onload = () => {
+      baseW = img.naturalWidth;
+      baseH = img.naturalHeight;
+      applyZoomSizing();
+      sizeOverlayToImage();
+      setStatus("");
+      drawOverlay();
+    };
+
+    img.onerror = () => {
+      setStatus("Failed to load drawing image.", true);
+      console.error("Image failed:", img.src);
+    };
+
+    img.src = url.toString();
+  }
+
+  async function reloadAll() {
+    await loadPageImage();
+    await loadZones();
+  }
+
+  function setAll(state) {
+    zones.forEach(z => {
+      const cb = document.getElementById("zcb-" + z.id);
+      if (cb) cb.checked = state;
+    });
+    computeTotal();
+    drawOverlay();
+    document.querySelectorAll(".pac-zone").forEach(row => {
+      row.classList.toggle("off", !row.querySelector("input")?.checked);
+    });
+  }
+
+  function selectDefault() {
+    zones.forEach(z => {
+      const cb = document.getElementById("zcb-" + z.id);
+      if (cb) cb.checked = !!z.default_selected;
+    });
+    computeTotal();
+    drawOverlay();
+    document.querySelectorAll(".pac-zone").forEach(row => {
+      row.classList.toggle("off", !row.querySelector("input")?.checked);
+    });
+  }
+
+  // Controls
+  $("btn-reload").addEventListener("click", () => reloadAll().catch(err => setStatus(err.message, true)));
+  $("btn-select-all").addEventListener("click", () => setAll(true));
+  $("btn-clear-all").addEventListener("click", () => setAll(false));
+  $("btn-select-default").addEventListener("click", selectDefault);
+
+  $("dpi").addEventListener("change", () => loadPageImage().catch(err => setStatus(err.message, true)));
+
+  $("zoom").addEventListener("change", () => {
+    applyZoomSizing();
+    sizeOverlayToImage();
+    drawOverlay();
+  });
+
+  window.addEventListener("resize", () => {
+    sizeOverlayToImage();
+    drawOverlay();
+  });
+
+  // Click blank overlay clears highlight
+  overlay.addEventListener("click", () => {
+    activeZoneId = null;
+    renderZonesList();
+    drawOverlay();
+  });
+
+  // Init
+  (async function init() {
+    await reloadAll();
+  })().catch(err => {
+    console.error(err);
+    setStatus(err.message || "Failed to initialize", true);
+  });
+</script>
+{% endblock %}
+

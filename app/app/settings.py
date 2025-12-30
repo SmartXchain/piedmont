@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'tank_controls',
     'logbook',
     'scheduler',
+    'drawings',
 ]
 
 MIDDLEWARE = [
