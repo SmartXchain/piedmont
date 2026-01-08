@@ -120,4 +120,3 @@ class DrawingAnnotatorTests(TestCase):
         # user_passes_test usually redirects to login by default
         self.assertIn(resp.status_code, (302, 301))
         self.assertEqual(DrawingZone.objects.count(), 0)
-

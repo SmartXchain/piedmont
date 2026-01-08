@@ -328,4 +328,3 @@ class WeeklyEmulsifierCheck(models.Model):
             self.in_limits = True
 
         super().save(*args, **kwargs)
-

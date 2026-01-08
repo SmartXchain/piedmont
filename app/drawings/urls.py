@@ -54,4 +54,3 @@ urlpatterns = [
         name="operator_zones_json",
     ),
 ]
-

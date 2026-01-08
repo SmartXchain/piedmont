@@ -250,4 +250,3 @@ class WeeklyEmulsifierCheckAdmin(admin.ModelAdmin):
         if not obj.checked_at:
             obj.checked_at = timezone.now()
         super().save_model(request, obj, form, change)
-

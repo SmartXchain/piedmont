@@ -478,6 +478,7 @@ class WeeklyCheckListView(ListView):
 
         return qs
 
+
 class WeeklyCheckDetailView(DetailView):
     model = WeeklyEmulsifierCheck
     template_name = "ndt/log_detail.html"
@@ -578,4 +579,3 @@ class WeeklyCheckUpdateView(UpdateView):
 
     def get_success_url(self):
         return reverse("ndt:log_detail", kwargs={"pk": self.object.pk})
-

@@ -11,6 +11,6 @@ pandas==2.2.3
 XlsxWriter==3.2.2
 sqlparse>=0.5.3
 graphviz==0.21
-pillow>=10.0
+pillow>=9.1.0,<11
 whitenoise>=6.7
 PyMuPDF>=1.24

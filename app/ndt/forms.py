@@ -252,4 +252,3 @@ class WeeklyEmulsifierCheckForm(forms.ModelForm):
             self.fields["curve_used"].queryset = self.fields["curve_used"].queryset.filter(
                 product_lot=mix.product_lot
             )
-

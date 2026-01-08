@@ -270,4 +270,3 @@ class PlatingCardZoneSelection(models.Model):
     def __str__(self) -> str:
         state = "on" if self.selected else "off"
         return f"{self.plating_card_id} -> {self.zone_id} ({state})"
-

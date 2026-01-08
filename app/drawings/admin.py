@@ -146,4 +146,3 @@ class PlatingCardZoneSelectionAdmin(admin.ModelAdmin):
     list_display = ("plating_card", "zone", "selected")
     search_fields = ("plating_card__drawing__drawing_number",)
     autocomplete_fields = ("plating_card", "zone")
-

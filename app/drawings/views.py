@@ -469,4 +469,3 @@ def operator_zones_json_view(request: HttpRequest, card_id: int) -> JsonResponse
     return JsonResponse(
         {"ok": True, "card_id": card.id, "plating_type": card.plating_type, "zones": zones}
     )
-
