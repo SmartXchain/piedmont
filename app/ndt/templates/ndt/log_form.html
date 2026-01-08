@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}NDT – Weekly Check{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 980px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h4 mb-1">{% if object %}Edit Weekly Check{% else %}New Weekly Check{% endif %}</h1>
+      <div class="text-muted small">
+        Concentration is calculated automatically when saved.
+      </div>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'ndt:log_list' %}">Back</a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Mix (Solution Batch)</label>
+            {{ form.mix }}
+            {% for e in form.mix.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            <div class="form-text">
+              Select the mix being checked. If the mix has a curve assigned, you can leave “Curve Used” blank.
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Checked At</label>
+            {{ form.checked_at }}
+            {% for e in form.checked_at.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Curve Used</label>
+            {{ form.curve_used }}
+            {% for e in form.curve_used.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            <div class="form-text">
+              This list narrows to curves matching the mix lot (active only).
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Refractometer Reading</label>
+            {{ form.refractometer_reading }}
+            {% for e in form.refractometer_reading.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Comments</label>
+            {{ form.comments }}
+            {% for e in form.comments.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button class="btn btn-primary" type="submit">Save</button>
+          <a class="btn btn-outline-secondary" href="{% url 'ndt:log_list' %}">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

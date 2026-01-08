@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}NDT – Mixes{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">Mixes (Solution Batches)</h1>
+      <p class="text-muted mb-0">
+        Step 3 of the workflow. Create a mix when the solution is made. Later, build a curve and assign it to the mix.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'ndt:mix_add' %}" class="btn btn-primary">+ New Mix</a>
+      <a href="{% url 'ndt:index' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+  </div>
+
+  <div class="alert alert-light border mb-3">
+    <div class="small text-muted">
+      <strong class="text-body">Workflow:</strong>
+      Products → Lots → <strong>Mix</strong> → Curve → Weekly Check.
+      <span class="ms-2">After you create a mix, build the curve for the same lot, then assign it back to the mix.</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="card shadow-sm mb-3">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Search</label>
+          <input
+            type="text"
+            name="q"
+            value="{{ request.GET.q|default:'' }}"
+            class="form-control"
+            placeholder="Mix name, lot number, manufacturer..."
+          >
+        </div>
+
+        <div class="col-6 col-md-3">
+          <label class="form-label">Active</label>
+          <select name="active" class="form-select">
+            <option value="" {% if not request.GET.active %}selected{% endif %}>All</option>
+            <option value="1" {% if request.GET.active == "1" %}selected{% endif %}>Active</option>
+            <option value="0" {% if request.GET.active == "0" %}selected{% endif %}>Inactive</option>
+          </select>
+        </div>
+
+        <div class="col-6 col-md-3 d-flex gap-2">
+          <button class="btn btn-outline-primary w-100" type="submit">Filter</button>
+          <a class="btn btn-outline-secondary w-100" href="{% url 'ndt:mix_list' %}">Reset</a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Table -->
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Mix</th>
+              <th>Lot</th>
+              <th>Curve</th>
+              <th class="text-nowrap">Mixed At</th>
+              <th class="text-center">Active</th>
+              <th class="text-end" style="width: 220px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mix in mixes %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ mix.name }}</div>
+                  <div class="small text-muted">
+                    {% if mix.mixed_by %}
+                      Mixed by {{ mix.mixed_by }}
+                    {% else %}
+                      Mixed by —
+                    {% endif %}
+                    {% if mix.target_percent %}
+                      • Target {{ mix.target_percent }}%
+                    {% endif %}
+                  </div>
+                </td>
+
+                <td class="text-nowrap">
+                  <div class="fw-semibold">{{ mix.product_lot.lot_number }}</div>
+                  <div class="small text-muted">
+                    {{ mix.product_lot.product.manufacturer }} {{ mix.product_lot.product.name }}
+                  </div>
+                </td>
+
+                <td>
+                  {% if mix.curve_used %}
+                    <div class="fw-semibold">{{ mix.curve_used.name }}</div>
+                    <div class="small text-muted">
+                      {% if mix.curve_used.is_active %}
+                        <span class="text-success">Active curve</span>
+                      {% else %}
+                        <span class="text-danger">Inactive curve</span>
+                      {% endif %}
+                      {% if mix.curve_used.product_lot %}
+                        • Lot {{ mix.curve_used.product_lot.lot_number }}
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <span class="badge text-bg-warning">Not assigned</span>
+                    <div class="small text-muted">
+                      Step 4: create a curve for this lot, then assign it.
+                    </div>
+                  {% endif %}
+                </td>
+
+                <td class="text-nowrap">
+                  {{ mix.mixed_at|date:"Y-m-d H:i" }}
+                </td>
+
+                <td class="text-center">
+                  {% if mix.is_active %}
+                    <span class="badge text-bg-success">Yes</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary">No</span>
+                  {% endif %}
+                </td>
+
+                <td class="text-end">
+                  <div class="btn-group" role="group">
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'ndt:mix_edit' mix.pk %}">
+                      Edit
+                    </a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'ndt:curve_add' %}?product_lot={{ mix.product_lot.pk }}">
+                      New Curve (for lot)
+                    </a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'ndt:log_add' %}?mix={{ mix.pk }}">
+                      New Check
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-5 text-muted">
+                  No mixes found. <a href="{% url 'ndt:mix_add' %}">Create a new mix</a>.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {% if is_paginated %}
+      <div class="card-footer bg-body-tertiary">
+        <nav aria-label="Mix pagination">
+          <ul class="pagination mb-0 justify-content-end">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active }}{% endif %}">Previous</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+
+            <li class="page-item disabled">
+              <span class="page-link">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+              </span>
+            </li>
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.active %}&active={{ request.GET.active }}{% endif %}">Next</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">Next</span></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+

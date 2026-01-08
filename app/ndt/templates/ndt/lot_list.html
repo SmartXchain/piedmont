@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}NDT – Lots{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">
+        Lots
+        {% if product %}<span class="text-muted">— {{ product }}</span>{% endif %}
+      </h1>
+      <div class="text-muted">
+        Lot numbers are used to tie curves to specific material batches.
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{% url 'ndt:index' %}">Back</a>
+      <a class="btn btn-outline-primary" href="{% url 'ndt:product_list' %}">Products</a>
+      <a class="btn btn-primary" href="{% url 'ndt:lot_add' %}{% if product %}?product={{ product.id }}{% endif %}">
+        + Add Lot
+      </a>
+    </div>
+  </div>
+
+  {% if not product %}
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-12 col-md-6">
+      <input class="form-control" type="text" name="q" value="{{ request.GET.q }}"
+             placeholder="Search lot number, vendor, product, manufacturer...">
+    </div>
+    <div class="col-12 col-md-auto">
+      <button class="btn btn-outline-secondary" type="submit">Search</button>
+      <a class="btn btn-link text-decoration-none" href="{% url 'ndt:lot_list' %}">Clear</a>
+    </div>
+  </form>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Product</th>
+            <th>Lot #</th>
+            <th>Status</th>
+            <th>Received</th>
+            <th>Expires</th>
+            <th>Vendor</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lot in lots %}
+          <tr>
+            <td>{{ lot.product }}</td>
+            <td class="fw-semibold">{{ lot.lot_number }}</td>
+            <td>
+              {% if lot.is_active %}
+                <span class="badge text-bg-success">Active</span>
+              {% else %}
+                <span class="badge text-bg-secondary">Inactive</span>
+              {% endif %}
+            </td>
+            <td>{{ lot.received_date|default:"—" }}</td>
+            <td>{{ lot.expiration_date|default:"—" }}</td>
+            <td>{{ lot.vendor|default:"—" }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'ndt:lot_edit' lot.id %}">Edit</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">
+              No lots found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

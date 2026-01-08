@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}NDT – Emulsifier Concentration{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Emulsifier Concentration (Method D)</h1>
+      <p class="text-muted mb-0">
+        Workflow: Products → Lots → Mix → Curve → Assign → Weekly Check.
+      </p>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-primary" href="{% url 'ndt:log_add' %}">
+        + Weekly Check
+      </a>
+      <a class="btn btn-outline-secondary" href="{% url 'ndt:mix_add' %}">
+        + New Mix
+      </a>
+    </div>
+  </div>
+
+  <!-- Workflow strip -->
+  <div class="alert alert-light border d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-4">
+    <div class="small text-muted">
+      <strong class="text-body">Recommended sequence:</strong>
+      Define the product, record the received lot, create the mix (solution batch),
+      build the calibration curve for that lot, assign the curve to the mix,
+      then perform weekly checks.
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'ndt:product_add' %}">Add Product</a>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'ndt:lot_add' %}">Add Lot</a>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'ndt:mix_add' %}">New Mix</a>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'ndt:curve_add' %}">New Curve</a>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'ndt:log_add' %}">Weekly Check</a>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="row g-4">
+
+    <!-- Step 1: Products -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <h2 class="h5 mb-1">1) Products</h2>
+              <p class="text-muted mb-3">
+                Define the emulsifier product (manufacturer, product name, notes).
+              </p>
+            </div>
+            <span class="badge text-bg-light border">Setup</span>
+          </div>
+
+          <ul class="list-unstyled small text-muted mb-4">
+            <li class="mb-1">• Base record used by lots</li>
+            <li class="mb-1">• Reference for audits/specs</li>
+          </ul>
+
+          <div class="mt-auto d-flex gap-2">
+            <a class="btn btn-outline-primary w-100" href="{% url 'ndt:product_list' %}">View Products</a>
+            <a class="btn btn-primary w-100" href="{% url 'ndt:product_add' %}">Add Product</a>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Always start here.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Lots -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <h2 class="h5 mb-1">2) Lots</h2>
+              <p class="text-muted mb-3">
+                Track lot numbers received for each product.
+              </p>
+            </div>
+            <span class="badge text-bg-light border">Traceability</span>
+          </div>
+
+          <ul class="list-unstyled small text-muted mb-4">
+            <li class="mb-1">• Drives mix + curve selection</li>
+            <li class="mb-1">• Active/inactive keeps dropdowns clean</li>
+          </ul>
+
+          <div class="mt-auto d-flex gap-2">
+            <a class="btn btn-outline-primary w-100" href="{% url 'ndt:lot_list' %}">View Lots</a>
+            <a class="btn btn-primary w-100" href="{% url 'ndt:lot_add' %}">Add Lot</a>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Lots are the backbone of traceability.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Mix -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <h2 class="h5 mb-1">3) Mix (Solution Batch)</h2>
+              <p class="text-muted mb-3">
+                Create a mix when the solution is prepared.
+              </p>
+            </div>
+            <span class="badge text-bg-light border">Batch</span>
+          </div>
+
+          <ul class="list-unstyled small text-muted mb-4">
+            <li class="mb-1">• Represents a chemistry change event</li>
+            <li class="mb-1">• Weekly checks reference the mix</li>
+          </ul>
+
+          <div class="mt-auto d-flex gap-2">
+            <a class="btn btn-outline-primary w-100" href="{% url 'ndt:mix_list' %}">View Mixes</a>
+            <a class="btn btn-primary w-100" href="{% url 'ndt:mix_add' %}">New Mix</a>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Create the mix as soon as the solution is made.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Curve -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <h2 class="h5 mb-1">4) Curve</h2>
+              <p class="text-muted mb-3">
+                Build the calibration curve for the selected lot.
+              </p>
+            </div>
+            <span class="badge text-bg-light border">Calibration</span>
+          </div>
+
+          <ul class="list-unstyled small text-muted mb-4">
+            <li class="mb-1">• ≥2 calibration points required</li>
+            <li class="mb-1">• Optional limits + best-fit line</li>
+          </ul>
+
+          <div class="mt-auto d-flex gap-2">
+            <a class="btn btn-outline-primary w-100" href="{% url 'ndt:curve_list' %}">View Curves</a>
+            <a class="btn btn-primary w-100" href="{% url 'ndt:curve_add' %}">New Curve</a>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Curve must match the mix lot.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4.5: Assign Curve -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-warning">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <h2 class="h5 mb-1">4.5) Assign Curve to Mix</h2>
+              <p class="text-muted mb-3">
+                Lock the correct curve to the mix before weekly testing.
+              </p>
+            </div>
+            <span class="badge text-bg-warning">Control</span>
+          </div>
+
+          <ul class="list-unstyled small text-muted mb-4">
+            <li class="mb-1">• Prevents curve/lot mismatch</li>
+            <li class="mb-1">• Weekly checks default correctly</li>
+            <li class="mb-1">• Strongly recommended for audits</li>
+          </ul>
+
+          <div class="mt-auto d-flex gap-2">
+            <a class="btn btn-warning w-100" href="{% url 'ndt:mix_list' %}">
+              View Mixes & Assign Curve
+            </a>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Edit the mix and assign the curve built in Step 4.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Weekly Checks -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-primary">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <h2 class="h5 mb-1">5) Weekly Checks</h2>
+              <p class="text-muted mb-3">
+                Enter weekly refractometer readings.
+              </p>
+            </div>
+            <span class="badge text-bg-primary">Weekly</span>
+          </div>
+
+          <ul class="list-unstyled small text-muted mb-4">
+            <li class="mb-1">• Select the mix</li>
+            <li class="mb-1">• Curve auto-filters by lot</li>
+            <li class="mb-1">• Concentration auto-calculated</li>
+          </ul>
+
+          <div class="mt-auto d-flex gap-2">
+            <a class="btn btn-outline-primary w-100" href="{% url 'ndt:log_list' %}">View Logs</a>
+            <a class="btn btn-primary w-100" href="{% url 'ndt:log_add' %}">New Check</a>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Final step in Method D control.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-4 pt-3 border-top small text-muted d-flex flex-column flex-md-row justify-content-between gap-2">
+    <div>
+      Workflow:
+      <span class="text-body">Products → Lots → Mix → Curve → Assign → Weekly Check</span>
+    </div>
+    <div>
+      <a class="text-decoration-none" href="{% url 'admin:index' %}">Admin</a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

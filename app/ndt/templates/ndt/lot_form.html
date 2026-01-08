@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}NDT – Lot{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 980px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h4 mb-1">{% if object %}Edit Lot{% else %}Add Lot{% endif %}</h1>
+      <div class="text-muted small">Curves should be created against a specific lot number.</div>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'ndt:lot_list' %}">Back</a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Product</label>
+            {{ form.product }}
+            {% for e in form.product.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Lot Number</label>
+            {{ form.lot_number }}
+            {% for e in form.lot_number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Received Date</label>
+            {{ form.received_date }}
+            {% for e in form.received_date.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Expiration Date</label>
+            {{ form.expiration_date }}
+            {% for e in form.expiration_date.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Vendor</label>
+            {{ form.vendor }}
+            {% for e in form.vendor.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12">
+            <div class="form-check">
+              {{ form.is_active }}
+              <label class="form-check-label">Active lot</label>
+            </div>
+            {% for e in form.is_active.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Notes</label>
+            {{ form.notes }}
+            {% for e in form.notes.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button class="btn btn-primary" type="submit">Save</button>
+          <a class="btn btn-outline-secondary" href="{% url 'ndt:lot_list' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'logbook',
     'scheduler',
     'drawings',
+    'ndt',
 ]
 
 MIDDLEWARE = [

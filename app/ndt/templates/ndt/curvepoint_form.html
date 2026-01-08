@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}NDT – Curve Point{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h4 mb-1">{% if point %}Edit Point{% else %}Add Point{% endif %}</h1>
+      <div class="text-muted small">
+        Curve: {{ curve.name }}
+      </div>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'ndt:curve_detail' curve.id %}">Back</a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Refractometer Reading</label>
+            {{ form.reading }}
+            {% for e in form.reading.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Concentration (%)</label>
+            {{ form.concentration_percent }}
+            {% for e in form.concentration_percent.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button class="btn btn-primary" type="submit">Save</button>
+          <a class="btn btn-outline-secondary" href="{% url 'ndt:curve_detail' curve.id %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

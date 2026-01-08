@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}NDT – {% if mix %}Edit Mix{% else %}New Mix{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% if mix %}Edit Mix{% else %}New Mix{% endif %}</h1>
+      <p class="text-muted mb-0">
+        Step 3: Create a solution batch (mix) using a specific product lot. Build/assign a curve afterward.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'ndt:mix_list' %}" class="btn btn-outline-secondary">Back to Mixes</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+
+          <div class="alert alert-info mb-4">
+            <div class="fw-semibold mb-1">Recommended workflow</div>
+            <div class="small">
+              1) Select the <strong>Product Lot</strong> used to mix the solution.<br>
+              2) Save the mix.<br>
+              3) Build the <strong>Curve</strong> for that lot (reading → %).<br>
+              4) Return here and assign the curve (optional but recommended) so weekly checks default correctly.
+            </div>
+          </div>
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.name.id_for_label }}">Mix name</label>
+              {{ form.name }}
+              {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+              <div class="form-text">Use a consistent naming convention for audits (line/date/batch).</div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.product_lot.id_for_label }}">Product lot</label>
+                {{ form.product_lot }}
+                {% if form.product_lot.errors %}<div class="text-danger small">{{ form.product_lot.errors }}</div>{% endif %}
+                <div class="form-text">This lot is the traceability anchor for the mix.</div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.curve_used.id_for_label }}">Assigned curve (optional)</label>
+                {{ form.curve_used }}
+                {% if form.curve_used.errors %}<div class="text-danger small">{{ form.curve_used.errors }}</div>{% endif %}
+                <div class="form-text">
+                  Leave blank when first creating the mix. After you build the curve for this lot, come back and assign it.
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mt-0">
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="{{ form.mixed_at.id_for_label }}">Mixed at</label>
+                {{ form.mixed_at }}
+                {% if form.mixed_at.errors %}<div class="text-danger small">{{ form.mixed_at.errors }}</div>{% endif %}
+              </div>
+
+              <div class="col-12 col-md-3">
+                <label class="form-label" for="{{ form.target_percent.id_for_label }}">Target % (optional)</label>
+                {{ form.target_percent }}
+                {% if form.target_percent.errors %}<div class="text-danger small">{{ form.target_percent.errors }}</div>{% endif %}
+              </div>
+
+              <div class="col-12 col-md-3">
+                <label class="form-label d-block">Active</label>
+                <div class="form-check mt-2">
+                  {{ form.is_active }}
+                  <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                    In use
+                  </label>
+                </div>
+                {% if form.is_active.errors %}<div class="text-danger small">{{ form.is_active.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label" for="{{ form.notes.id_for_label }}">Notes</label>
+              {{ form.notes }}
+              {% if form.notes.errors %}<div class="text-danger small">{{ form.notes.errors }}</div>{% endif %}
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-4">
+              <button type="submit" class="btn btn-primary">
+                {% if mix %}Save Changes{% else %}Create Mix{% endif %}
+              </button>
+              <a href="{% url 'ndt:mix_list' %}" class="btn btn-outline-secondary">Cancel</a>
+
+              {% if mix %}
+                <a class="btn btn-outline-secondary ms-auto" href="{% url 'ndt:curve_add' %}?product_lot={{ mix.product_lot.pk }}">
+                  Create Curve for this Lot
+                </a>
+                <a class="btn btn-outline-primary" href="{% url 'ndt:log_add' %}?mix={{ mix.pk }}">
+                  New Weekly Check for this Mix
+                </a>
+              {% endif %}
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-2">Quick tips</h2>
+          <ul class="small text-muted mb-0">
+            <li>Create a new mix every time chemistry is remade.</li>
+            <li>Build the curve for the same lot used in the mix.</li>
+            <li>Assign the curve to the mix after curve creation to keep weekly checks consistent.</li>
+            <li>Deactivate old mixes to keep dropdowns clean.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

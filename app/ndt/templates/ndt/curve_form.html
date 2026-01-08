@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}NDT – Curve{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 1050px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h4 mb-1">{% if object %}Edit Curve{% else %}Create Curve{% endif %}</h1>
+      <div class="text-muted small">Curves are tied to a specific product lot.</div>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'ndt:curve_list' %}">Back</a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Curve Name</label>
+            {{ form.name }}
+            {% for e in form.name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-8">
+            <label class="form-label">Product Lot</label>
+            {{ form.product_lot }}
+            {% for e in form.product_lot.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            <div class="form-text">Select the lot used to create this calibration curve.</div>
+          </div>
+
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check">
+              {{ form.is_active }}
+              <label class="form-check-label">Active</label>
+            </div>
+            {% for e in form.is_active.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Refractometer ID</label>
+            {{ form.refractometer_id }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Water Source</label>
+            {{ form.water_source }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Temperature Note</label>
+            {{ form.temperature_note }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Target (%)</label>
+            {{ form.target_percent }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Low Limit (%)</label>
+            {{ form.low_limit_percent }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">High Limit (%)</label>
+            {{ form.high_limit_percent }}
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button class="btn btn-primary" type="submit">Save</button>
+          <a class="btn btn-outline-secondary" href="{% url 'ndt:curve_list' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

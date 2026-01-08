@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}NDT – Curve Detail{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{{ curve.name }}</h1>
+      <p class="text-muted mb-0">
+        Build and maintain calibration points. The chart updates from the saved points.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{% url 'ndt:curve_list' %}">Back to Curves</a>
+      <a class="btn btn-primary" href="{% url 'ndt:curvepoint_add' curve.pk %}">+ Add Point</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Card 1: Curve settings -->
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <div>
+              <h2 class="h6 mb-0">Curve Settings</h2>
+              <div class="small text-muted">Lot, limits, and traceability</div>
+            </div>
+            {% if curve.is_active %}
+              <span class="badge text-bg-success">Active</span>
+            {% else %}
+              <span class="badge text-bg-secondary">Inactive</span>
+            {% endif %}
+          </div>
+
+          <dl class="row mb-0 small">
+            <dt class="col-5 text-muted">Product Lot</dt>
+            <dd class="col-7">
+              {% if curve.product_lot %}
+                <div class="fw-semibold">{{ curve.product_lot.lot_number }}</div>
+                <div class="text-muted">
+                  {{ curve.product_lot.product.manufacturer }} {{ curve.product_lot.product.name }}
+                </div>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </dd>
+
+            <dt class="col-5 text-muted">Created</dt>
+            <dd class="col-7">{{ curve.created_at|date:"Y-m-d H:i" }}</dd>
+
+            <dt class="col-5 text-muted">Created by</dt>
+            <dd class="col-7">{% if curve.created_by %}{{ curve.created_by }}{% else %}<span class="text-muted">—</span>{% endif %}</dd>
+
+            <dt class="col-5 text-muted">Refractometer ID</dt>
+            <dd class="col-7">{% if curve.refractometer_id %}{{ curve.refractometer_id }}{% else %}<span class="text-muted">—</span>{% endif %}</dd>
+
+            <dt class="col-5 text-muted">Water source</dt>
+            <dd class="col-7">{% if curve.water_source %}{{ curve.water_source }}{% else %}<span class="text-muted">—</span>{% endif %}</dd>
+
+            <dt class="col-5 text-muted">Temperature note</dt>
+            <dd class="col-7">{% if curve.temperature_note %}{{ curve.temperature_note }}{% else %}<span class="text-muted">—</span>{% endif %}</dd>
+
+            <dt class="col-5 text-muted">Target %</dt>
+            <dd class="col-7">{% if curve.target_percent %}{{ curve.target_percent }}%{% else %}<span class="text-muted">—</span>{% endif %}</dd>
+
+            <dt class="col-5 text-muted">Low / High limits</dt>
+            <dd class="col-7">
+              {% if curve.low_limit_percent or curve.high_limit_percent %}
+                {% if curve.low_limit_percent %}{{ curve.low_limit_percent }}%{% else %}<span class="text-muted">—</span>{% endif %}
+                <span class="text-muted">to</span>
+                {% if curve.high_limit_percent %}{{ curve.high_limit_percent }}%{% else %}<span class="text-muted">—</span>{% endif %}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </dd>
+          </dl>
+
+          <div class="d-flex gap-2 mt-3">
+            <a class="btn btn-outline-primary" href="{% url 'ndt:curve_edit' curve.pk %}">
+              Edit Curve
+            </a>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          This card is curve metadata. Calibration points control the calculation + chart.
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Calibration points -->
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <div>
+              <h2 class="h6 mb-0">Calibration Points</h2>
+              <div class="small text-muted">Reading ↔ Concentration (%)</div>
+            </div>
+            <a class="btn btn-sm btn-primary" href="{% url 'ndt:curvepoint_add' curve.pk %}">
+              + Add Point
+            </a>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 40%;">Reading</th>
+                  <th style="width: 40%;">Concentration (%)</th>
+                  <th class="text-end" style="width: 20%;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in points %}
+                  <tr>
+                    <td class="fw-semibold">{{ p.reading }}</td>
+                    <td>{{ p.concentration_percent }}%</td>
+                    <td class="text-end">
+                      <div class="btn-group btn-group-sm" role="group">
+                        <a class="btn btn-outline-primary" href="{% url 'ndt:curvepoint_edit' p.pk %}">
+                          Edit
+                        </a>
+                        <a class="btn btn-outline-danger" href="{% url 'ndt:curvepoint_delete' p.pk %}">
+                          Delete
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="3" class="text-center text-muted py-4">
+                      No points yet. Add at least <strong>two</strong> points to enable interpolation.
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Points are stored as decimals for audit-safe calculations.
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Chart (full width) -->
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <div>
+              <h2 class="h6 mb-0">Calibration Chart</h2>
+              <div class="small text-muted">
+                X = Hydrophilic Emulsifier Concentration (%) • Y = Refractometer Reading
+              </div>
+            </div>
+            <span class="badge text-bg-light border">Live</span>
+          </div>
+<div class="d-flex gap-2 mb-2">
+  <button type="button" class="btn btn-sm btn-outline-secondary" id="btnExportPng">
+    Export PNG
+  </button>
+  <span class="small text-muted align-self-center" id="r2Label"></span>
+</div>
+
+          <div style="height: 380px;">
+            <canvas id="curveChart"></canvas>
+          </div>
+
+          <div class="small text-muted mt-2">
+            Points show as <strong>X</strong> markers. The line is the <strong>best-fit</strong> regression line.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Safe JSON payload for chart #}
+  {{ points_json|json_script:"curve-points-json" }}
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<script>
+  (function () {
+    const raw = JSON.parse(
+      document.getElementById("curve-points-json").textContent || "[]"
+    );
+
+    // Convert to {x: concentration, y: reading}
+    const dataPoints = raw
+      .map((p) => ({
+        x: Number(p.concentration_percent),
+        y: Number(p.reading),
+      }))
+      .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
+      .sort((a, b) => a.x - b.x);
+
+    const canvas = document.getElementById("curveChart");
+    if (!canvas) return;
+
+    // Pull optional limits/targets from template
+    // (These are safe: if empty, they become NaN and we ignore them.)
+    const target = Number("{{ curve.target_percent|default_if_none:'' }}");
+    const low = Number("{{ curve.low_limit_percent|default_if_none:'' }}");
+    const high = Number("{{ curve.high_limit_percent|default_if_none:'' }}");
+
+    const hasTarget = Number.isFinite(target);
+    const hasLow = Number.isFinite(low);
+    const hasHigh = Number.isFinite(high);
+
+    // Linear regression (best fit): y = a + b*x
+    function linearRegression(points) {
+      const n = points.length;
+      if (n < 2) return null;
+
+      let sumX = 0, sumY = 0, sumXX = 0, sumXY = 0;
+      for (const p of points) {
+        sumX += p.x;
+        sumY += p.y;
+        sumXX += p.x * p.x;
+        sumXY += p.x * p.y;
+      }
+      const denom = n * sumXX - sumX * sumX;
+      if (denom === 0) return null;
+
+      const b = (n * sumXY - sumX * sumY) / denom;
+      const a = (sumY - b * sumX) / n;
+
+      // R^2
+      const yMean = sumY / n;
+      let ssTot = 0;
+      let ssRes = 0;
+      for (const p of points) {
+        const yHat = a + b * p.x;
+        ssTot += (p.y - yMean) * (p.y - yMean);
+        ssRes += (p.y - yHat) * (p.y - yHat);
+      }
+      const r2 = ssTot === 0 ? 1 : (1 - ssRes / ssTot);
+
+      return { a, b, r2 };
+    }
+
+    const reg = linearRegression(dataPoints);
+
+    // Best-fit line endpoints (use min/max x)
+    let bestFitLine = [];
+    let r2Text = "";
+    if (reg) {
+      const minX = Math.min(...dataPoints.map((p) => p.x));
+      const maxX = Math.max(...dataPoints.map((p) => p.x));
+      bestFitLine = [
+        { x: minX, y: reg.a + reg.b * minX },
+        { x: maxX, y: reg.a + reg.b * maxX },
+      ];
+      r2Text = `R² = ${reg.r2.toFixed(4)}`;
+      const r2Label = document.getElementById("r2Label");
+      if (r2Label) r2Label.textContent = r2Text;
+    } else {
+      const r2Label = document.getElementById("r2Label");
+      if (r2Label) r2Label.textContent = "Add ≥2 points to compute best-fit line.";
+    }
+
+    // Annotation configuration
+    const annotations = {};
+
+    // Vertical band for LOW..HIGH (optional)
+    if (hasLow && hasHigh) {
+      annotations.rangeBand = {
+        type: "box",
+        xMin: low,
+        xMax: high,
+        yMin: 0,
+        yMax: undefined, // auto
+        backgroundColor: "rgba(25, 135, 84, 0.08)", // subtle green tint
+        borderWidth: 0,
+      };
+    }
+
+    // Vertical lines for target/limits (optional)
+    if (hasLow) {
+      annotations.lowLine = {
+        type: "line",
+        xMin: low,
+        xMax: low,
+        borderWidth: 2,
+        borderColor: "rgba(220, 53, 69, 0.75)", // red-ish
+        label: {
+          display: true,
+          content: `Low ${low}%`,
+          position: "start",
+        },
+      };
+    }
+    if (hasHigh) {
+      annotations.highLine = {
+        type: "line",
+        xMin: high,
+        xMax: high,
+        borderWidth: 2,
+        borderColor: "rgba(220, 53, 69, 0.75)", // red-ish
+        label: {
+          display: true,
+          content: `High ${high}%`,
+          position: "start",
+        },
+      };
+    }
+    if (hasTarget) {
+      annotations.targetLine = {
+        type: "line",
+        xMin: target,
+        xMax: target,
+        borderWidth: 2,
+        borderColor: "rgba(13, 110, 253, 0.80)", // blue-ish
+        label: {
+          display: true,
+          content: `Target ${target}%`,
+          position: "start",
+        },
+      };
+    }
+
+    // Register annotation plugin if present
+    if (window["chartjs-plugin-annotation"] || (Chart && Chart.registry)) {
+      // Chart.js 4 auto-registers most; plugin is global. This is safe either way.
+    }
+
+    const chart = new Chart(canvas, {
+      type: "scatter",
+      data: {
+        datasets: [
+          // Points (bold black X)
+          {
+            label: "Calibration Points",
+            data: dataPoints,
+            showLine: false,
+            pointStyle: "cross",
+            pointRadius: 8,
+            pointHoverRadius: 10,
+            pointBorderColor: "#000000",
+            pointBackgroundColor: "#000000",
+            pointBorderWidth: 3,
+          },
+          // Best-fit line (green)
+          {
+            label: reg ? `Best Fit Line (${r2Text})` : "Best Fit Line",
+            type: "line",
+            data: bestFitLine,
+            parsing: false,
+            pointRadius: 0,
+            tension: 0,
+            borderColor: "#198754",
+            borderWidth: 3,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true },
+          tooltip: {
+            callbacks: {
+              label: function (item) {
+                const x = item.parsed.x;
+                const y = item.parsed.y;
+                return `Concentration: ${x}%  |  Reading: ${y}`;
+              },
+            },
+          },
+          annotation: {
+            annotations: annotations,
+          },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,     // ✅ start at 0
+            min: 0,                // ✅ hard floor at 0
+            title: { display: true, text: "Hydrophilic Emulsifier Concentration (%)" },
+            ticks: { stepSize: 5 },
+          },
+          y: {
+            beginAtZero: true,     // ✅ start at 0
+            min: 0,                // ✅ hard floor at 0
+            title: { display: true, text: "Refractometer Reading" },
+            ticks: { stepSize: 2 },
+          },
+        },
+      },
+    });
+
+    // Export PNG
+    const btn = document.getElementById("btnExportPng");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        const url = chart.toBase64Image("image/png", 1);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "calibration_curve.png";
+        a.click();
+      });
+    }
+  })();
+</script>
+
+{% endblock %}
+

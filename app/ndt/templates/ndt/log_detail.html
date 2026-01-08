@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}NDT – Weekly Check Detail{% endblock %}
+
+{% block content %}
+<div class="container py-4" id="printArea">
+
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">Weekly Check</h1>
+      <p class="text-muted mb-0">
+        View result, traceability, and the curve plot with this weekly reading.
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 no-print">
+      <button type="button" class="btn btn-outline-secondary" id="btnDownloadPng">
+        Download Chart PNG
+      </button>
+      <button type="button" class="btn btn-primary" id="btnPrintLandscape">
+        Print (Landscape)
+      </button>
+      <a class="btn btn-outline-secondary" href="{% url 'ndt:log_list' %}">Back to Logs</a>
+      <a class="btn btn-outline-primary" href="{% url 'ndt:log_edit' log.pk %}">Edit</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Card 1: Weekly check summary -->
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <div>
+              <h2 class="h6 mb-0">Result</h2>
+              <div class="small text-muted">This saved weekly reading</div>
+            </div>
+
+            {% if log.in_limits %}
+              <span class="badge text-bg-success">In Limits</span>
+            {% else %}
+              <span class="badge text-bg-danger">Out of Limits</span>
+            {% endif %}
+          </div>
+
+          <dl class="row mb-0 small">
+            <dt class="col-6 text-muted">Checked at</dt>
+            <dd class="col-6 text-end">{{ log.checked_at|date:"Y-m-d H:i" }}</dd>
+
+            <dt class="col-6 text-muted">Operator</dt>
+            <dd class="col-6 text-end">{{ log.operator }}</dd>
+
+            <dt class="col-6 text-muted">Refractometer reading</dt>
+            <dd class="col-6 text-end fw-semibold">{{ log.refractometer_reading }}</dd>
+
+            <dt class="col-6 text-muted">Calculated %</dt>
+            <dd class="col-6 text-end fw-semibold">{{ log.calculated_concentration_percent }}%</dd>
+          </dl>
+
+          {% if log.comments %}
+            <hr class="my-3">
+            <div class="small">
+              <div class="text-muted mb-1">Comments</div>
+              <div class="text-body">{{ log.comments|linebreaksbr }}</div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Concentration is computed from the saved curve + points.
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Mix traceability -->
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <div>
+              <h2 class="h6 mb-0">Mix</h2>
+              <div class="small text-muted">Solution batch referenced</div>
+            </div>
+            {% if log.mix.is_active %}
+              <span class="badge text-bg-success">Active</span>
+            {% else %}
+              <span class="badge text-bg-secondary">Inactive</span>
+            {% endif %}
+          </div>
+
+          <div class="fw-semibold">{{ log.mix.name }}</div>
+          <div class="small text-muted mb-3">
+            Mixed at {{ log.mix.mixed_at|date:"Y-m-d H:i" }}
+            {% if log.mix.mixed_by %} • {{ log.mix.mixed_by }}{% endif %}
+            {% if log.mix.target_percent %} • Target {{ log.mix.target_percent }}%{% endif %}
+          </div>
+
+          <dl class="row mb-0 small">
+            <dt class="col-5 text-muted">Product lot</dt>
+            <dd class="col-7 text-end fw-semibold">{{ log.mix.product_lot.lot_number }}</dd>
+
+            <dt class="col-5 text-muted">Product</dt>
+            <dd class="col-7 text-end">
+              {{ log.mix.product_lot.product.manufacturer }} {{ log.mix.product_lot.product.name }}
+            </dd>
+          </dl>
+
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <a class="btn btn-outline-primary" href="{% url 'ndt:mix_edit' log.mix.pk %}">
+              View / Edit Mix
+            </a>
+            <a class="btn btn-outline-secondary" href="{% url 'ndt:log_add' %}?mix={{ log.mix.pk }}">
+              New Check
+            </a>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Weekly checks anchor to a mix for audit traceability.
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Curve details -->
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <div>
+              <h2 class="h6 mb-0">Curve Used</h2>
+              <div class="small text-muted">Curve saved on this check</div>
+            </div>
+            {% if curve.is_active %}
+              <span class="badge text-bg-success">Active</span>
+            {% else %}
+              <span class="badge text-bg-secondary">Inactive</span>
+            {% endif %}
+          </div>
+
+          <div class="fw-semibold">{{ curve.name }}</div>
+          <div class="small text-muted mb-3">
+            Created {{ curve.created_at|date:"Y-m-d H:i" }}
+            {% if curve.created_by %} • {{ curve.created_by }}{% endif %}
+          </div>
+
+          <dl class="row mb-0 small">
+            <dt class="col-6 text-muted">Curve lot</dt>
+            <dd class="col-6 text-end">
+              {% if curve.product_lot %}{{ curve.product_lot.lot_number }}{% else %}<span class="text-muted">—</span>{% endif %}
+            </dd>
+
+            <dt class="col-6 text-muted">Limits</dt>
+            <dd class="col-6 text-end">
+              {% if curve.low_limit_percent or curve.high_limit_percent %}
+                {% if curve.low_limit_percent %}{{ curve.low_limit_percent }}%{% else %}<span class="text-muted">—</span>{% endif %}
+                <span class="text-muted">to</span>
+                {% if curve.high_limit_percent %}{{ curve.high_limit_percent }}%{% else %}<span class="text-muted">—</span>{% endif %}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </dd>
+          </dl>
+
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <a class="btn btn-outline-primary" href="{% url 'ndt:curve_detail' curve.pk %}">
+              View Curve
+            </a>
+            <a class="btn btn-outline-secondary" href="{% url 'ndt:curvepoint_add' curve.pk %}">
+              Add Point
+            </a>
+          </div>
+        </div>
+
+        <div class="card-footer bg-body-tertiary small text-muted">
+          Plot below includes curve limits + this weekly point.
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <div>
+              <h2 class="h6 mb-0">Curve Plot + Weekly Reading</h2>
+              <div class="small text-muted">
+                X = Hydrophilic Emulsifier Concentration (%) • Y = Refractometer Reading
+              </div>
+            </div>
+            {% if log.in_limits %}
+              <span class="badge text-bg-success">PASS</span>
+            {% else %}
+              <span class="badge text-bg-danger">FAIL</span>
+            {% endif %}
+          </div>
+
+          <div style="height: 380px;">
+            <canvas id="weeklyCurveChart"></canvas>
+          </div>
+
+          <!-- ✅ Log ID below chart -->
+          <div class="mt-2 small text-muted">
+            Log ID: <span class="text-body fw-semibold">#{{ log.pk }}</span>
+            • Checked at <span class="text-body">{{ log.checked_at|date:"Y-m-d H:i" }}</span>
+          </div>
+
+          <div class="small text-muted mt-1">
+            Green line = best-fit line. X markers = calibration points. Black dot = weekly check.
+            {% if curve.low_limit_percent or curve.high_limit_percent %}
+              Limits shown as vertical dashed lines (if configured).
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {{ points_json|json_script:"curve-points-json" }}
+  {{ weekly_point|json_script:"weekly-point-json" }}
+  {{ limits|json_script:"curve-limits-json" }}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    @page { size: landscape; margin: 0.5in; }
+    .card { break-inside: avoid; page-break-inside: avoid; }
+  }
+</style>
+<script>
+(function () {
+  const rawPoints = JSON.parse(document.getElementById("curve-points-json")?.textContent || "[]");
+  const weeklyRaw = JSON.parse(document.getElementById("weekly-point-json")?.textContent || "{}");
+  const limitsRaw = JSON.parse(document.getElementById("curve-limits-json")?.textContent || "{}");
+
+  const toNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : NaN;
+  };
+
+  // Calibration points: {x: concentration, y: reading}
+  const pts = rawPoints
+    .map(p => ({ x: toNum(p.concentration_percent), y: toNum(p.reading) }))
+    .filter(p => Number.isFinite(p.x) && Number.isFinite(p.y))
+    .sort((a, b) => a.x - b.x);
+
+  // ✅ Weekly point is STRICTLY {x, y}
+  const weeklyPoint = { x: toNum(weeklyRaw.x), y: toNum(weeklyRaw.y) };
+
+  const low = (limitsRaw.low != null) ? toNum(limitsRaw.low) : NaN;
+  const high = (limitsRaw.high != null) ? toNum(limitsRaw.high) : NaN;
+
+  // Axis bounds
+  const maxX = Math.max(
+    0,
+    ...pts.map(p => p.x),
+    (Number.isFinite(weeklyPoint.x) ? weeklyPoint.x : 0),
+    (Number.isFinite(low) ? low : 0),
+    (Number.isFinite(high) ? high : 0),
+  );
+  const xMaxRounded = Math.ceil(maxX / 5) * 5;
+
+  const maxY = Math.max(
+    0,
+    ...pts.map(p => p.y),
+    (Number.isFinite(weeklyPoint.y) ? weeklyPoint.y : 0),
+  );
+  const yMaxRounded = Math.ceil(maxY / 2) * 2 + 2;
+
+  // Linear regression best-fit line y = a + b*x
+  function linearRegression(points) {
+    const n = points.length;
+    if (n < 2) return null;
+
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    for (const p of points) {
+      sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumXX += p.x * p.x;
+    }
+    const denom = (n * sumXX - sumX * sumX);
+    if (!denom) return null;
+
+    const b = (n * sumXY - sumX * sumY) / denom;
+    const a = (sumY - b * sumX) / n;
+    return { a, b };
+  }
+
+  const lr = linearRegression(pts);
+  const fitLine = (lr)
+    ? [
+        { x: 0, y: lr.a + lr.b * 0 },
+        { x: xMaxRounded, y: lr.a + lr.b * xMaxRounded },
+      ]
+    : [];
+
+  const vLine = (x) => [{ x, y: 0 }, { x, y: yMaxRounded }];
+
+  const ctx = document.getElementById("weeklyCurveChart");
+  if (!ctx) return;
+
+  const datasets = [];
+
+  // Best-fit line (green) — LINE ONLY
+  if (fitLine.length) {
+    datasets.push({
+      label: "Best-fit Line",
+      data: fitLine,
+      parsing: false,
+      type: "line",
+      showLine: true,
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      borderWidth: 3,
+      borderColor: "green",
+      tension: 0,
+      order: 1,
+    });
+  }
+
+  // Limit lines
+  if (Number.isFinite(low)) {
+    datasets.push({
+      label: "Low Limit",
+      data: vLine(low),
+      parsing: false,
+      type: "line",
+      showLine: true,
+      pointRadius: 0,
+      borderWidth: 2,
+      borderDash: [6, 6],
+      borderColor: "#6c757d",
+      order: 2,
+    });
+  }
+  if (Number.isFinite(high)) {
+    datasets.push({
+      label: "High Limit",
+      data: vLine(high),
+      parsing: false,
+      type: "line",
+      showLine: true,
+      pointRadius: 0,
+      borderWidth: 2,
+      borderDash: [6, 6],
+      borderColor: "#6c757d",
+      order: 2,
+    });
+  }
+
+  // Calibration points (X markers)
+  datasets.push({
+    label: "Calibration Points",
+    data: pts,
+    parsing: false,
+    type: "scatter",
+    showLine: false,
+    pointStyle: "crossRot",
+    pointRadius: 7,
+    pointHoverRadius: 9,
+    borderColor: "#000",
+    order: 10,
+  });
+
+  // ✅ Weekly check point (draw last, filled dot)
+  if (Number.isFinite(weeklyPoint.x) && Number.isFinite(weeklyPoint.y)) {
+    datasets.push({
+      label: "Weekly Check",
+      data: [weeklyPoint],
+      parsing: false,
+      type: "scatter",
+      showLine: false,
+      pointStyle: "circle",
+      pointRadius: 11,
+      pointHoverRadius: 13,
+      pointBorderWidth: 2,
+      borderColor: "#000",
+      backgroundColor: "#000",
+      order: 99,
+      clip: false,
+    });
+  } else {
+    console.warn("Weekly point not plotted.", { weeklyRaw, weeklyPoint });
+  }
+
+  const chart = new Chart(ctx, {
+    type: "scatter",
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true },
+        tooltip: {
+          callbacks: {
+            label: (item) => `Concentration: ${item.parsed.x}% | Reading: ${item.parsed.y}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          min: 0,
+          max: xMaxRounded,
+          title: {
+            display: true,
+            text: "Hydrophilic Emulsifier Concentration (%)",
+            color: "#000",
+            font: { weight: "bold" },
+          },
+          ticks: { stepSize: 5, color: "#000", font: { weight: "700" } },
+        },
+        y: {
+          min: 0,
+          max: yMaxRounded,
+          title: { display: true, text: "Refractometer Reading" },
+          ticks: { stepSize: 2 },
+        },
+      },
+    },
+  });
+
+  // Download PNG (chart only)
+  document.getElementById("btnDownloadPng")?.addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = chart.toBase64Image("image/png", 1);
+    a.download = "weekly-check-chart.png";
+    a.click();
+  });
+
+  // Print landscape
+  document.getElementById("btnPrintLandscape")?.addEventListener("click", () => {
+    chart.resize();
+    setTimeout(() => window.print(), 100);
+  });
+})();
+</script>
+
+{% endblock %}
+
