@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm" role="navigation" aria-label="Main navigation">
   <div class="container-fluid">
-    <!-- Brand -->
+    
     <a class="navbar-brand fw-bold" href="{% url 'home' %}">
       <i class="bi bi-gear-fill me-1"></i> Piedmont Aviation
     </a>
@@ -36,17 +36,10 @@
 
 
         <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'part_list' %}active{% endif %}" href="{% url 'part_list' %}" title="Parts">
+          <a class="nav-link {% if request.resolver_match.url_name == 'operator_start' %}active{% endif %}" href="{% url 'part_list' %}" title="Parts">
             <i class="bi bi-box-seam me-1"></i> Parts
           </a>
         </li>
-
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'operator_list' %}active{% endif %}" href="{% url 'drawings:operator_list' %}" title="Plating Area Card">
-            <i class="bi bi-box-seam me-1"></i> Plating Area Card
-          </a>
-        </li>
-
 
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'standard_list' %}active{% endif %}" href="{% url 'standard_list' %}" title="Standards">
