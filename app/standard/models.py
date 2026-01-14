@@ -338,8 +338,6 @@ class Classification(models.Model):
             f"Class: {self.class_name or 'N/A'}, "
             f"Type: {self.type or 'N/A'}"
         )
-        if self.standard_process:
-            return f"{base} [{self.standard_process.title}]"
         return f"{self.standard.name} - {base}"
 
 
