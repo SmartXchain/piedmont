@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Start Work{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+  <div class="text-center mb-4">
+    <h1 class="display-6 fw-bold text-primary">
+      <i class="bi bi-play-circle me-2"></i> Start Work
+    </h1>
+    <p class="text-muted mb-0">
+      Choose the correct workflow. If surface area calculations are required, use <strong>Tracked Work Order</strong>.
+    </p>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Untracked Templates -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start gap-3">
+            <div class="rounded-3 p-3 bg-dark text-white">
+              <i class="bi bi-file-earmark-text fs-3"></i>
+            </div>
+            <div class="flex-grow-1">
+              <h2 class="h4 mb-2">Print Chemical Process Template</h2>
+              <p class="text-muted mb-3">
+                Use when the job <strong>does NOT</strong> require surface area calculations and you just need a
+                traveler to fill out manually.
+              </p>
+
+              <ul class="text-muted small mb-4">
+                <li>No Work Order record saved</li>
+                <li>Good for quick / simple processing</li>
+                <li>Operator fills in fields manually</li>
+              </ul>
+
+              <a href="{% url 'global_template_list' %}" class="btn btn-dark btn-lg w-100">
+                <i class="bi bi-printer me-2"></i> Go to Templates
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer bg-transparent border-0 px-4 pb-4">
+          <div class="alert alert-secondary mb-0 small">
+            <strong>Rule of thumb:</strong> If you don’t need amps/time from surface area, use Templates.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tracked Parts / Work Orders -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start gap-3">
+            <div class="rounded-3 p-3 bg-primary text-white">
+              <i class="bi bi-tools fs-3"></i>
+            </div>
+            <div class="flex-grow-1">
+              <h2 class="h4 mb-2">Start Tracked Work Order</h2>
+              <p class="text-muted mb-3">
+                Use when surface area calculations are required (amps / ASF / plating time) or when the job must be
+                tracked and saved.
+              </p>
+
+              <ul class="text-muted small mb-4">
+                <li>Work Order saved with history</li>
+                <li>Supports surface area / rectified calculations</li>
+                <li>Preferred for plating work</li>
+              </ul>
+
+              <a href="{% url 'part_list' %}" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-search me-2"></i> Find a Part (Tracked)
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer bg-transparent border-0 px-4 pb-4">
+          <div class="alert alert-primary mb-0 small">
+            <strong>Required:</strong> Use Tracked Work Order for cadmium / nickel / chrome plating with surface area.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+

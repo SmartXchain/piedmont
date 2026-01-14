@@ -4,8 +4,11 @@ from . import views
 
 
 urlpatterns = [
+    # --- START PAGE FOR PARTS ---
+    path('', views.operator_start_view, name='operator_start'),
+
     # --- PART MANAGEMENT ---
-    path('', views.part_list_view, name='part_list'),
+    path('parts/', views.part_list_view, name='part_list'),
     path('parts/<int:part_id>/', views.part_detail_view, name='part_detail'),
     path('parts/add/', views.part_create_view, name='part_create'),
     path('parts/<int:part_id>/assign-standard/', views.part_assign_standard_view, name='part_assign_standard'),

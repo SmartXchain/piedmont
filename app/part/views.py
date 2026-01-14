@@ -18,6 +18,13 @@ from django.db import transaction
 
 
 # PART MANAGEMENT VIEWS
+def operator_start_view(request):
+    """
+    Operator landing page:
+    - Templates = untracked traveler (no surface area calcs)
+    - Parts = tracked WO flow (surface area calcs, saved history)
+    """
+    return render(request, 'part/operator_start.html')
 
 
 # 📌 List all parts (Read-Only)
