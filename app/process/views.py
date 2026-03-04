@@ -9,6 +9,7 @@ from django.views.generic import ListView
 from django.db.models import Q
 from django.utils.text import slugify
 from django.http import HttpResponse
+from django.db.models import F
 
 
 def get_classifications(request):
@@ -42,11 +43,6 @@ def get_method_info(request):
 
 
 class ProcessLandingView(ListView):
-    """
-    Operator-facing landing page:
-    - Lists all Processes
-    - Simple search by Standard, Classification, or StandardProcess
-    """
     model = Process
     template_name = "process/process_landing.html"
     context_object_name = "processes"
@@ -64,13 +60,9 @@ class ProcessLandingView(ListView):
             qs = qs.filter(
                 Q(standard__name__icontains=q) |
                 Q(classification__class_name__icontains=q) |
-                Q(standard_process__name__icontains=q)
+                Q(standard_process__title__icontains=q) |
+                Q(standard_process__description__icontains=q)
             )
-
-        # Optional: hide template processes or show only them
-        # show_templates = self.request.GET.get("templates") == "1"
-        # if not show_templates:
-        #     qs = qs.filter(is_template=False)
 
         return qs
 

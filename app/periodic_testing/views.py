@@ -24,8 +24,22 @@ def weekly_view(request):
 
 # MONTHLY
 def monthly_view(request):
-    return render(request, 'periodic_testing/tabs/monthly.html')
+    qs = (
+        PeriodicTestResult.objects
+        .select_related("test", "test__tank", "test__standard", "reviewed_by")
+        .filter(test__frequency="MONTHLY")   # adjust to your field
+        .order_by("-performed_on", "-id")
+    )
 
+    results = []
+    for r in qs:
+        results.append({
+            "obj": r,
+            "yy": f"{r.performed_on:%y}",  # last 2 digits
+            "mm": f"{r.performed_on:%m}",  # two digits
+        })
+
+    return render(request, "periodic_testing/tabs/monthly.html", {"results": results})
 
 # SEMI-ANNUAL
 def semi_annual_view(request):

@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from standard.models import PeriodicTest
+from methods.models import Method
 
 
 class FailureLog(models.Model):
@@ -82,3 +84,136 @@ class DailyTask(models.Model):
 
     def __str__(self):
         return f"{self.template.name} — {self.scheduled_for}"
+
+
+# periodic_testing/models.py
+class PeriodicTestTank(models.Model):
+    """
+    Binds a Standard periodic test requirement (PeriodicTest) to a specific tank Method.
+    This gives you: Specification (from PeriodicTest) -> Tank Name (from Method).
+    """
+
+    periodic_test = models.ForeignKey(
+        PeriodicTest,
+        on_delete=models.CASCADE,
+        related_name="tank_links",
+        db_index=True,
+    )
+
+    # Tank comes from Process -> ProcessStep -> Method; we store the Method here.
+    tank_method = models.ForeignKey(
+        Method,
+        on_delete=models.PROTECT,
+        related_name="periodic_test_links",
+        db_index=True,
+        help_text="Select the tank Method that this periodic test applies to.",
+    )
+
+    active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["periodic_test", "tank_method"],
+                name="uniq_periodic_test_per_tank_method",
+            )
+        ]
+        ordering = ["periodic_test__standard__name", "periodic_test__name", "tank_method__title"]
+
+    def __str__(self) -> str:
+        return f"{self.periodic_test.standard.name} — {self.periodic_test.name} — {self.tank_label}"
+
+    @property
+    def tank_label(self) -> str:
+        # Prefer explicit tank_name if you use it, else fall back to method title
+        return self.tank_method.tank_name or self.tank_method.title
+
+
+class TankPanelSerial(models.Model):
+    """
+    Serial numbers (Panels' S/N) stored under each Specification->Tank link.
+    So: PeriodicTest (spec) -> Tank Method -> Serial Numbers.
+    """
+
+    tank_link = models.ForeignKey(
+        PeriodicTestTank,
+        on_delete=models.CASCADE,
+        related_name="panel_serials",
+        db_index=True,
+    )
+
+    serial_number = models.CharField(
+        max_length=255,
+        db_index=True,
+        verbose_name="Panels' S/N",
+    )
+
+    active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tank_link", "serial_number"],
+                name="uniq_panel_serial_per_tank_link",
+            )
+        ]
+        ordering = ["tank_link__id", "serial_number"]
+
+    def __str__(self) -> str:
+        return f"{self.tank_link.tank_label} — {self.serial_number}"
+
+
+class PeriodicTestTankResult(models.Model):
+    """
+    Monthly (or other frequency) execution record per Specification->Tank link.
+    Stores pass/fail, reviewed by, pdf.
+    """
+
+    tank_link = models.ForeignKey(
+        PeriodicTestTank,
+        on_delete=models.CASCADE,
+        related_name="results",
+        db_index=True,
+    )
+
+    performed_on = models.DateField(default=timezone.localdate, db_index=True)
+
+    performed_by = models.CharField(max_length=255, blank=True, null=True)
+
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="periodic_tank_results_reviewed",
+    )
+
+    passed = models.BooleanField(default=True)
+
+    report_pdf = models.FileField(
+        upload_to="periodic_tests/",
+        blank=True,
+        null=True,
+    )
+
+    # You can test one or many panels in a report; keep it flexible:
+    panels_used = models.ManyToManyField(
+        TankPanelSerial,
+        blank=True,
+        related_name="results_used_in",
+    )
+
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-performed_on", "-id"]
+
+        # Optional but very useful: prevent duplicates for the same month.
+        # If you want this, tell me and I’ll add the clean month-key constraint.
+        # constraints = []
+
+    def __str__(self) -> str:
+        status = "Pass" if self.passed else "Fail"
+        return f"{self.tank_link.tank_label} — {self.performed_on} — {status}"

@@ -1,47 +1,107 @@
-<h2 class="text-xl font-bold mb-4">📅 Monthly Periodic Tests</h2>
+<h2 class="h4 mb-3">📅 Monthly Periodic Tests</h2>
 
-<table class="table-auto border-collapse border border-gray-400 w-full">
-  <thead>
-    <tr>
-      <th class="border px-2 py-1">Standard</th>
-      <th class="border px-2 py-1">Test</th>
-      <th class="border px-2 py-1">Specification</th>
-      <th class="border px-2 py-1">Material</th>
-      <th class="border px-2 py-1">Last Result</th>
-      <th class="border px-2 py-1">Last Date</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for test in tests %}
-      <tr>
-        <td class="border px-2 py-1">{{ test.standard.name }}</td>
-        <td class="border px-2 py-1">{{ test.name }}</td>
-        <td class="border px-2 py-1">{{ test.specification }}</td>
-        <td class="border px-2 py-1">{{ test.material }}</td>
-        <td class="border px-2 py-1">
-          {% with latest=test.results.first %}
-            {% if latest %}
-              {% if latest.passed %} ✅ Pass {% else %} ❌ Fail {% endif %}
-            {% else %}
-              No result yet
-            {% endif %}
-          {% endwith %}
-        </td>
-        <td class="border px-2 py-1">
-          {% with latest=test.results.first %}
-            {% if latest %}
-              {{ latest.performed_on }}
-            {% else %}
-              —
-            {% endif %}
-          {% endwith %}
-        </td>
-      </tr>
-    {% empty %}
-      <tr>
-        <td colspan="6" class="text-center border px-2 py-1">No monthly periodic tests defined.</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+{% regroup results by yy as year_groups %}
 
+<div class="accordion" id="monthlyAccordion">
+  {% for year in year_groups %}
+    {% regroup year.list by mm as month_groups %}
+
+    <!-- Year header (simple separator card) -->
+    <div class="card mb-3">
+      <div class="card-header fw-bold">
+        Year: {{ year.grouper }}
+      </div>
+
+      <div class="card-body p-2">
+        <div class="accordion" id="year-{{ year.grouper }}-accordion">
+          {% for month in month_groups %}
+            {% with y=year.grouper m=month.grouper %}
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-{{ y }}-{{ m }}">
+                  <button class="accordion-button collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#collapse-{{ y }}-{{ m }}"
+                          aria-expanded="false"
+                          aria-controls="collapse-{{ y }}-{{ m }}">
+                    {{ y }}-{{ m }}
+                    <span class="ms-2 text-muted small">
+                      ({{ month.list|length }} record{{ month.list|length|pluralize }})
+                    </span>
+                  </button>
+                </h2>
+
+                <div id="collapse-{{ y }}-{{ m }}"
+                     class="accordion-collapse collapse"
+                     aria-labelledby="heading-{{ y }}-{{ m }}"
+                     data-bs-parent="#year-{{ y }}-accordion">
+                  <div class="accordion-body p-2">
+
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Tank</th>
+                            <th>Specification</th>
+                            <th>Panels' S/N</th>
+                            <th>Reviewed By</th>
+                            <th>Pass/Fail</th>
+                            <th>PDF</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for item in month.list %}
+                            {% with r=item.obj %}
+                              <tr>
+                                <td>
+                                  {{ r.test.tank.name|default:r.test.standard.name|default:"—" }}
+                                </td>
+
+                                <td>{{ r.test.specification|default:"—" }}</td>
+
+                                <td>{{r.panels_serial_number|default:"-" }}</td>
+
+                                <td>
+                                  {{ r.reviewed_by.get_full_name|default:r.reviewed_by|default:"—" }}
+                                </td>
+
+                                <td>
+                                  {% if r.passed %}
+                                    <span class="badge bg-success">Pass</span>
+                                  {% else %}
+                                    <span class="badge bg-danger">Fail</span>
+                                  {% endif %}
+                                </td>
+
+                                <td>
+                                  {% if r.pdf %}
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       href="{{ r.pdf.url }}"
+                                       target="_blank" rel="noopener">
+                                      View PDF
+                                    </a>
+                                  {% else %}
+                                    —
+                                  {% endif %}
+                                </td>
+                              </tr>
+                            {% endwith %}
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            {% endwith %}
+          {% empty %}
+            <div class="text-muted px-2 py-2">No monthly periodic tests defined.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="alert alert-info">No monthly periodic tests defined.</div>
+  {% endfor %}
+</div>
