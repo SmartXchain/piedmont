@@ -41,6 +41,7 @@ def monthly_view(request):
 
     return render(request, "periodic_testing/tabs/monthly.html", {"results": results})
 
+
 # SEMI-ANNUAL
 def semi_annual_view(request):
     return render(request, 'periodic_testing/tabs/semi_annual.html')
