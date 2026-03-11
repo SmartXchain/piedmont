@@ -52,7 +52,7 @@ class Standard(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        review_flag = "🔴 Requires Process Review" if self.requires_process_review else ""
+        review_flag = "[REVIEW REQUIRED]" if self.requires_process_review else ""
         return f"{self.name} (Rev {self.revision}) {review_flag}"
 
 

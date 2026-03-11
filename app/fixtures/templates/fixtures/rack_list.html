@@ -96,13 +96,15 @@
           {% endfor %}">
           
           <!-- Rack Photo -->
-          {% if rack.photos.first %}
-          <img src="{{ rack.photos.first.image.url }}" class="card-img-top img-fluid" alt="Rack Photo">
+          {% with photo=rack.photos.all|first %}
+          {% if photo %}
+          <img src="{{ photo.image.url }}" class="card-img-top img-fluid" alt="Rack Photo">
           {% else %}
           <div class="card-header text-center text-muted bg-light py-5">
             <em>No Photo</em>
           </div>
           {% endif %}
+          {% endwith %}
 
           <!-- Card Body -->
           <div class="card-body">

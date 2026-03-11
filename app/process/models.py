@@ -3,8 +3,6 @@ from django.db import models
 from methods.models import Method
 from standard.models import Standard, Classification, StandardProcess
 from django.db.models import UniqueConstraint, CheckConstraint, Q
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
 
 
 class Process(models.Model):
@@ -16,7 +14,7 @@ class Process(models.Model):
     )
     standard_process = models.ForeignKey(
         StandardProcess,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='processes',
         db_index=True
     )
@@ -90,7 +88,7 @@ class ProcessStep(models.Model):
                 name="uniq_step_number_per_process"
             ),
             CheckConstraint(
-                check=Q(step_number__gte=1),
+                condition=Q(step_number__gte=1),
                 name="step_number_gte_1"
             ),
         ]

@@ -6,8 +6,6 @@ from typing import Any, Dict, List
 
 from django.http import JsonResponse
 from django.utils import timezone
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, View
 
 from .models import DelayLog, ManufacturingOrder
@@ -150,7 +148,6 @@ class SchedulerDataView(View):
         return f"#{hash_obj.hexdigest()[:6]}"
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class AddDelayView(View):
     """Adds delay minutes and appends a mandatory reason to the DelayLog."""
 
@@ -215,7 +212,6 @@ class AddDelayView(View):
             )
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class UpdateStatusView(View):
     """Updates order status via UI (right-click menu)."""
 

@@ -1,5 +1,9 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 from .models import FailureLog, DailyTask, DailyTaskTemplate
 from .services import ensure_daily_instances_for
 from standard.models import PeriodicTest, PeriodicTestResult
@@ -119,7 +123,7 @@ def daily_task_summary(request: HttpRequest, template_id: int) -> HttpResponse:
       - Table of each day with status/operator
     Ensures one DailyTask per day exists for the window.
     """
-    print("HIT daily_task_summary:", template_id)
+    logger.debug("daily_task_summary called for template_id=%s", template_id)
     template_obj = get_object_or_404(DailyTaskTemplate, pk=template_id)
     today = timezone.localdate()
     start = today - timedelta(days=29)

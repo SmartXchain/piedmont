@@ -1,5 +1,9 @@
+import logging
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
+
+logger = logging.getLogger(__name__)
 from django.db.models import Q, Max
 from .models import MaskingProcess, MaskingStep
 from .forms import MaskingProcessForm, MaskingStepForm
@@ -8,7 +12,6 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 import tempfile
 from django.utils import timezone
-from django.conf import settings
 import os
 
 
@@ -89,10 +92,9 @@ def masking_process_pdf_view(request, process_id):
     for step in steps:
         image_url = None
         if step.image:
-            # Ensure correct MEDIA_URL path for production
-            image_url = os.path.join(settings.MEDIA_ROOT, step.image.name)
-            if not os.path.exists(image_url):  # Debugging
-                print(f"Image NOT FOUND: {image_url}")
+            image_url = step.image.path
+            if not os.path.exists(image_url):
+                logger.warning("Masking step image not found on disk: %s", image_url)
 
         step_data.append({
             "step_number": step.step_number,

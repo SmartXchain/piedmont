@@ -54,7 +54,7 @@ class PartStandard(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['part', 'standard', 'classification'],
-                condition=Q(classification__isnull=True),
+                condition=Q(classification__isnull=False),
                 name='unique_part_standard_with_classification'
             ),
             models.UniqueConstraint(

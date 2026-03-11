@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.utils.timezone import now
 from datetime import timedelta
 from django.http import HttpResponse
@@ -9,14 +9,12 @@ from .models import Product, ChemicalLot
 def kanban_dashboard(request):
     """Displays the Kanban Inventory Dashboard."""
 
-    # Fetch all products
-    products = Product.objects.all()
+    products = Product.objects.prefetch_related('chemical_lots')
 
-    # Separate products into categories based on their status
-    available_products = [product for product in products if product.get_current_stock() > product.trigger_level]
-    expiring_soon_products = [product for product in products if any(lot.is_expiring_soon() for lot in product.chemical_lots.all())]
-    expired_products = [product for product in products if any(lot.is_expired() for lot in product.chemical_lots.all())]
-    needs_reorder_products = [product for product in products if product.get_current_stock() <= product.trigger_level]
+    available_products = [p for p in products if p.total_quantity > p.trigger_level]
+    expiring_soon_products = [p for p in products if any(lot.is_expiring_soon() for lot in p.chemical_lots.all())]
+    expired_products = [p for p in products if any(lot.is_expired() for lot in p.chemical_lots.all())]
+    needs_reorder_products = [p for p in products if p.total_quantity <= p.trigger_level]
 
     return render(request, 'kanban/kanban_dashboard.html', {
         'available_products': available_products,
@@ -28,13 +26,13 @@ def kanban_dashboard(request):
 
 def product_list(request):
     """Displays a list of all products and their stock status."""
-    products = Product.objects.all()
+    products = Product.objects.prefetch_related('chemical_lots')
     return render(request, "kanban/product_list.html", {"products": products})
 
 
 def product_detail(request, product_id):
     """Displays details of a specific product, including lots."""
-    product = Product.objects.get(id=product_id)
+    product = get_object_or_404(Product, id=product_id)
     chemical_lots = ChemicalLot.objects.filter(product=product).order_by('expiry_date')
     return render(request, "kanban/product_detail.html", {"product": product, "chemical_lots": chemical_lots})
 

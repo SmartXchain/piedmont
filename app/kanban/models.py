@@ -63,5 +63,9 @@ class ChemicalLot(models.Model):
         """Check if the lot has expired."""
         return self.status == "Expired"
 
+    def is_expiring_soon(self):
+        """Check if the lot is expiring within the threshold window."""
+        return self.status == "Expiring Soon"
+
     def __str__(self):
         return f"{self.product.name} - Lot {self.lot_number} - {self.quantity} units ({self.status})"

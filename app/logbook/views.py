@@ -1,6 +1,7 @@
 # logbook/views.py
-from datetime import datetime, time
 import csv
+import logging
+from datetime import datetime, time
 import json
 from django.db import transaction
 from django.db.models import fields as model_fields
@@ -21,6 +22,8 @@ from .models import (
     ScrubberLog,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def operator_env_log_create(request):
     success = False
@@ -39,13 +42,12 @@ def operator_env_log_create(request):
                     scrubber_form.save()
                     return redirect("logbook:index")
                 else:
-                    # Optional: print to console while debugging
-                    print("Daily form errors:", daily_form.errors)
-                    print("Scrubber form errors:", scrubber_form.errors)
+                    logger.warning("Logbook form validation failed — daily: %s | scrubber: %s",
+                                   daily_form.errors, scrubber_form.errors)
                     success = False
 
         except Exception as exc:
-            print(f"Error during log submission: {exc}")
+            logger.exception("Unexpected error during logbook submission: %s", exc)
             success = False
     else:
         daily_form = DailyInspectionLogForm(prefix="daily")

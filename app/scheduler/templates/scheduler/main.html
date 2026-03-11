@@ -5,6 +5,7 @@ Chemical Processing Scheduler
 {% endblock %}
 
 {% block content %}
+<meta name="csrf-token" content="{{ csrf_token }}">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.10/index.global.min.js"></script>
 
 <style>
@@ -107,6 +108,10 @@ Chemical Processing Scheduler
 </div>
 
 <script>
+  function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
     const ctxMenu = document.getElementById('ctxMenu');
@@ -147,7 +152,10 @@ Chemical Processing Scheduler
 
       fetch('{% url "scheduler:update_status" %}', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken()
+        },
         body: JSON.stringify({ orderId: ctxOrderId, status: newStatus })
       })
       .then(res => res.json())
@@ -225,7 +233,10 @@ Chemical Processing Scheduler
 
         fetch('{% url "scheduler:add_delay" %}', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
           body: JSON.stringify({
             orderId: props.orderId,
             stepNumber: props.stepNumber,
