@@ -92,7 +92,13 @@ docker compose run web python manage.py migrate
 
 ### Python
 
-- Flake8 enforced. Max line length **79 characters**. Fix all `F`-series errors before finishing.
+- **Flake8 is enforced on every build** (ignore list: E501, F401, W503, W504). **All code written or modified must pass `flake8 app/` with zero errors before finishing.** Run it locally before committing:
+  ```bash
+  flake8 --ignore=E501,F401,W503,W504 app/
+  ```
+- **Import ordering:** All `import` statements must appear before any executable code (no `E402`). Do not insert `logger = logging.getLogger(__name__)` or any other statement between import blocks — place it after all imports.
+- **Unused variables:** Never leave a local variable assigned but unused (`F841`). If a value is intentionally discarded, use `_`.
+- **Blank lines:** Two blank lines between top-level definitions, one between methods (`E303`). Do not add extra blank lines between module-level functions.
 - No `print()` statements. Use `import logging` and `logger = logging.getLogger(__name__)`.
 - No bare `except:` clauses. Catch specific exceptions.
 - No unused imports.

@@ -345,7 +345,7 @@ class TestDashboardStockBuckets(TestCase):
         self.assertNotIn("Borderline Chemical", available_names)
 
     def test_product_with_no_stock_is_in_needs_reorder(self):
-        p = make_product(name="Empty Chemical", trigger_level=10)
+        make_product(name="Empty Chemical", trigger_level=10)
 
         response = self._get()
         needs_reorder_names = [

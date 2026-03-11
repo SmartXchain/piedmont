@@ -1,18 +1,20 @@
 import logging
+from datetime import date, timedelta
+from typing import Dict, Any
 
-from django.shortcuts import render, redirect, get_object_or_404
+from django import forms
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.http import Http404, HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-logger = logging.getLogger(__name__)
-from .models import FailureLog, DailyTask, DailyTaskTemplate
-from .services import ensure_daily_instances_for
 from standard.models import PeriodicTest, PeriodicTestResult
-from django.contrib.auth.decorators import login_required
-from django import forms
-from typing import Dict, Any
-from datetime import timedelta, date
-from django.http import HttpRequest, HttpResponse, Http404
-from django.db import transaction
+
+from .models import DailyTask, DailyTaskTemplate, FailureLog
+from .services import ensure_daily_instances_for
+
+logger = logging.getLogger(__name__)
 
 
 # Landing page redirects to daily by default

@@ -70,6 +70,19 @@ Code review issues and feature work for the `landing_page` app.
 
 ---
 
+## Flake8 — Production Build Errors
+
+Errors surfaced during production Docker build (`flake8 --ignore=E501,F401,W503,W504`).
+
+| # | Status | Task | Plan ref | Notes |
+|---|---|---|---|---|
+| F8-1 | `[x]` | Fix F841 unused variable `p` in `kanban/tests.py:348` | PLAN.md §24 | Drop the assignment; record is created, `p` is never read |
+| F8-2 | `[x]` | Fix E303 too many blank lines in `landing_page/views.py:48` | PLAN.md §24 | 3 blank lines between functions → 2 |
+| F8-3 | `[x]` | Fix E402 imports-not-at-top in `masking/views.py` | PLAN.md §24 | Move `logger = logging.getLogger(__name__)` below all imports |
+| F8-4 | `[x]` | Fix E402 imports-not-at-top in `periodic_testing/views.py` | PLAN.md §24 | Move `logger = logging.getLogger(__name__)` below all imports |
+
+---
+
 ## UI / UX
 
 | # | Status | Task | Plan ref | Notes |

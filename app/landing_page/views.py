@@ -44,7 +44,6 @@ def landing_page(request):
     })
 
 
-
 def capability_pricing_detail(request, pk):
     capability = get_object_or_404(
         Capability.objects.select_related('category').prefetch_related('tags', 'addons'),

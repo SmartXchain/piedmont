@@ -22,6 +22,15 @@ Categories: `Added`, `Changed`, `Fixed`, `Removed`, `Security`, `Migration`
 
 ## 2026-03-11 (continued)
 
+- Fixed: E402 module-level imports not at top in `periodic_testing/views.py` — moved `logger` assignment below all imports and sorted import blocks (F8-4)
+- Fixed: E402 module-level imports not at top in `masking/views.py` — moved `logger` assignment below all imports and sorted import blocks (F8-3)
+- Fixed: E303 extra blank line between functions in `landing_page/views.py:48` (F8-2)
+- Fixed: F841 unused variable `p` in `kanban/tests.py:348` — dropped assignment, record creation is sufficient (F8-1)
+
+---
+
+## 2026-03-11 (continued)
+
 - Added: Tests for `landing_page` — 18 tests in 3 classes covering home page status/context/classification labels, `capability_pricing_detail` 200/404/context, `export_capabilities_csv` content-type/headers/data; all auth redirects verified (LP-6)
 - Fixed: Completed truncated `pricing_detail.html` template — file was cut off mid-tag causing `TemplateSyntaxError` on the pricing detail view (LP-6 side fix)
 

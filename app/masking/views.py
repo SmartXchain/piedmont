@@ -1,18 +1,19 @@
 import logging
+import os
+import tempfile
 
-from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models import Q, Max
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
+from django.utils import timezone
+from weasyprint import HTML
+
+from .forms import MaskingProcessForm, MaskingStepForm
+from .models import MaskingProcess, MaskingStep
 
 logger = logging.getLogger(__name__)
-from django.db.models import Q, Max
-from .models import MaskingProcess, MaskingStep
-from .forms import MaskingProcessForm, MaskingStepForm
-from django.http import HttpResponse
-from django.template.loader import render_to_string
-from weasyprint import HTML
-import tempfile
-from django.utils import timezone
-import os
 
 
 def masking_list(request):

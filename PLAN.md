@@ -577,3 +577,73 @@ Delete `customer_pricing_view` entirely — it is not registered in `urls.py` an
 - Home page returns 200 with empty `grouped` context when no processes exist.
 - Auth redirect: unauthenticated request → 302 (already covered by T-6; confirm LP-2 view is protected).
 - `capability_pricing_detail` returns 200 for valid pk, 404 for invalid pk.
+
+---
+
+## 24. Flake8 — Fix Production Build Errors
+
+**Task ref:** F8-1, F8-2, F8-3, F8-4
+**Date planned:** 2026-03-11
+**Status:** Todo
+
+Flake8 runs on every production Docker build (`--ignore=E501,F401,W503,W504`). Four
+error classes were found during the first post-refactor production deploy. Fix all
+before the next push.
+
+### F8-1 — `kanban/tests.py:348` F841 unused variable
+
+**File:** `app/kanban/tests.py:348`
+
+```python
+# before (F841 — p is assigned but never used)
+p = make_product(name="Empty Chemical", trigger_level=10)
+
+# after
+make_product(name="Empty Chemical", trigger_level=10)
+```
+
+The variable is only needed to create the DB record; the test reads from the
+view response context, not from `p` directly. Drop the assignment.
+
+### F8-2 — `landing_page/views.py:48` E303 too many blank lines
+
+**File:** `app/landing_page/views.py:48`
+
+Two blank lines between top-level functions is the PEP 8 standard; the file
+currently has three between `landing_page()` and `capability_pricing_detail()`.
+Remove the extra blank line.
+
+### F8-3 — `masking/views.py:7–15` E402 module-level imports not at top
+
+**File:** `app/masking/views.py`
+
+`logger = logging.getLogger(__name__)` was placed between import blocks on line 6,
+causing every subsequent import to be flagged E402. Move the logger assignment to
+after all imports.
+
+```python
+# correct order
+import logging
+import os
+import tempfile
+
+from django.db.models import Q, Max
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.urls import reverse_lazy
+from django.utils import timezone
+from weasyprint import HTML
+
+from .forms import MaskingProcessForm, MaskingStepForm
+from .models import MaskingProcess, MaskingStep
+
+logger = logging.getLogger(__name__)
+```
+
+### F8-4 — `periodic_testing/views.py:7–15` E402 module-level imports not at top
+
+**File:** `app/periodic_testing/views.py`
+
+Same root cause as F8-3. Move `logger = logging.getLogger(__name__)` to after all
+imports.
