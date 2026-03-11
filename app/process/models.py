@@ -96,9 +96,6 @@ class ProcessStep(models.Model):
             models.Index(fields=["process", "step_number"]),
         ]
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
     def __str__(self):
         process_info = self.process.standard.name if self.process_id and self.process.standard else "Unsaved Process"
         method_info = self.method.title if self.method_id else "No Method"

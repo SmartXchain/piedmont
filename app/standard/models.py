@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import UniqueConstraint, Q
+from django.db.models import UniqueConstraint
 
 """
 1. CORE STANDARD MODEL
@@ -110,8 +110,13 @@ class StandardProcess(models.Model):
     )
 
     class Meta:
-        unique_together = ('standard', 'title')
         ordering = ['standard__name', 'title']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['standard', 'title'],
+                name='unique_standard_process_title',
+            )
+        ]
 
     def __str__(self):
         return f"{self.standard.name} — {self.title} ({self.process_type})"
@@ -272,8 +277,13 @@ class StandardPeriodicRequirement(models.Model):
     )
 
     class Meta:
-        unique_together = ("standard", "test_spec")
         ordering = ["standard__name", "test_spec__name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['standard', 'test_spec'],
+                name='unique_standard_periodic_requirement',
+            )
+        ]
 
     def __str__(self) -> str:
         return f"{self.standard.name} ⇄ {self.test_spec.name}"
@@ -340,22 +350,3 @@ class Classification(models.Model):
         )
         return f"{self.standard.name} - {base}"
 
-
-# --- Utility helpers (unchanged from yours) ---
-
-def create_standard(name, description, revision, author, upload_file=None):
-    return Standard.objects.create(
-        name=name,
-        description=description,
-        revision=revision,
-        author=author,
-        upload_file=upload_file
-    )
-
-
-def list_standards():
-    return Standard.objects.all()
-
-
-def get_standard_by_id(standard_id):
-    return Standard.objects.get(id=standard_id)

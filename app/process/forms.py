@@ -11,7 +11,13 @@ from methods.models import Method
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
-        fields = '__all__'
+        fields = [
+            'standard',
+            'standard_process',
+            'classification',
+            'description',
+            'is_template',
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

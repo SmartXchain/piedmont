@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.forms.models import BaseInlineFormSet
-from django.shortcuts import redirect
 from tank_controls.models import PeriodicTestSpec
 from .models import (
     Standard,

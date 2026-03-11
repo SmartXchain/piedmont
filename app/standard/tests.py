@@ -1,7 +1,12 @@
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 
-from .models import Standard
+from .models import (
+    Classification,
+    Standard,
+    StandardProcess,
+    StandardRevisionNotification,
+)
 
 
 def make_standard(name="AMS-2404", revision="A", requires_process_review=False):
@@ -129,3 +134,83 @@ class TestStandardStr(TestCase):
         for char in str(std):
             self.assertLess(ord(char), 0x2000,
                             f"Non-ASCII/emoji character found in __str__: {repr(char)}")
+
+
+# ---------------------------------------------------------------------------
+# StandardProcess
+# ---------------------------------------------------------------------------
+
+class TestStandardProcessStr(TestCase):
+    """Verify StandardProcess.__str__() format."""
+
+    def setUp(self):
+        self.std = make_standard()
+        self.sp = StandardProcess.objects.create(
+            standard=self.std,
+            process_type='electroplate',
+            title='Cadmium Plate',
+        )
+
+    def test_str_contains_standard_name(self):
+        self.assertIn(self.std.name, str(self.sp))
+
+    def test_str_contains_title(self):
+        self.assertIn('Cadmium Plate', str(self.sp))
+
+    def test_str_contains_process_type(self):
+        self.assertIn('electroplate', str(self.sp))
+
+
+# ---------------------------------------------------------------------------
+# Classification
+# ---------------------------------------------------------------------------
+
+class TestClassificationStr(TestCase):
+    """Verify Classification.__str__() includes method/class/type."""
+
+    def setUp(self):
+        self.std = make_standard()
+
+    def test_str_with_all_fields(self):
+        clf = Classification.objects.create(
+            standard=self.std,
+            method='I',
+            class_name='1',
+            type='II',
+        )
+        result = str(clf)
+        self.assertIn('Method: I', result)
+        self.assertIn('Class: 1', result)
+        self.assertIn('Type: II', result)
+
+    def test_str_shows_na_for_missing_fields(self):
+        clf = Classification.objects.create(standard=self.std)
+        result = str(clf)
+        self.assertIn('N/A', result)
+
+    def test_str_contains_standard_name(self):
+        clf = Classification.objects.create(
+            standard=self.std, method='I'
+        )
+        self.assertIn(self.std.name, str(clf))
+
+
+# ---------------------------------------------------------------------------
+# StandardRevisionNotification
+# ---------------------------------------------------------------------------
+
+class TestStandardRevisionNotificationStr(TestCase):
+    """Verify StandardRevisionNotification.__str__() format."""
+
+    def setUp(self):
+        self.std = make_standard(revision='B')
+        self.note = StandardRevisionNotification.objects.create(
+            standard=self.std,
+            message='Rev B issued — processes require re-review.',
+        )
+
+    def test_str_contains_standard_name(self):
+        self.assertIn(self.std.name, str(self.note))
+
+    def test_str_contains_revision(self):
+        self.assertIn('Rev B', str(self.note))

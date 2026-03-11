@@ -70,6 +70,40 @@ Code review issues and feature work for the `landing_page` app.
 
 ---
 
+## Process App
+
+Code review findings for the `process` app.
+
+| # | Status | Task | Plan ref | Notes |
+|---|---|---|---|---|
+| PR-1 | `[x]` | Replace `Method.objects.get()` with `get_object_or_404()` in `views.py:30` | PLAN.md §33 | Remove try/except; `get_object_or_404` already imported |
+| PR-2 | `[x]` | Remove no-op `ProcessStep.save()` override in `models.py:99–100` | PLAN.md §34 | Does nothing beyond `super().save()` — dead code |
+| PR-3 | `[x]` | Remove dead `step_count_display()` from `admin.py` | PLAN.md §35 | Never in `list_display`; has N+1 bug and phantom ordering annotation |
+| PR-4 | `[x]` | Replace `fields = '__all__'` with explicit field list in `ProcessForm` | PLAN.md §36 | Exposes auto-managed fields; use explicit list |
+| PR-5 | `[x]` | Flake8 compliance — audit and fix `process/` | PLAN.md §37 | Run flake8 inside Docker; fix all E402/E303/F841 findings |
+| PR-6 | `[x]` | Apply TAT color scheme to `process_landing.html` and `process_flowchart.html` | PLAN.md §38 | TAT dark headers, blue buttons, dashed empty state |
+| PR-7 | `[x]` | Add breadcrumbs to all process app templates | PLAN.md §39 | `process_landing.html`: Home → Processes; `process_flowchart.html`: Home → Processes → [Standard] Flowchart |
+| PR-8 | `[x]` | Expand test coverage — views and model `__str__` methods | PLAN.md §40 | 3 tests today; add view tests, AJAX endpoint tests, model string tests |
+
+---
+
+## Standard App
+
+Code review findings for the `standard` app.
+
+| # | Status | Task | Plan ref | Notes |
+|---|---|---|---|---|
+| ST-1 | `[x]` | Remove dead utility functions `create_standard`, `list_standards`, `get_standard_by_id` from `models.py` | PLAN.md §25 | Never called anywhere; delete all three |
+| ST-2 | `[x]` | Replace `unique_together` with `UniqueConstraint` in `StandardProcess` and `StandardPeriodicRequirement` | PLAN.md §26 | Requires 2 migrations; test in dev first |
+| ST-3 | `[x]` | Remove unused imports: `Q` (models.py), `Count` (views.py), `redirect` (admin.py) | PLAN.md §27 | No functional change; flake8 cleanup |
+| ST-4 | `[x]` | Create missing `process_review.html` template | PLAN.md §28 | View exists but template does not — raises TemplateDoesNotExist |
+| ST-5 | `[x]` | Remove broken `test_standard_create_view` test referencing non-existent URL | PLAN.md §29 | No `standard_create` view or URL exists |
+| ST-6 | `[x]` | Expand test coverage — views and remaining models | PLAN.md §30 | Views untested; StandardProcess, Classification, Notification models untested |
+| ST-7 | `[x]` | Apply TAT color scheme to all standard app templates | PLAN.md §31 | `standard_list.html`, `standard_detail.html`, and `process_review.html` (ST-4); use `--tat-dark`/`--tat-blue` CSS vars |
+| ST-8 | `[x]` | Fix and complete breadcrumbs on all standard app templates | PLAN.md §32 | `standard_list.html` links "Home" to wrong URL; `standard_detail.html` missing Home crumb; `process_review.html` needs crumb from creation |
+
+---
+
 ## Flake8 — Production Build Errors
 
 Errors surfaced during production Docker build (`flake8 --ignore=E501,F401,W503,W504`).

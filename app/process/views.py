@@ -26,21 +26,18 @@ def get_method_info(request):
     if not method_id:
         return JsonResponse({"error": "No method ID provided"}, status=400)
 
-    try:
-        method = Method.objects.get(id=method_id)
-        return JsonResponse(
-            {
-                "title": method.title,
-                "description": method.description,
-                "method_type": method.method_type,
-                "chemical": getattr(method, "chemical", None),
-                "tank_name": getattr(method, "tank_name", None),
-                "is_rectified": getattr(method, "is_rectified", None),
-                "is_strike_etch": getattr(method, "is_strike_etch", None),
-            }
-        )
-    except Method.DoesNotExist:
-        return JsonResponse({"error": "Method not found"}, status=404)
+    method = get_object_or_404(Method, id=method_id)
+    return JsonResponse(
+        {
+            "title": method.title,
+            "description": method.description,
+            "method_type": method.method_type,
+            "chemical": getattr(method, "chemical", None),
+            "tank_name": getattr(method, "tank_name", None),
+            "is_rectified": getattr(method, "is_rectified", None),
+            "is_strike_etch": getattr(method, "is_strike_etch", None),
+        }
+    )
 
 
 class ProcessLandingView(ListView):

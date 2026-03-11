@@ -43,11 +43,3 @@ class ProcessAdmin(admin.ModelAdmin):
     search_fields = ('standard__name',)
     inlines = [ProcessStepInline]
 
-    @admin.display(description='Steps', ordering='_step_count')
-    def step_count_display(self, obj):
-        """Displays the count of ProcessSteps for this Process."""
-        # This performs a query, but it's very useful for the list view
-        count = obj.steps.count()
-        if count == 0:
-            return format_html('<span style="color: red;">{}</span>', count)
-        return count

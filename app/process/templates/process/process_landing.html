@@ -2,12 +2,55 @@
 
 {% block title %}Select Process{% endblock %}
 
+{% block extra_css %}
+<style>
+  .process-heading { color: var(--tat-dark); }
+  .process-heading::after {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 3px;
+    background: var(--tat-blue);
+    margin-top: 6px;
+  }
+  .process-thead th {
+    background-color: var(--tat-dark);
+    color: #fff;
+  }
+  .btn-tat {
+    background-color: var(--tat-blue);
+    border-color: var(--tat-blue);
+    color: #fff;
+  }
+  .btn-tat:hover {
+    background-color: var(--tat-blue-hover, #0052a3);
+    border-color: var(--tat-blue-hover, #0052a3);
+    color: #fff;
+  }
+  .empty-state {
+    border: 2px dashed #ced4da;
+    border-radius: .375rem;
+    padding: 2rem;
+    text-align: center;
+    color: #6c757d;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container my-4">
 
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Processes</li>
+    </ol>
+  </nav>
+
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h1 class="h4 mb-1">Select Process</h1>
+      <h1 class="h4 mb-1 process-heading">Select Process</h1>
       <p class="text-muted mb-0">
         Choose a process to view its flowchart and steps.
       </p>
@@ -26,7 +69,7 @@
         aria-label="Search processes">
     </div>
     <div class="col-sm-4 col-md-3">
-      <button type="submit" class="btn btn-primary w-100">
+      <button type="submit" class="btn btn-tat w-100">
         Search
       </button>
     </div>
@@ -44,7 +87,7 @@
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle">
 
-        <thead class="table-light">
+        <thead class="process-thead">
           <tr>
             <th>Standard</th>
             <th>Classification</th>
@@ -70,7 +113,6 @@
 
               <td>
                 {% if process.standard_process %}
-                  {# StandardProcess has no "name" field; use title or __str__ #}
                   {{ process.standard_process.title|default:process.standard_process }}
                 {% else %}
                   <span class="text-muted">N/A</span>
@@ -85,7 +127,7 @@
 
               <td class="text-end">
                 <a href="{% url 'process_flowchart' process.pk %}"
-                   class="btn btn-outline-primary btn-sm">
+                   class="btn btn-tat btn-sm">
                   View Flowchart
                 </a>
               </td>
@@ -139,8 +181,15 @@
     {% endif %}
 
   {% else %}
-    <div class="alert alert-info mt-3">
-      No processes found. Try adjusting your search or ask engineering to configure processes in the admin.
+    <div class="empty-state mt-3">
+      <p class="mb-0">
+        No processes found.
+        {% if request.GET.q %}
+          Try adjusting your search.
+        {% else %}
+          Ask engineering to configure processes in the admin.
+        {% endif %}
+      </p>
     </div>
   {% endif %}
 
