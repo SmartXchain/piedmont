@@ -61,4 +61,33 @@
                             <span>
                                 {{ addon.name }}
                                 {% if addon.tags.all %}
-                                <small class
+                                <small class="text-muted ms-1">
+                                    {% for t in addon.tags.all %}
+                                        <span class="badge bg-secondary">{{ t.name }}</span>
+                                    {% endfor %}
+                                </small>
+                                {% endif %}
+                            </span>
+                            <span class="fw-bold">${{ addon.price }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
+            <footer class="mt-4 border-top pt-3">
+                <p class="mb-1">
+                    <strong>Total Base Cost:</strong>
+                    ${{ capability.total_cost }}
+                </p>
+                <p class="mb-0 fs-5">
+                    <strong>Total with Add-ons:</strong>
+                    ${{ capability.total_with_addons }}
+                </p>
+            </footer>
+
+        </section>
+    </article>
+</main>
+{% endblock %}

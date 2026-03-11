@@ -1,6 +1,6 @@
-# Remediation Plan
+# Implementation Plan
 
-Based on the code review. Items are ordered by priority.
+Numbered sections correspond to `TASK.md` plan references. Add a new section here before starting any non-trivial feature or fix. Items are ordered by when they were planned.
 
 ---
 
@@ -226,19 +226,354 @@ Target: 70%+ coverage on `part`, `process`, `standard`, and `methods` apps first
 
 ---
 
-## Checklist
+## Checklist (§1–§13 — Remediation Sprint, completed 2026-03-10/11)
 
-- [ ] 1. Move `SECRET_KEY` to env var
-- [ ] 2. Fix `DEBUG` env var parsing
-- [ ] 3. Add login protection system-wide
-- [ ] 4. Remove `@csrf_exempt` from scheduler; add CSRF token to JS
-- [ ] 5. Fix `PartStandard` constraint logic + migrate
-- [ ] 6a. Fix N+1 in fixtures view
-- [ ] 6b. Fix N+1 in kanban view
-- [ ] 7. Replace `print()` with `logging`
-- [ ] 8. Replace `.get()` with `get_object_or_404()`
-- [ ] 9. Fix media file URL in masking view
-- [ ] 10. Change `StandardProcess` FK to `PROTECT` + migrate
-- [ ] 11. Remove unused signal imports
-- [ ] 12. Replace emoji in `Standard.__str__`
-- [ ] 13. Write tests (ongoing)
+- [x] 1. Move `SECRET_KEY` to env var
+- [x] 2. Fix `DEBUG` env var parsing
+- [x] 3. Add login protection system-wide
+- [x] 4. Remove `@csrf_exempt` from scheduler; add CSRF token to JS
+- [x] 5. Fix `PartStandard` constraint logic + migrate
+- [x] 6a. Fix N+1 in fixtures view
+- [x] 6b. Fix N+1 in kanban view
+- [x] 7. Replace `print()` with `logging`
+- [x] 8. Replace `.get()` with `get_object_or_404()`
+- [x] 9. Fix media file URL in masking view
+- [x] 10. Change `StandardProcess` FK to `PROTECT` + migrate
+- [x] 11. Remove unused signal imports
+- [x] 12. Replace emoji in `Standard.__str__`
+- [x] 13. Write tests
+
+---
+
+## 14. Apply TAT Technologies Color Scheme to Shared Templates
+
+**Task ref:** U-1
+**Date planned:** 2026-03-11
+**Status:** Done
+
+### Why
+
+The app is operated by TAT Technologies staff. Matching the corporate color scheme improves brand consistency and professionalism. The original navbar had 13 flat nav items with no grouping — a UX problem on any screen narrower than ~1600px.
+
+### Files changed
+
+- `app/templates/base.html`
+- `app/templates/navbar.html`
+- `app/templates/footer.html`
+
+### Approach
+
+**Color palette (sourced from tat-technologies.com):**
+
+| Token | Hex | Usage |
+|---|---|---|
+| `--tat-dark` | `#2E313F` | Navbar and footer background |
+| `--tat-blue` | `#0066cc` | Active indicator, accent |
+| `--tat-nav-text` | `rgba(255,255,255,0.72)` | Inactive nav link text |
+| `--tat-nav-active` | `#ffffff` | Active nav link text |
+| `--tat-border` | `rgba(255,255,255,0.10)` | Dividers, dropdown borders |
+
+All tokens defined as CSS custom properties in `base.html` so the palette is changed in one place.
+
+**Navbar restructure — 13 flat links → 6 top-level entries:**
+
+| Top-level | Contains |
+|---|---|
+| Home | — |
+| Schedule | — |
+| Operations | Parts & Work Orders, Processes, Masking |
+| Quality | Standards, SDS, Periodic Tests, NDT, Bath Controls |
+| Maintenance | PM Tasks, Fixtures & Racks, Logbook |
+| Inventory | — |
+| Drawings | — |
+
+Dropdown menus use the same dark background with a 2px `--tat-blue` top border. Active state on dropdown toggles (`section-active` class) driven by `request.resolver_match.url_name` and `request.resolver_match.namespace`.
+
+Navbar is `sticky-top` — always visible, never hides on scroll.
+
+**Template extension blocks added to `base.html`:**
+- `{% block extra_css %}` — per-page stylesheets
+- `{% block extra_js %}` — per-page scripts
+- `{% block title %}` — defaults to "Piedmont Aviation"
+
+**Footer:**
+Three-column responsive layout (brand | address | phone). Copyright updated to "TAT Technologies". "Internal use only" notice added.
+
+### No migrations required
+
+Templates only — no model or view changes.
+
+---
+
+## 15. Navbar Brand Rename + Admin De-duplication + Nav Restructure
+
+**Task ref:** U-2
+**Date planned:** 2026-03-11
+**Status:** Done
+
+### Why
+
+- Company rebranded: "Piedmont Aviation" is the old name; correct name is "Greensboro Site" under TAT Technologies.
+- Admin link appeared twice (left nav + right nav) depending on viewport. Consolidated to one, staff-only.
+- Schedule, Inventory, and Drawings were top-level items; user requested they move into logical dropdown groups.
+
+### Files changed
+
+- `app/templates/navbar.html`
+- `app/templates/base.html` (brand CSS only)
+
+### Changes
+
+**Brand:**
+- Replaced gear icon + "Piedmont Aviation" text with TAT Technologies SVG logo (`footerlogo.svg` — designed for dark backgrounds) + pipe separator + "Greensboro Site" text.
+- Logo loaded from `https://tat-technologies.com/wp-content/uploads/2025/02/footerlogo.svg`.
+
+**Admin link:**
+- Removed from left nav entirely.
+- Single Admin link kept in right-side nav, now wrapped in `{% if user.is_staff %}` — non-staff users never see it.
+
+**Nav restructure:**
+
+| Item | Before | After |
+|---|---|---|
+| Schedule | Top-level standalone | Operations dropdown |
+| Inventory | Top-level standalone | Maintenance dropdown (below Logbook) |
+| Drawings | Top-level standalone | Quality dropdown (below Bath Controls) |
+
+Dividers (`<hr class="dropdown-divider">`) separate logical sub-groups within Operations and Quality dropdowns.
+
+### No migrations required
+
+---
+
+## 16. Fix Duplicate Bootstrap JS in PM Landing + Remove Hardcoded NDT Admin Link
+
+**Task ref:** U-3
+**Date planned:** 2026-03-11
+**Status:** Done
+
+### Why
+
+Two bugs found during navbar testing:
+
+1. `pm_landing.html` loaded `bootstrap.bundle.min.js` a second time inside an accordion body. Loading Bootstrap JS twice destroys its event delegation — all dropdowns, collapses, and navbar toggles stop responding after visiting the PM Tasks page.
+2. `ndt/index.html` had a footer-area `<a class="text-decoration-none" href="{% url 'admin:index' %}">Admin</a>`. The `text-decoration-none` class made it look like plain text, causing user confusion about a "second admin with no link." With Admin now in the navbar, this inline link is redundant.
+
+### Files changed
+
+- `app/pm/templates/pm/pm_landing.html` — removed duplicate `<script>` tag (line 125)
+- `app/ndt/templates/ndt/index.html` — removed inline Admin link from page footer
+
+---
+
+## 17. Move Admin into Maintenance Dropdown
+
+**Task ref:** U-4
+**Date planned:** 2026-03-11
+**Status:** Done
+
+### Why
+
+Admin in the right-side rail sat next to the username display, causing confusion (users read username as a second admin entry). Moving Admin into Maintenance groups it with operational tools and keeps the right rail to username + logout only.
+
+### Files changed
+
+- `app/templates/navbar.html` — removed Admin from right-side `navbar-nav`; added as last item in Maintenance dropdown inside `{% if user.is_staff %}`.
+
+---
+
+## 18. Remove Dropdown Dividers
+
+**Task ref:** U-5
+**Date planned:** 2026-03-11
+**Status:** Done
+
+### Why
+
+User preference — dividers added visual noise without sufficient benefit.
+
+### Files changed
+
+- `app/templates/navbar.html` — removed all four `<li><hr class="dropdown-divider"></li>` elements.
+
+---
+
+## 19. Footer Brand Rename
+
+**Task ref:** U-6
+**Date planned:** 2026-03-11
+**Status:** Done
+
+### Why
+
+Footer still referenced old name "Piedmont Aviation" after the navbar brand was updated in U-2.
+
+### Files changed
+
+- `app/templates/footer.html` — "Piedmont Aviation" → "Greensboro Site".
+
+---
+
+## 20. Landing Page — Apply TAT Color Scheme
+
+**Task ref:** LP-1
+**Date planned:** 2026-03-11
+**Status:** Todo
+
+### Why
+
+The landing page (`index.html`) uses its own inline styles and Bootstrap defaults that do not match the TAT Technologies palette established in U-1. The hero section, card styles, accordion headers, and button colors all need to align with `--tat-dark` / `--tat-blue`.
+
+### Approach
+
+- Remove the inline `<style>` block in `index.html` and replace with classes that use the CSS custom properties defined in `base.html`.
+- Hero / page header: dark background (`var(--tat-dark)`), white text.
+- Capability cards: white background, `--tat-blue` accents on hover border and badge.
+- Primary buttons: `--tat-blue` background (`btn` styled to match).
+- No changes to `views.py`, `models.py`, or `urls.py` — template-only.
+
+### Files to change
+
+- `app/landing_page/templates/landing_page/index.html`
+
+---
+
+## 21. Landing Page — Replace Capability Accordion with Process Table
+
+**Task ref:** LP-2
+**Date planned:** 2026-03-11
+**Status:** Todo
+
+### Why
+
+The current home page shows data from the `landing_page` app's own `Capability` model — a manually-maintained pricing catalog that stores `standard` as a plain text string and is completely isolated from the operational Process/Standard/Classification system. The user wants the home page to display the shop's actual certified capabilities, driven by live data from the Process app.
+
+### What to display
+
+A table in the center of the page, grouped by **Standard**, showing every configured **Process** with its **Standard Process** (process type/name) and **Classification** (method/class/type variant).
+
+Example layout:
+
+| Standard | Process Type | Classification |
+|---|---|---|
+| AMS 2700 Rev E | Cadmium Plate | Method A, Class 1 |
+| AMS 2700 Rev E | Cadmium Plate | Method C, Class 2 |
+| AMS 2759/9 | Hydrogen Embrittlement Relief | — |
+
+Rows grouped under a collapsible (or visible) Standard header. Each Standard group shows all Process rows that belong to it.
+
+### Remove
+
+- Search box and client-side JS filter
+- "Expand All / Collapse All" toggle
+- "Download CSV" button and `export_capabilities_csv` view (or keep view but remove from landing page)
+
+### Data query
+
+```python
+# views.py — landing_page index
+from process.models import Process
+
+processes = (
+    Process.objects
+    .select_related('standard', 'standard_process', 'classification')
+    .order_by('standard__name', 'standard_process__title', 'classification__name')
+)
+```
+
+Group in the view using a dict keyed by `standard`:
+
+```python
+from collections import defaultdict
+grouped = defaultdict(list)
+for p in processes:
+    grouped[p.standard].append(p)
+```
+
+Pass `grouped.items()` to the template.
+
+### Template structure
+
+```
+<section>  ← one per Standard
+  <h5>{{ standard.name }} Rev {{ standard.revision }}</h5>
+  <table>
+    <thead>Standard Process | Classification</thead>
+    <tbody>
+      {% for process in processes %}
+        <tr>
+          <td>{{ process.standard_process.title }}</td>
+          <td>{{ process.classification.name|default:"—" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+```
+
+### Files to change
+
+- `app/landing_page/views.py` — update `landing_page` view; remove or stub out `export_capabilities_csv`
+- `app/landing_page/templates/landing_page/index.html` — full rewrite of content section
+
+### No model changes or migrations required
+
+The Capability, CapabilityCategory, AddOn, and related models are untouched (they are still used by `capability_pricing_detail`). Only the home page view changes.
+
+---
+
+## 22. Landing Page — Code Quality Fixes
+
+**Task ref:** LP-3, LP-4, LP-5
+**Date planned:** 2026-03-11
+**Status:** Todo
+
+### LP-3: N+1 in `export_capabilities_csv`
+
+**File:** `app/landing_page/views.py`
+
+```python
+# Before — N+1: one query per capability for addons
+for cap in Capability.objects.all():
+    addons_str = ", ".join([f"{a.name} (${a.price})" for a in cap.addons.all()])
+
+# After
+for cap in Capability.objects.prefetch_related('addons').all():
+    addons_str = ", ".join([f"{a.name} (${a.price})" for a in cap.addons.all()])
+```
+
+### LP-4: N+1 in `capability_pricing_detail`
+
+**File:** `app/landing_page/views.py`
+
+```python
+# Before
+capability = get_object_or_404(Capability, pk=pk)
+
+# After
+capability = get_object_or_404(
+    Capability.objects.select_related('category').prefetch_related('tags', 'addons'),
+    pk=pk,
+)
+```
+
+### LP-5: Remove dead `customer_pricing_view`
+
+**File:** `app/landing_page/views.py`
+
+Delete `customer_pricing_view` entirely — it is not registered in `urls.py` and has never been reachable. Removing it eliminates dead code and a latent unvalidated `request.GET` read.
+
+---
+
+## 23. Landing Page — Tests
+
+**Task ref:** LP-6
+**Date planned:** 2026-03-11
+**Status:** Todo
+
+### What to test
+
+- Home page returns 200 and passes `grouped` context with at least one Standard when processes exist.
+- Home page returns 200 with empty `grouped` context when no processes exist.
+- Auth redirect: unauthenticated request → 302 (already covered by T-6; confirm LP-2 view is protected).
+- `capability_pricing_detail` returns 200 for valid pk, 404 for invalid pk.

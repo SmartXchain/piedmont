@@ -2,6 +2,28 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Workflow
+
+**Every feature addition or significant change must follow this order — no exceptions:**
+
+1. **Plan first — update `PLAN.md`.**
+   Add a numbered section (`## N. Title`) describing: what is changing, why, which files are affected, the specific approach, and any migration or test requirements. Be concrete — include code snippets, file paths, and line numbers where relevant.
+
+2. **Track it — update `TASK.md`.**
+   Add task rows using the next available ID in the appropriate section. Set status to `[~]` In Progress when work begins. For a new category of work, add a new section with a clear heading.
+
+3. **Write the code.**
+   Follow the plan exactly. If the approach changes during implementation, update `PLAN.md` before continuing — the plan is the source of truth, not the chat history.
+
+4. **Close it out.**
+   - Set status to `[x]` Done in `TASK.md`.
+   - Move the item to the Completed table with today's date and a one-line summary.
+   - Add an entry to `CHANGELOG.md`.
+
+> Trivial changes (typo fixes, comment corrections, one-line config tweaks) may skip the plan step, but must still be tracked in `TASK.md` and `CHANGELOG.md`.
+
+---
+
 ## What This Is
 
 Piedmont is an internal Django 5.x web application for an aerospace special-processes shop (Piedmont Aviation). It manages process travelers and work orders for NADCAP-certified surface treatment operations (cadmium plating, anodizing, chemical conversion, stripping, etc.), along with chemical inventory, tank bath controls, preventive maintenance, logbooks, drawings, and NDT records.
@@ -57,7 +79,7 @@ docker compose run web python manage.py migrate
 ### Django
 
 - **Always use `get_object_or_404()`**, never `Model.objects.get()` in views.
-- **All views must have `@login_required`**. The `drawings` app is the reference — follow that pattern. Do not add a view without auth protection.
+- **Auth is handled globally by `LoginRequiredMiddleware`** (Django 5.1+, configured in `settings.py`). Do not add `@login_required` to individual views and do not add `@csrf_exempt` to any view.
 - **Use `select_related` / `prefetch_related`** on any queryset in a view that touches related objects. Never let N+1 queries into views.
 - **Form validation belongs in `clean()` methods**, not in the view. Views call `form.is_valid()` and redirect — nothing more.
 - **Never call `QuerySet.update()`** on models that have business logic in `save()` or `clean()` (e.g. `WorkOrder`, `Standard`, `Method`). Use `.save()` so signals and hooks run.
@@ -157,20 +179,15 @@ Shared templates (`base.html`, `navbar.html`, `footer.html`) are in `app/templat
 
 | File | Purpose |
 |---|---|
-| `plan.md` | Detailed remediation steps for known issues |
+| `PLAN.md` | Detailed implementation plans — updated before every feature/fix |
 | `TASK.md` | Active task tracker — check here before starting work |
 | `CHANGELOG.md` | Record of significant changes |
 | `CONTRIBUTING.md` | Onboarding and workflow for human developers |
+| `NOTES.md` | Compliance context, open decisions, and planning notes |
 | `docs/data-model.md` | Full data model reference |
 
 ---
 
-## Known Issues
+## Known Issues / Next Work
 
-Active issues are tracked in `TASK.md`. The key ones:
-
-- `DEBUG = os.environ.get("DEBUG")` always evaluates truthy (string `"False"` is truthy).
-- Most views have no `@login_required` — only `drawings` is protected.
-- `@csrf_exempt` is on two scheduler write views (`AddDelayView`, `UpdateStatusView`).
-- `PartStandard` has contradictory unique constraints.
-- Test coverage is near zero — only `drawings/tests.py` has real tests.
+Active issues and upcoming work are tracked in `TASK.md`. Check there before starting anything new. Historical resolved issues are in `CHANGELOG.md`.

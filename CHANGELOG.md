@@ -9,12 +9,37 @@ Categories: `Added`, `Changed`, `Fixed`, `Removed`, `Security`, `Migration`
 
 ## Unreleased
 
-No changes pending. See `TASK.md` for the full task history.
+### Landing Page (in progress — see TASK.md LP-1 through LP-6)
+
+- LP-1 `[x]` Apply TAT color scheme to `index.html`
+- LP-2 `[x]` Replace Capability accordion with live Process/Standard/Classification table; remove search, expand-all, CSV
+- LP-3 `[x]` Fix N+1 in `export_capabilities_csv`
+- LP-4 `[x]` Fix N+1 in `capability_pricing_detail`
+- LP-5 `[x]` Remove dead `customer_pricing_view`
+- LP-6 `[x]` Write tests
+
+---
+
+## 2026-03-11 (continued)
+
+- Added: Tests for `landing_page` — 18 tests in 3 classes covering home page status/context/classification labels, `capability_pricing_detail` 200/404/context, `export_capabilities_csv` content-type/headers/data; all auth redirects verified (LP-6)
+- Fixed: Completed truncated `pricing_detail.html` template — file was cut off mid-tag causing `TemplateSyntaxError` on the pricing detail view (LP-6 side fix)
 
 ---
 
 ## 2026-03-11
 
+- Fixed: Footer brand updated from "Piedmont Aviation" to "Greensboro Site" (U-6)
+- Changed: Removed all dropdown dividers from navbar (U-5)
+- Changed: Admin link moved from right-side rail into Maintenance dropdown; staff-only; right rail now shows username + logout only (U-4)
+- Fixed: Removed duplicate Bootstrap JS `<script>` from `pm_landing.html` — was breaking all navbar dropdowns on the PM Tasks page (U-3)
+- Fixed: Removed hardcoded Admin link from `ndt/index.html` page footer — was styled as plain text, causing confusion with the navbar Admin entry (U-3)
+- Changed: Navbar brand updated — "Piedmont Aviation" replaced with TAT Technologies SVG logo + "Greensboro Site"; Admin link consolidated to one entry, staff-only; Schedule moved into Operations, Inventory into Maintenance, Drawings into Quality (U-2)
+- Changed: Applied TAT Technologies color scheme to shared templates (`base.html`, `navbar.html`, `footer.html`) — dark navy `#2E313F` background, `#0066cc` blue accent, CSS custom properties for single-source color management (U-1)
+- Changed: Restructured navbar from 13 flat links into logical dropdown groups (Operations, Quality, Maintenance); navbar is now `sticky-top` and never autohides (U-1)
+- Changed: Footer updated to three-column responsive layout; copyright updated to TAT Technologies (U-1)
+- Changed: Added `{% block extra_css %}` and `{% block extra_js %}` extension points to `base.html` for per-page assets (U-1)
+- Changed: `PLAN.md` renamed from remediation plan to living implementation plan; workflow rule added to `CLAUDE.md` requiring plan and task entries before writing code
 - Added: Tests for kanban stock level and expiry logic — `ChemicalLot.status` (all 4 states), `Product.total_quantity`, `Product.needs_reorder`, dashboard bucket placement at/above/below trigger level (T-5, 19 tests in `kanban/tests.py`)
 - Added: Auth redirect tests for every named URL in the project — 44 no-arg views and 37 detail views each verified to return HTTP 302 → `/login/` for unauthenticated requests (T-6, `app/test_login.py`)
 

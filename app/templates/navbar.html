@@ -1,116 +1,209 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm" role="navigation" aria-label="Main navigation">
-  <div class="container-fluid">
-    
-    <a class="navbar-brand fw-bold" href="{% url 'home' %}">
-      <i class="bi bi-gear-fill me-1"></i> Piedmont Aviation
+{% with url_name=request.resolver_match.url_name ns=request.resolver_match.namespace %}
+
+<nav class="navbar navbar-dark navbar-expand-lg sticky-top tat-navbar shadow-sm"
+     role="navigation"
+     aria-label="Main navigation">
+  <div class="container-fluid px-3">
+
+    <!-- Brand: TAT Technologies logo + site name -->
+    <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}" aria-label="Greensboro Site home">
+      <img src="https://tat-technologies.com/wp-content/uploads/2025/02/footerlogo.svg"
+           alt="TAT Technologies"
+           height="26"
+           style="width:auto;"
+           loading="eager">
+      <span class="brand-separator" aria-hidden="true">|</span>
+      <span class="brand-site">Greensboro Site</span>
     </a>
 
-    <!-- Toggler -->
+    <!-- Mobile toggler -->
     <button
       class="navbar-toggler"
       type="button"
       data-bs-toggle="collapse"
-      data-bs-target="#navbarNav"
-      aria-controls="navbarNav"
+      data-bs-target="#mainNav"
+      aria-controls="mainNav"
       aria-expanded="false"
       aria-label="Toggle navigation"
     >
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- Nav Links -->
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto align-items-lg-center">
 
+        <!-- Home -->
         <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}" title="Home">
-            <i class="bi bi-house-door-fill me-1"></i> Home
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'scheduler:main' %}active{% endif %}" href="{% url 'scheduler:main' %}" title="Scheduler">
-            <i class="bi bi-building me-1"></i> Schedule
+          <a class="nav-link {% if url_name == 'home' %}active{% endif %}"
+             href="{% url 'home' %}"
+             {% if url_name == 'home' %}aria-current="page"{% endif %}>
+            <i class="bi bi-house-door-fill me-1" aria-hidden="true"></i>Home
           </a>
         </li>
 
-
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'operator_start' %}active{% endif %}" href="{% url 'operator_start' %}" title="Parts">
-            <i class="bi bi-box-seam me-1"></i> Parts
+        <!-- Operations: Schedule · Parts & Work Orders · Processes · Masking -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle
+               {% if ns == 'scheduler' or url_name == 'operator_start' or url_name == 'part_list' or url_name == 'part_create' or url_name == 'part_detail' or url_name == 'part_assign_standard' or url_name == 'work_order_create' or url_name == 'work_order_detail' or url_name == 'global_template_list' or url_name == 'template_selection' or url_name == 'template_process_print' or url_name == 'process_landing' or url_name == 'masking_list' or url_name == 'masking_process_add' or url_name == 'masking_process_detail' or url_name == 'masking_process_edit' or url_name == 'masking_step_list' or url_name == 'masking_step_add' or url_name == 'masking_step_edit' %}section-active{% endif %}"
+             href="#"
+             role="button"
+             data-bs-toggle="dropdown"
+             aria-expanded="false">
+            <i class="bi bi-tools me-1" aria-hidden="true"></i>Operations
           </a>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item {% if ns == 'scheduler' %}active{% endif %}"
+                 href="{% url 'scheduler:main' %}">
+                <i class="bi bi-calendar3" aria-hidden="true"></i>Schedule
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if url_name == 'operator_start' or url_name == 'part_list' or url_name == 'part_create' or url_name == 'part_detail' or url_name == 'work_order_create' or url_name == 'work_order_detail' or url_name == 'global_template_list' %}active{% endif %}"
+                 href="{% url 'operator_start' %}">
+                <i class="bi bi-box-seam" aria-hidden="true"></i>Parts &amp; Work Orders
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if url_name == 'process_landing' %}active{% endif %}"
+                 href="{% url 'process_landing' %}">
+                <i class="bi bi-diagram-3" aria-hidden="true"></i>Processes
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if url_name == 'masking_list' or url_name == 'masking_process_add' or url_name == 'masking_process_detail' or url_name == 'masking_process_edit' or url_name == 'masking_step_list' or url_name == 'masking_step_add' or url_name == 'masking_step_edit' %}active{% endif %}"
+                 href="{% url 'masking_list' %}">
+                <i class="bi bi-brush" aria-hidden="true"></i>Masking
+              </a>
+            </li>
+          </ul>
         </li>
 
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'standard_list' %}active{% endif %}" href="{% url 'standard_list' %}" title="Standards">
-            <i class="bi bi-journals me-1"></i> Standards
+        <!-- Quality: Standards · SDS · Periodic Tests · NDT · Bath Controls · Drawings -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle
+               {% if url_name == 'standard_list' or url_name == 'standard_detail' or url_name == 'process_review' or url_name == 'chemical_list' or url_name == 'periodic_testing_landing' or url_name == 'daily_view' or url_name == 'weekly_view' or url_name == 'monthly_tests' or url_name == 'semi_annual_view' or url_name == 'annual_view' or url_name == 'failure_log_view' or url_name == 'daily_task_summary' or url_name == 'tank_list' or url_name == 'tank_detail' or ns == 'ndt' or ns == 'drawings' %}section-active{% endif %}"
+             href="#"
+             role="button"
+             data-bs-toggle="dropdown"
+             aria-expanded="false">
+            <i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>Quality
           </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'process_landing' %}active{% endif %}" href="{% url 'process_landing' %}" title="Processes">
-            <i class="bi bi-stack me-1"></i> Processes
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'masking_list' %}active{% endif %}" href="{% url 'masking_list' %}" title="Masking">
-            <i class="bi bi-brush me-1"></i> Masking
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'chemical_list' %}active{% endif %}" href="{% url 'chemical_list' %}" title="SDS">
-            <i class="bi bi-radioactive me-1"></i> SDS
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'pm_landing_page' %}active{% endif %}" href="{% url 'pm_landing_page' %}" title="Maintenance">
-            <i class="bi bi-bug me-1"></i> Maintenance
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'periodic_testing' %}active{% endif %}" href="{% url 'periodic_testing_landing' %}" title="Periodic Tests">
-            <i class="bi bi-substack me-1"></i> Periodic Tests
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'tank_controls' %}active{% endif %}" href="{% url 'tank_list' %}" title="Controls">
-            <i class="bi bi-controller me-1"></i> Controls
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'logbook' %}active{% endif %}" href="{% url 'logbook:index' %}" title="Logbook">
-            <i class="bi bi-journals me-1"></i> Logbook
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if request.resolver_match.url_name == 'ndt' %}active{% endif %}" href="{% url 'ndt:index' %}" title="ndt">
-            <i class="bi bi-shield-check me-1"></i> NDT
-          </a>
-        </li>
-       <li class="nav-item">
-          <a class="nav-link" href="/admin/" target="_blank" title="Admin Dashboard">
-            <i class="bi bi-person-lock me-1"></i> Admin
-          </a>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item {% if url_name == 'standard_list' or url_name == 'standard_detail' or url_name == 'process_review' %}active{% endif %}"
+                 href="{% url 'standard_list' %}">
+                <i class="bi bi-journals" aria-hidden="true"></i>Standards
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if url_name == 'chemical_list' %}active{% endif %}"
+                 href="{% url 'chemical_list' %}">
+                <i class="bi bi-radioactive" aria-hidden="true"></i>SDS
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if url_name == 'periodic_testing_landing' or url_name == 'daily_view' or url_name == 'weekly_view' or url_name == 'monthly_tests' or url_name == 'semi_annual_view' or url_name == 'annual_view' or url_name == 'failure_log_view' or url_name == 'daily_task_summary' %}active{% endif %}"
+                 href="{% url 'periodic_testing_landing' %}">
+                <i class="bi bi-clipboard-data" aria-hidden="true"></i>Periodic Tests
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if ns == 'ndt' %}active{% endif %}"
+                 href="{% url 'ndt:index' %}">
+                <i class="bi bi-search" aria-hidden="true"></i>NDT
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if url_name == 'tank_list' or url_name == 'tank_detail' %}active{% endif %}"
+                 href="{% url 'tank_list' %}">
+                <i class="bi bi-sliders" aria-hidden="true"></i>Bath Controls
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if ns == 'drawings' %}active{% endif %}"
+                 href="{% url 'drawings:operator_list' %}">
+                <i class="bi bi-file-earmark-ruled" aria-hidden="true"></i>Drawings
+              </a>
+            </li>
+          </ul>
         </li>
 
-        <!-- User / Logout -->
+        <!-- Maintenance: PM Tasks · Fixtures & Racks · Logbook · Inventory · Admin -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle
+               {% if url_name == 'pm_landing_page' or url_name == 'rack_list' or url_name == 'rack_detail' or url_name == 'pm_calendar' or ns == 'logbook' or url_name == 'kanban_dashboard' or url_name == 'product_list' or url_name == 'product_detail' or url_name == 'export_inventory_report' %}section-active{% endif %}"
+             href="#"
+             role="button"
+             data-bs-toggle="dropdown"
+             aria-expanded="false">
+            <i class="bi bi-wrench-adjustable me-1" aria-hidden="true"></i>Maintenance
+          </a>
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item {% if url_name == 'pm_landing_page' %}active{% endif %}"
+                 href="{% url 'pm_landing_page' %}">
+                <i class="bi bi-check2-square" aria-hidden="true"></i>PM Tasks
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if url_name == 'rack_list' or url_name == 'rack_detail' or url_name == 'pm_calendar' %}active{% endif %}"
+                 href="{% url 'rack_list' %}">
+                <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>Fixtures &amp; Racks
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if ns == 'logbook' %}active{% endif %}"
+                 href="{% url 'logbook:index' %}">
+                <i class="bi bi-book" aria-hidden="true"></i>Logbook
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item {% if url_name == 'kanban_dashboard' or url_name == 'product_list' or url_name == 'product_detail' %}active{% endif %}"
+                 href="{% url 'kanban_dashboard' %}">
+                <i class="bi bi-boxes" aria-hidden="true"></i>Inventory
+              </a>
+            </li>
+            {% if user.is_staff %}
+            <li>
+              <a class="dropdown-item"
+                 href="/admin/"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                <i class="bi bi-person-gear" aria-hidden="true"></i>Admin
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </li>
+
+      </ul>{# end .navbar-nav me-auto #}
+
+      <!-- Right side: username · logout -->
+      <ul class="navbar-nav align-items-lg-center gap-1 ms-lg-3">
+
         {% if user.is_authenticated %}
-        <li class="nav-item d-flex align-items-center ms-2">
-          <span class="navbar-text text-light opacity-75 small me-2">
-            <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+        <li class="nav-item d-flex align-items-center">
+          <span class="user-badge" title="Logged in as {{ user.username }}">
+            <i class="bi bi-person-circle" aria-hidden="true"></i>
+            <span class="d-none d-xl-inline ms-1">{{ user.username }}</span>
           </span>
-          <form method="post" action="{% url 'logout' %}">
+        </li>
+        <li class="nav-item">
+          <form method="post" action="{% url 'logout' %}" class="m-0">
             {% csrf_token %}
-            <button type="submit" class="btn btn-outline-light btn-sm">
-              <i class="bi bi-box-arrow-right me-1"></i> Logout
+            <button type="submit"
+                    class="btn btn-sm btn-outline-light px-2 py-1"
+                    style="font-size:0.8rem; border-color:rgba(255,255,255,0.3);">
+              <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>Logout
             </button>
           </form>
         </li>
         {% endif %}
 
-      </ul>
-    </div>
-  </div>
+      </ul>{# end right .navbar-nav #}
+    </div>{# end #mainNav #}
+  </div>{# end .container-fluid #}
 </nav>
+
+{% endwith %}
